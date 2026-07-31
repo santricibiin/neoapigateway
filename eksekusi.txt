@@ -1,0 +1,48 @@
+Buatkan boilerplate dan struktur proyek web lengkap menggunakan tech stack berikut:
+- Framework: Next.js (App Router)
+- UI Library: React, Tailwind CSS, Framer Motion (untuk animasi)
+- ORM & Database: Prisma ORM dengan MySQL (Environment lokal: Laragon)
+
+### Arah Visual & Desain (Neobrutalisme Kalem)
+1. Tema Utama: Neobrutalisme yang modern dan tenang (Soft Neobrutalism).
+2. Karakteristik UI:
+   - Border tebal hitam padat (2px hingga 4px) dengan radius sedikit melengkung (rounded-md/rounded-lg).
+   - Shadow tegas tanpa blur (box-shadow offset, contoh: `shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`).
+   - Kontras tinggi namun tidak menyakitkan mata.
+3. Palet Warna (Tailwind Class Custom/Variables):
+   - Warna Utama Background: Putih cerah kalem / Off-white (`#F8F9FA` atau `#F3F4F6`)
+   - Aksen Warna 1: Biru Muda Kalem (`#7DD3FC` / `#A5F3FC`)
+   - Aksen Warna 2: Kuning Pastel/Soft (`#FDE047` / `#FEF08A`)
+   - Aksen Tambahan (Opsional): Mint Soft (`#86EFAC`) atau Lavender Soft (`#C4B5FD`)
+   - Text & Border: Hitam Pekat (`#0F172A` atau `#000000`)
+4. Interaksi & Animasi:
+   - Gunakan Framer Motion untuk micro-interactions (hover effect tombol amblas/press offset, smooth scroll, dan fade-in modal/card).
+
+### Aturan Kode & Kualitas (Strict Rules)
+1. BERSIH DARI KOMENTAR: Seluruh berkas kode (TSX, TS, CSS, SQL, Prisma) DILARANG KERAS memiliki baris komentar apapun (tanpa `//`, `/* */`, atau `{/* */}`).
+2. Clean Code & Modular: Pisahkan UI components, server actions/API routes, Prisma client instance, dan type definitions.
+3. Error Handling: Tangani error handling pada Prisma & Server Actions dengan async/catch pattern yang rapi tanpa menyebabkan app crash.
+
+### Struktur Folder Proyek
+Buatkan struktur folder seperti berikut:
+src/
+├── app/
+│   ├── api/
+│   ├── (routes)/
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css
+├── components/
+│   ├── ui/          (Card, Button, Input, Modal neobrutalism)
+│   └── shared/      (Navbar, Footer)
+├── lib/
+│   ├── prisma.ts    (Global Prisma Client instance untuk Next.js)
+│   └── utils.ts     (Utility cn helper dengan clsx & tailwind-merge)
+└── types/
+
+### Item yang Harus Dihasilkan Pertama Kali:
+1. `prisma/schema.prisma` (Konfigurasi provider mysql dengan model dasar `User` dan `Post`).
+2. Konfigurasi `tailwind.config.js` yang mencakup custom shadows dan palet warna neobrutalisme di atas.
+3. `src/lib/prisma.ts` singleton instance untuk mencegah multiple connection saat hot-reload.
+4. `src/components/ui/button.tsx` & `src/components/ui/card.tsx` dengan varian gaya neobrutalisme + animasi Framer Motion.
+5. `src/app/page.tsx` berisi landing page sederhana yang menampilkan implementasi komponen UI di atas.
