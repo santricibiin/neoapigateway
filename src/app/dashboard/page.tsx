@@ -1,92 +1,90 @@
-import { prisma } from "@/lib/prisma";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
+import { getSettings } from "@/app/actions/settings";
+import { fetchResellerKeys, type ResellerKey } from "@/lib/bandelbanget";
+
+export const dynamic = "force-dynamic";
+
+type ModelUsage = { total_tokens?: number; prompt_tokens?: number; completion_tokens?: number; requests?: number };
+
+function number(value: unknown) {
+  const result = Number(value || 0);
+  return Number.isFinite(result) ? result : 0;
+}
+
+function modelRows(key: ResellerKey) {
+  const byModel = key.usage?.by_model;
+  return byModel && typeof byModel === "object" ? (byModel as Record<string, ModelUsage>) : {};
+}
 
 export default async function DashboardPage() {
-  const [tokens, transactions, adminCount] = await Promise.all([
-    prisma.token.findMany({ orderBy: { createdAt: "desc" } }),
-    prisma.transaction.findMany({
-      orderBy: { createdAt: "desc" },
-      include: { token: true },
-    }),
-    prisma.admin.count(),
-  ]);
+  const settings = await getSettings();
+  let keys: ResellerKey[] = [];
+  let error: string | null = null;
+  if (!settings.secretKey) {
+    error = "Secret Key reseller belum diatur";
+  } else {
+    try {
+      keys = (await fetchResellerKeys(settings.secretKey)).keys;
+    } catch (reason) {
+      error = reason instanceof Error ? reason.message : "Gagal mengambil data customer";
+    }
+  }
 
-  const totalRevenue = transactions
-    .filter((t) => t.status === "success")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalQuota = keys.reduce((sum, key) => sum + number(key.maxTokens), 0);
+  const usedQuota = keys.reduce((sum, key) => sum + number(key.usage?.total_tokens), 0);
+  const totalRequests = keys.reduce((sum, key) => sum + number(key.usage?.requests), 0);
+  const promptTokens = keys.reduce((sum, key) => sum + number(key.usage?.prompt_tokens), 0);
+  const completionTokens = keys.reduce((sum, key) => sum + number(key.usage?.completion_tokens), 0);
 
-  const totalSold = tokens.reduce((sum, t) => sum + t.sold, 0);
-  const totalStock = tokens.reduce((sum, t) => sum + t.stock, 0);
+  const modelMap = new Map<string, { tokens: number; requests: number }>();
+  for (const key of keys) {
+    for (const [name, usage] of Object.entries(modelRows(key))) {
+      const current = modelMap.get(name) || { tokens: 0, requests: 0 };
+      current.tokens += number(usage.total_tokens);
+      current.requests += number(usage.requests);
+      modelMap.set(name, current);
+    }
+  }
 
-  const last7Days = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (6 - i));
-    const dayStart = new Date(date);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(date);
-    dayEnd.setHours(23, 59, 59, 999);
+  const modelUsage = Array.from(modelMap, ([name, usage]) => ({ name, ...usage }))
+    .sort((a, b) => b.tokens - a.tokens)
+    .slice(0, 8);
 
-    const dayTransactions = transactions.filter((t) => {
-      const created = new Date(t.createdAt);
-      return created >= dayStart && created <= dayEnd && t.status === "success";
-    });
-
-    return {
-      day: date.toLocaleDateString("id-ID", { weekday: "short" }),
-      revenue: dayTransactions.reduce((s, t) => s + Number(t.amount), 0),
-      count: dayTransactions.length,
-    };
-  });
-
-  const tokenSales = tokens.map((t) => ({
-    name: t.name,
-    sold: t.sold,
-    stock: t.stock,
-  }));
+  const customerUsage = keys
+    .map((key) => ({
+      name: key.name || `#${key.id}`,
+      used: number(key.usage?.total_tokens),
+      requests: number(key.usage?.requests),
+    }))
+    .sort((a, b) => b.used - a.used)
+    .slice(0, 7);
 
   const statusBreakdown = [
-    {
-      name: "Sukses",
-      value: transactions.filter((t) => t.status === "success").length,
-      color: "#86EFAC",
-    },
-    {
-      name: "Pending",
-      value: transactions.filter((t) => t.status === "pending").length,
-      color: "#FDE047",
-    },
-    {
-      name: "Gagal",
-      value: transactions.filter((t) => t.status === "failed").length,
-      color: "#FCA5A5",
-    },
+    { name: "Aktif", value: keys.filter((key) => key.status === "active").length, color: "#86EFAC" },
+    { name: "Habis", value: keys.filter((key) => key.status === "exceeded").length, color: "#FDE047" },
+    { name: "Expired", value: keys.filter((key) => key.status === "expired").length, color: "#FCA5A5" },
   ];
 
-  const stats = {
-    totalRevenue,
-    totalSold,
-    totalStock,
-    totalTransactions: transactions.length,
-    adminCount,
-  };
-
-  const recentTransactions = transactions.slice(0, 5).map((t) => ({
-    id: t.id,
-    buyerName: t.buyerName,
-    buyerEmail: t.buyerEmail,
-    tokenName: t.token.name,
-    amount: Number(t.amount),
-    status: t.status,
-    createdAt: t.createdAt.toISOString(),
-  }));
+  const topCustomers = keys
+    .map((key) => ({
+      id: String(key.id),
+      name: key.name || "Tanpa nama",
+      status: key.status || "unknown",
+      used: number(key.usage?.total_tokens),
+      max: number(key.maxTokens),
+      requests: number(key.usage?.requests),
+    }))
+    .sort((a, b) => b.used - a.used)
+    .slice(0, 6);
 
   return (
     <DashboardClient
-      stats={stats}
-      last7Days={last7Days}
-      tokenSales={tokenSales}
+      stats={{ totalCustomers: keys.length, totalQuota, usedQuota, remainingQuota: Math.max(0, totalQuota - usedQuota), totalRequests, promptTokens, completionTokens }}
+      customerUsage={customerUsage}
+      modelUsage={modelUsage}
       statusBreakdown={statusBreakdown}
-      recentTransactions={recentTransactions}
+      topCustomers={topCustomers}
+      error={error}
     />
   );
 }

@@ -11,16 +11,20 @@ import {
   Settings,
   KeyRound,
   WalletCards,
+  Newspaper,
+  FolderOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menu = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/tokens", label: "Token", icon: Package },
+  { href: "/dashboard/categories", label: "Kategori", icon: FolderOpen },
+  { href: "/dashboard/tokens", label: "Produk", icon: Package },
   { href: "/dashboard/transactions", label: "Transaksi", icon: ShoppingCart },
   { href: "/dashboard/reseller", label: "Reseller", icon: Users },
   { href: "/dashboard/customer-keys", label: "Customer Keys", icon: KeyRound },
   { href: "/dashboard/topup", label: "Topup", icon: WalletCards },
+  { href: "/dashboard/news", label: "Berita", icon: Newspaper },
   { href: "/dashboard/settings", label: "Pengaturan", icon: Settings },
 ];
 
@@ -42,7 +46,7 @@ export function DashboardSidebar({
       <nav className="flex-1 overflow-y-auto p-3">
         <ul className="flex flex-col gap-2">
           {menu.map((item) => {
-            const active = pathname === item.href;
+            const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
             const Icon = item.icon;
             return (
               <li key={item.href}>

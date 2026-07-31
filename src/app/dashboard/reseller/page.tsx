@@ -34,15 +34,11 @@ export default async function ResellerPage() {
   try {
     const keysRes = await fetchResellerKeys(settings.secretKey);
     keys = keysRes.keys;
-  } catch {
-    // non-critical
-  }
+  } catch {}
 
   try {
     activity = await fetchResellerActivity(settings.secretKey);
-  } catch {
-    // non-critical
-  }
+  } catch {}
 
   return (
     <ResellerClient

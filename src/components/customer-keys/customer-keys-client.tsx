@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, KeyRound, Search, ShieldCheck, TriangleAlert } from "lucide-react";
+import { ChevronLeft, ChevronRight, CirclePlus, ExternalLink, KeyRound, Search, ShieldCheck, TriangleAlert, UserRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import type { ResellerKey } from "@/lib/bandelbanget";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
+import { QUOTA_PACKAGES, type ResellerKey } from "@/lib/bandelbanget";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 10;
@@ -28,6 +31,17 @@ function pages(current: number, total: number) {
   return Array.from({ length: Math.min(5, total) }, (_, index) => start + index);
 }
 
+function dashboardPath(key: ResellerKey) {
+  if (key.secretToken) return `/quota/${encodeURIComponent(key.secretToken)}`;
+  if (!key.dashboardUrl) return null;
+  try {
+    const token = new URL(key.dashboardUrl).pathname.split("/").filter(Boolean).pop();
+    return token ? `/quota/${encodeURIComponent(token)}` : null;
+  } catch {
+    return null;
+  }
+}
+
 export function CustomerKeysClient({
   initialKeys,
   error,
@@ -38,21 +52,37 @@ export function CustomerKeysClient({
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [page, setPage] = useState(1);
+  const [keys, setKeys] = useState(initialKeys);
+  const [quotaTarget, setQuotaTarget] = useState<ResellerKey | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => setKeys(initialKeys), [initialKeys]);
 
   const totals = useMemo(() => ({
-    all: initialKeys.length,
-    active: initialKeys.filter((key) => key.status === "active").length,
-    exceeded: initialKeys.filter((key) => key.status === "exceeded").length,
-  }), [initialKeys]);
+    all: keys.length,
+    active: keys.filter((key) => key.status === "active").length,
+    exceeded: keys.filter((key) => key.status === "exceeded").length,
+  }), [keys]);
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
-    return initialKeys.filter((key) => {
+    return keys.filter((key) => {
       const matchesFilter = filter === "all" || key.status === filter;
       const matchesQuery = !term || key.name?.toLowerCase().includes(term) || String(key.id).toLowerCase().includes(term);
       return matchesFilter && matchesQuery;
     });
-  }, [filter, initialKeys, query]);
+  }, [filter, keys, query]);
+
+  async function refreshKeys() {
+    setRefreshing(true);
+    try {
+      const response = await fetch("/dashboard/customer-keys/api", { cache: "no-store" });
+      const body = await response.json();
+      if (response.ok && body.ok) setKeys(body.keys as ResellerKey[]);
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const visibleKeys = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -129,6 +159,7 @@ export function CustomerKeysClient({
                       <th className="px-4 py-3">Pemakaian Token</th>
                       <th className="px-4 py-3">Request</th>
                       <th className="px-4 py-3">Masa Aktif</th>
+                      <th className="px-4 py-3">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y-2 divide-base-ink/15">
@@ -137,6 +168,7 @@ export function CustomerKeysClient({
                       const limit = key.maxTokens ?? 0;
                       const percentage = limit ? Math.min(100, Math.round((used / limit) * 100)) : 0;
                       const active = key.status === "active";
+                      const dashboard = dashboardPath(key);
                       return (
                         <tr key={key.id} className="bg-base-surface transition-colors hover:bg-accent-sky/10">
                           <td className="px-4 py-3.5">
@@ -166,6 +198,19 @@ export function CustomerKeysClient({
                           <td className="px-4 py-3.5">
                             <p className="text-xs font-bold">{formatDate(key.expiresAt)}</p>
                             <p className="mt-1 text-[10px] text-base-ink/45">{key.validDays ?? "-"} hari</p>
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <div className="flex min-w-[190px] flex-col gap-2">
+                              {dashboard ? (
+                                <a href={dashboard} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-1.5 rounded-neo border-2 border-base-ink bg-accent-sun px-3 py-2 text-xs font-extrabold shadow-neo-sm transition-transform hover:-translate-y-0.5">
+                                  Buka dashboard
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </a>
+                              ) : null}
+                              <button type="button" onClick={() => setQuotaTarget(key)} className="inline-flex items-center justify-center gap-1.5 rounded-neo border-2 border-base-ink bg-accent-mint px-3 py-2 text-xs font-extrabold shadow-neo-sm transition-transform hover:-translate-y-0.5">
+                                <CirclePlus className="h-3.5 w-3.5" /> Add quota
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -205,6 +250,88 @@ export function CustomerKeysClient({
           )}
         </>
       )}
+      <AddQuotaModal target={quotaTarget} onClose={() => setQuotaTarget(null)} onSuccess={refreshKeys} refreshing={refreshing} />
     </div>
+  );
+}
+
+function AddQuotaModal({ target, onClose, onSuccess, refreshing }: { target: ResellerKey | null; onClose: () => void; onSuccess: () => Promise<void>; refreshing: boolean }) {
+  const packageCodes = Object.keys(QUOTA_PACKAGES) as Array<keyof typeof QUOTA_PACKAGES>;
+  const [mode, setMode] = useState<"package" | "custom">("package");
+  const [packageCode, setPackageCode] = useState<keyof typeof QUOTA_PACKAGES>("5M");
+  const [tokens, setTokens] = useState("5000000");
+  const [days, setDays] = useState("7");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!target) return;
+    setMode("package");
+    setPackageCode("5M");
+    setTokens("5000000");
+    setDays("7");
+    setMessage(null);
+    setError(null);
+  }, [target]);
+
+  async function submit() {
+    if (!target || loading) return;
+    setLoading(true);
+    setMessage(null);
+    setError(null);
+    try {
+      const response = await fetch("/dashboard/customer-keys/api/add-quota", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetKeyId: target.id,
+          targetName: target.name || "Tanpa nama",
+          packageCode: mode === "package" ? packageCode : undefined,
+          addTokens: mode === "custom" ? Number(tokens) : undefined,
+          validDays: mode === "custom" ? Number(days) : undefined,
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok || !body.ok) throw new Error(body.error || "Tambah kuota gagal");
+      const remaining = body.remainingQuota == null ? "" : ` · Sisa reseller ${formatNumber(Number(body.remainingQuota))}`;
+      setMessage(`Berhasil +${formatNumber(Number(body.addTokens))} token · ${body.validDays} hari${remaining}`);
+      await onSuccess();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Tambah kuota gagal");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const selected = QUOTA_PACKAGES[packageCode];
+
+  return (
+    <Modal open={Boolean(target)} onClose={onClose} title="Tambah Kuota Customer" className="max-h-[92vh] overflow-y-auto">
+      {target ? (
+        <div className="space-y-4">
+          <div className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-sky p-4 shadow-neo-sm">
+            <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 text-white/35"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg>
+            <div className="relative flex items-center gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-white"><UserRound className="h-5 w-5" /></span><div className="min-w-0"><p className="truncate text-lg font-black">{target.name || "Tanpa nama"}</p><p className="font-mono text-xs font-bold">Customer ID #{target.id}</p></div></div>
+          </div>
+          <p className="rounded-neo border-2 border-base-ink bg-accent-sunSoft p-3 text-xs font-bold">Kuota yang ditambahkan akan memotong saldo quota reseller. Pastikan ID dan nama customer benar.</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => setMode("package")} className={cn("rounded-neo border-2 border-base-ink px-3 py-2 text-sm font-extrabold", mode === "package" ? "bg-accent-lavender shadow-neo-sm" : "bg-white")}>Paket</button>
+            <button type="button" onClick={() => setMode("custom")} className={cn("rounded-neo border-2 border-base-ink px-3 py-2 text-sm font-extrabold", mode === "custom" ? "bg-accent-lavender shadow-neo-sm" : "bg-white")}>Custom</button>
+          </div>
+          {mode === "package" ? (
+            <div className="grid grid-cols-3 gap-2">
+              {packageCodes.map((code) => <button key={code} type="button" onClick={() => setPackageCode(code)} className={cn("rounded-neo border-2 border-base-ink px-2 py-3 text-sm font-black", packageCode === code ? "bg-accent-mint shadow-neo-sm" : "bg-base-bg")}>{code}<span className="mt-0.5 block text-[9px] font-bold text-base-ink/50">{QUOTA_PACKAGES[code].validDays} hari</span></button>)}
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2"><Input label="Jumlah token" type="number" min={1} max={10000000000} step={1} value={tokens} onChange={(event) => setTokens(event.target.value)} /><Input label="Masa aktif (hari)" type="number" min={1} max={365} step={1} value={days} onChange={(event) => setDays(event.target.value)} /></div>
+          )}
+          <div className="rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold"><p>Tambah: <span className="font-black">{formatNumber(mode === "package" ? selected.tokens : Number(tokens))} token</span></p><p>Masa aktif: <span className="font-black">{mode === "package" ? selected.validDays : Number(days)} hari</span></p></div>
+          {message ? <p className="rounded-neo border-2 border-base-ink bg-accent-mint p-3 text-sm font-bold">{message}{refreshing ? " · Memuat data..." : ""}</p> : null}
+          {error ? <p className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{error}</p> : null}
+          <Button type="button" className="w-full" disabled={loading || refreshing} onClick={() => void submit()}><CirclePlus className="h-4 w-4" />{loading ? "Menambahkan..." : message ? "Tambah Lagi" : "Konfirmasi Tambah Kuota"}</Button>
+        </div>
+      ) : null}
+    </Modal>
   );
 }

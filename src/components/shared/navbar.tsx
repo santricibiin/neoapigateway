@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/posts", label: "Posts" },
-  { href: "/about", label: "About" },
+  { href: "/cek-kuota", label: "Cek Kuota" },
 ];
 
 export function Navbar() {
@@ -36,9 +35,9 @@ export function Navbar() {
             </li>
           ))}
         </ul>
-        <Button variant="sky" size="sm">
-          Get Started
-        </Button>
+        <Link href="/cek-kuota">
+          <Button variant="sky" size="sm">Cek Kuota</Button>
+        </Link>
       </nav>
     </motion.header>
   );

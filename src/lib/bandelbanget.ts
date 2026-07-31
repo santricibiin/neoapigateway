@@ -1,4 +1,6 @@
-const BASE_URL = "https://bandelbanget.xyz";
+import { bandelUpstreamBase } from "@/lib/bandel-upstream";
+
+const BASE_URL = bandelUpstreamBase();
 
 export interface ResellerData {
   id?: string;
@@ -34,12 +36,21 @@ export interface ResellerKey {
     prompt_tokens?: number;
     completion_tokens?: number;
     requests?: number;
+    by_model?: Record<string, {
+      total_tokens?: number;
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      requests?: number;
+    }>;
     [k: string]: unknown;
   };
   expiresAt?: string | null;
   createdAt?: string;
   tag?: string | null;
   pinSet?: boolean;
+  secretToken?: string | null;
+  dashboardUrl?: string | null;
+  publicDashboardUrl?: string | null;
   [k: string]: unknown;
 }
 
@@ -108,9 +119,53 @@ export interface CreatedTopup {
   expiryAt?: number;
 }
 
-async function verifyPin(secretKey: string, pin: string): Promise<string> {
+export const QUOTA_PACKAGES = {
+  "1M": { tokens: 1_000_000, validDays: 7 },
+  "5M": { tokens: 5_000_000, validDays: 7 },
+  "10M": { tokens: 10_000_000, validDays: 7 },
+  "20M": { tokens: 20_000_000, validDays: 7 },
+  "50M": { tokens: 50_000_000, validDays: 14 },
+  "100M": { tokens: 100_000_000, validDays: 14 },
+  "200M": { tokens: 200_000_000, validDays: 21 },
+  "500M": { tokens: 500_000_000, validDays: 28 },
+  "1B": { tokens: 1_000_000_000, validDays: 28 },
+} as const;
+
+export async function addCustomerQuota(
+  secretKey: string,
+  targetKeyId: number,
+  addTokens: number,
+  validDays: number
+) {
+  const res = await fetch(`${BASE_URL}/api/public/reseller/add-quota`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ secretToken: secretKey, targetKeyId, addTokens, validDays }),
+    cache: "no-store",
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `Tambah kuota gagal (${res.status})`);
+  return data as { success?: boolean; remainingQuota?: number; key?: ResellerKey };
+}
+
+export interface QuotaMeta {
+  id?: string | number;
+  name?: string;
+  status?: string;
+  pinSet?: boolean;
+  pinLockedUntil?: string | null;
+  resellerPhone?: string | null;
+  createdAt?: string | null;
+}
+
+export interface PinVerification {
+  accessToken: string;
+  expiresIn?: number;
+}
+
+export async function verifyPin(secretKey: string, pin: string): Promise<PinVerification> {
   const res = await fetch(
-    `${BASE_URL}/api/public/quota/${secretKey}/verify-pin`,
+    `${BASE_URL}/api/public/quota/${encodeURIComponent(secretKey)}/verify-pin`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -121,22 +176,34 @@ async function verifyPin(secretKey: string, pin: string): Promise<string> {
   if (!res.ok || !data.accessToken) {
     throw new Error(data.error || "Gagal verifikasi PIN");
   }
-  return data.accessToken as string;
+  return data as PinVerification;
+}
+
+export async function fetchQuotaMeta(secretKey: string): Promise<QuotaMeta> {
+  const res = await fetch(`${BASE_URL}/api/public/quota/${encodeURIComponent(secretKey)}`, {
+    cache: "no-store",
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Gagal mengambil data dashboard");
+  return data as QuotaMeta;
+}
+
+export async function fetchQuotaData(secretKey: string, accessToken: string): Promise<ResellerData> {
+  const res = await fetch(`${BASE_URL}/api/public/quota/${encodeURIComponent(secretKey)}/data`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    cache: "no-store",
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Gagal mengambil data dashboard");
+  return data as ResellerData;
 }
 
 export async function fetchResellerData(
   secretKey: string,
   pin: string
 ): Promise<ResellerData> {
-  const accessToken = await verifyPin(secretKey, pin);
-  const res = await fetch(`${BASE_URL}/api/public/quota/${secretKey}/data`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error || "Gagal mengambil data reseller");
-  }
-  return data as ResellerData;
+  const { accessToken } = await verifyPin(secretKey, pin);
+  return fetchQuotaData(secretKey, accessToken);
 }
 
 export async function fetchCustomerActivity(
@@ -144,11 +211,12 @@ export async function fetchCustomerActivity(
   pin: string,
   type?: string
 ): Promise<ResellerActivity[]> {
-  const accessToken = await verifyPin(secretKey, pin);
+  const { accessToken } = await verifyPin(secretKey, pin);
   const url = new URL(`${BASE_URL}/api/public/quota/${secretKey}/activity`);
   if (type) url.searchParams.set("type", type);
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${accessToken}` },
+    cache: "no-store",
   });
   const data = await res.json();
   if (!res.ok) {
@@ -160,9 +228,9 @@ export async function fetchCustomerActivity(
 export async function fetchResellerKeys(
   secretKey: string
 ): Promise<{ keys: ResellerKey[]; resellerApiKey?: string }> {
-  const res = await fetch(
-    `${BASE_URL}/api/public/reseller/keys?token=${secretKey}`
-  );
+  const url = new URL(`${BASE_URL}/api/public/reseller/keys`);
+  url.searchParams.set("token", secretKey);
+  const res = await fetch(url.toString(), { cache: "no-store" });
   const data = await res.json();
   if (!res.ok) {
     throw new Error(data.error || "Gagal mengambil daftar key");

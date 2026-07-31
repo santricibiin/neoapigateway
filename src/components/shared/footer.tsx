@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const footerLinks = [
   { href: "/", label: "Beranda" },
+  { href: "/cek-kuota", label: "Cek Kuota" },
   { href: "/login/admin", label: "Admin" },
 ];
 

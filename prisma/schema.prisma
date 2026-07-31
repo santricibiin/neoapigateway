@@ -25,29 +25,68 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
+model News {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(100)
+  active    Boolean  @default(true)
+  products  Token[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Token {
-  id          Int      @id @default(autoincrement())
-  name        String
-  model       String
-  price       Decimal
-  stock       Int      @default(0)
-  sold        Int      @default(0)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  categoryId   Int?
+  category     Category? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  sku          String?   @unique @db.VarChar(50)
+  name         String    @db.VarChar(200)
+  model        String
+  description  String?   @db.Text
+  price        Decimal
+  stockMode    String    @default("counted") @db.VarChar(20)
+  stock        Int       @default(0)
+  sold         Int       @default(0)
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
   transactions Transaction[]
+
+  @@index([categoryId, active, createdAt])
 }
 
 model Transaction {
-  id        Int      @id @default(autoincrement())
-  buyerName String
-  buyerEmail String
-  tokenId   Int
-  token     Token    @relation(fields: [tokenId], references: [id])
-  amount    Decimal
-  status    String   @default("pending")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             Int      @id @default(autoincrement())
+  reference      String?  @unique @db.VarChar(50)
+  buyerName      String   @db.VarChar(200)
+  buyerEmail     String   @db.VarChar(320)
+  tokenId        Int
+  token          Token    @relation(fields: [tokenId], references: [id], onDelete: Restrict)
+  productName    String?  @db.VarChar(200)
+  productSku     String?  @db.VarChar(50)
+  qty            Int      @default(1)
+  unitPrice      Decimal? @db.Decimal(18, 2)
+  amount         Decimal
+  status         String   @default("pending")
+  failureReason  String?  @db.Text
+  expiresAt      DateTime?
+  paidAt         DateTime?
+  failedAt       DateTime?
+  cancelledAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([tokenId, createdAt])
+  @@index([buyerEmail, createdAt])
 }
 
 model User {
