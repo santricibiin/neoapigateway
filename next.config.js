@@ -1,16 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals = [
-        ...(config.externals || []),
-        "@whiskeysockets/baileys",
-        "@hapi/boom",
-        "pino",
-        "qrcode",
-      ];
-    }
-    return config;
+  env: {
+    NEXT_PUBLIC_PUBLIC_API_BASE: process.env.PUBLIC_API_BASE || "http://localhost:3000",
   },
 };
 

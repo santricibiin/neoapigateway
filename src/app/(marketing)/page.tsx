@@ -1,16 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Zap, BadgeDollarSign, Cpu, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
+import { Zap, BadgeDollarSign, Cpu, ShieldCheck, Sparkles, ArrowRight, Terminal, Copy, Check, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { copyText } from "@/lib/copy";
+
+const API_BASE = process.env.NEXT_PUBLIC_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 const features = [
   {
@@ -43,6 +40,63 @@ const features = [
   },
 ];
 
+const models = [
+  { name: "Claude", color: "#D97757", initial: "C", desc: "Anthropic Claude 3.5 Sonnet / Opus" },
+  { name: "GPT", color: "#10A37F", initial: "G", desc: "OpenAI GPT-4o / GPT-4 Turbo" },
+  { name: "DeepSeek", color: "#4D6BFE", initial: "D", desc: "DeepSeek V3 / DeepSeek R1" },
+  { name: "GLM", color: "#3B82F6", initial: "Z", desc: "Zhipu GLM-4 / GLM-4-Plus" },
+  { name: "Kimi", color: "#1A1A1A", initial: "K", desc: "Moonshot Kimi K1.5 / K2" },
+  { name: "Llama", color: "#0866FF", initial: "L", desc: "Meta Llama 3.1 / 3.3 70B" },
+];
+
+const codeExamples = [
+  {
+    label: "cURL",
+    lang: "bash",
+    code: `curl -X POST ${API_BASE}/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer sk-xxxYOUR_TOKENxxx" \\
+  -d '{
+    "model": "claude-3-5-sonnet",
+    "messages": [
+      {"role": "user", "content": "Halo, apa kabar?"}
+    ]
+  }'`,
+  },
+  {
+    label: "Python",
+    lang: "python",
+    code: `from openai import OpenAI
+
+client = OpenAI(
+    base_url="${API_BASE}/v1",
+    api_key="sk-xxxYOUR_TOKENxxx"
+)
+
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[{"role": "user", "content": "Halo!"}]
+)
+print(response.choices[0].message.content)`,
+  },
+  {
+    label: "Node.js",
+    lang: "javascript",
+    code: `import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "${API_BASE}/v1",
+  apiKey: "sk-xxxYOUR_TOKENxxx"
+});
+
+const res = await client.chat.completions.create({
+  model: "gpt-4o",
+  messages: [{ role: "user", content: "Halo!" }]
+});
+console.log(res.choices[0].message.content);`,
+  },
+];
+
 const stats = [
   { value: "99.9%", label: "Uptime" },
   { value: "10K+", label: "Token Terjual" },
@@ -52,10 +106,7 @@ const stats = [
 
 const container = {
   hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
+  show: { opacity: 1, transition: { staggerChildren: 0.1 } },
 };
 
 const item = {
@@ -64,52 +115,34 @@ const item = {
 };
 
 export default function HomePage() {
+  const [activeTab, setActiveTab] = useState(0);
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await copyText(codeExamples[activeTab].code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
   return (
     <div className="relative flex flex-col gap-16 overflow-hidden">
-      <svg
-        className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 text-base-ink/[0.03]"
-        viewBox="0 0 200 200"
-        fill="currentColor"
-        aria-hidden
-      >
+      {/* Decorative SVGs */}
+      <svg className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 text-base-ink/[0.03]" viewBox="0 0 200 200" fill="currentColor" aria-hidden>
         <circle cx="100" cy="100" r="80" />
       </svg>
-      <svg
-        className="pointer-events-none absolute top-40 -left-24 h-64 w-64 text-accent-sky/20"
-        viewBox="0 0 200 200"
-        fill="currentColor"
-        aria-hidden
-      >
+      <svg className="pointer-events-none absolute top-40 -left-24 h-64 w-64 text-accent-sky/20" viewBox="0 0 200 200" fill="currentColor" aria-hidden>
         <rect x="40" y="40" width="120" height="120" transform="rotate(15 100 100)" />
       </svg>
-      <svg
-        className="pointer-events-none absolute top-96 right-10 h-48 w-48 text-accent-sun/20"
-        viewBox="0 0 200 200"
-        fill="currentColor"
-        aria-hidden
-      >
+      <svg className="pointer-events-none absolute top-96 right-10 h-48 w-48 text-accent-sun/20" viewBox="0 0 200 200" fill="currentColor" aria-hidden>
         <polygon points="100,20 180,180 20,180" />
       </svg>
 
+      {/* Hero */}
       <section className="relative flex flex-col items-center gap-6 pt-10 text-center">
-        <svg
-          className="pointer-events-none absolute inset-0 h-full w-full text-base-ink/[0.04]"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden
-        >
+        <svg className="pointer-events-none absolute inset-0 h-full w-full text-base-ink/[0.04]" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <defs>
-            <pattern
-              id="grid"
-              width="32"
-              height="32"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 32 0 L 0 0 0 32"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1"
-              />
+            <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+              <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" strokeWidth="1" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
@@ -122,7 +155,7 @@ export default function HomePage() {
           className="relative rounded-neo border-2 border-base-ink bg-accent-sun px-4 py-1.5 text-sm font-bold shadow-neo-sm"
         >
           <Sparkles className="mr-1.5 inline-block h-4 w-4" />
-          Token API AI · Cepat · Aman · Terjangkau
+          API Gateway · Multi Model · OpenAI Compatible
         </motion.span>
         <motion.h1
           initial={{ opacity: 0, y: 16 }}
@@ -130,7 +163,7 @@ export default function HomePage() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="max-w-2xl text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl"
         >
-          Beli Token API AI untuk Proyekmu
+          Satu Token. Semua Model AI.
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 16 }}
@@ -138,8 +171,8 @@ export default function HomePage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="max-w-xl text-lg text-base-ink/70"
         >
-          Akses berbagai model AI dengan satu token. Aktif instan, harga bersahabat,
-          dan infrastruktur stabil untuk semua kebutuhan.
+          Neo API Gateway menghubungkan proyekmu ke Claude, GPT, DeepSeek, GLM, Kimi,
+          dan Llama lewat satu endpoint yang kompatibel dengan OpenAI API.
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -149,17 +182,54 @@ export default function HomePage() {
         >
           <Link href="/products">
             <Button variant="primary" size="lg">
-              Order Produk
+              Order Token
             </Button>
           </Link>
-          <Link href="/products">
+          <Link href="/track">
             <Button variant="outline" size="lg">
-              Lihat Paket
+              <Search className="h-5 w-5" />
+              Cek Pesanan
             </Button>
           </Link>
         </motion.div>
       </section>
 
+      {/* Model AI Showcase */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="flex flex-col gap-6"
+      >
+        <div className="text-center">
+          <h2 className="text-2xl font-extrabold sm:text-3xl">Model AI Tersedia</h2>
+          <p className="mt-2 text-base-ink/60">Akses semua model ini dengan satu API key.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {models.map((model, i) => (
+            <motion.div
+              key={model.name}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.3, delay: i * 0.06 }}
+              className="group flex flex-col items-center gap-2 rounded-neo border-2 border-base-ink bg-base-surface p-4 text-center shadow-neo-sm transition-shadow hover:shadow-neo"
+            >
+              <span
+                className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-base-ink text-lg font-black text-white shadow-neo-sm"
+                style={{ backgroundColor: model.color }}
+              >
+                {model.initial}
+              </span>
+              <span className="text-sm font-extrabold">{model.name}</span>
+              <span className="text-[10px] font-semibold leading-tight text-base-ink/50">{model.desc}</span>
+            </motion.div>
+          ))}
+        </div>
+      </motion.section>
+
+      {/* Features */}
       <motion.section
         variants={container}
         initial="hidden"
@@ -170,28 +240,69 @@ export default function HomePage() {
           const Icon = feature.icon;
           return (
             <motion.div key={feature.title} variants={item} className="h-full">
-              <Card hover className="flex h-full flex-col">
-                <CardHeader>
-                  <span
-                    className={`mb-3 inline-flex h-10 w-10 items-center justify-center border-2 border-base-ink ${feature.accent}`}
-                  >
-                    <Icon className="h-5 w-5 text-base-ink" strokeWidth={2.5} />
-                  </span>
-                  <CardTitle>{feature.title}</CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="mt-auto pt-4">
-                  <Button variant="sky" size="sm">
-                    Selengkapnya
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="flex h-full flex-col rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo-sm transition-shadow hover:shadow-neo">
+                <span className={`mb-3 inline-flex h-10 w-10 items-center justify-center border-2 border-base-ink ${feature.accent}`}>
+                  <Icon className="h-5 w-5 text-base-ink" strokeWidth={2.5} />
+                </span>
+                <h3 className="text-lg font-extrabold">{feature.title}</h3>
+                <p className="mt-1 text-sm text-base-ink/60">{feature.description}</p>
+              </div>
             </motion.div>
           );
         })}
       </motion.section>
 
+      {/* How to Connect — Code Examples */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="flex flex-col gap-6"
+      >
+        <div className="text-center">
+          <span className="inline-flex items-center gap-2 rounded-neo border-2 border-base-ink bg-accent-mint px-3 py-1 text-xs font-bold shadow-neo-sm">
+            <Terminal className="h-3.5 w-3.5" />
+            Quick Start
+          </span>
+          <h2 className="mt-3 text-2xl font-extrabold sm:text-3xl">Cara Menyambungkan</h2>
+          <p className="mt-2 text-base-ink/60">
+            Kompatibel dengan OpenAI SDK. Ganti <code className="rounded bg-base-ink/10 px-1 font-mono text-xs">base_url</code> & <code className="rounded bg-base-ink/10 px-1 font-mono text-xs">api_key</code> saja.
+          </p>
+        </div>
+
+        <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-neo border-2 border-base-ink bg-base-ink shadow-neo">
+          {/* Tabs */}
+          <div className="flex border-b-2 border-base-ink/30">
+            {codeExamples.map((ex, i) => (
+              <button
+                key={ex.label}
+                onClick={() => setActiveTab(i)}
+                className={`px-4 py-2.5 text-sm font-bold transition-colors ${
+                  activeTab === i
+                    ? "bg-base-surface text-base-ink"
+                    : "text-white/60 hover:text-white"
+                }`}
+              >
+                {ex.label}
+              </button>
+            ))}
+            <button
+              onClick={() => void handleCopy()}
+              className="ml-auto flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white/70 transition-colors hover:text-white"
+            >
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? "Tersalin" : "Salin"}
+            </button>
+          </div>
+          {/* Code */}
+          <pre className="overflow-x-auto p-4 text-sm leading-relaxed">
+            <code className="font-mono text-accent-mint">{codeExamples[activeTab].code}</code>
+          </pre>
+        </div>
+      </motion.section>
+
+      {/* Stats */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -208,16 +319,13 @@ export default function HomePage() {
             transition={{ duration: 0.4, delay: i * 0.08 }}
             className="rounded-neo border-2 border-base-ink bg-base-surface p-5 text-center shadow-neo-sm"
           >
-            <div className="text-2xl font-extrabold sm:text-3xl">
-              {stat.value}
-            </div>
-            <div className="mt-1 text-sm font-semibold text-base-ink/60">
-              {stat.label}
-            </div>
+            <div className="text-2xl font-extrabold sm:text-3xl">{stat.value}</div>
+            <div className="mt-1 text-sm font-semibold text-base-ink/60">{stat.label}</div>
           </motion.div>
         ))}
       </motion.section>
 
+      {/* CTA */}
       <motion.section
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -252,8 +360,8 @@ export default function HomePage() {
           Siap mulai pakai AI?
         </h2>
         <p className="relative max-w-md text-base-ink/80">
-          Beli token API AI sekarang dan langsung integrasi ke proyekmu. Proses
-          cepat, harga jelas, tanpa ribet.
+          Beli token API sekarang dan langsung integrasi ke proyekmu. Proses cepat,
+          harga jelas, tanpa ribet.
         </p>
         <Link href="/products" className="relative">
           <Button variant="sun" size="lg">

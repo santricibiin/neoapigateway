@@ -334,7 +334,6 @@ export function OrderClient({ product }: { product: Product }) {
 
                   <div className="rounded-neo border-2 border-base-ink bg-white p-3 shadow-neo">
                     {qrUrl ? (
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={qrUrl} alt="QRIS" className="h-48 w-48 max-w-full sm:h-56 sm:w-56" />
                     ) : (
                       <div className="flex h-48 w-48 items-center justify-center sm:h-56 sm:w-56">
