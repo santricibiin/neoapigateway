@@ -334,6 +334,7 @@ export function OrderClient({ product }: { product: Product }) {
 
                   <div className="rounded-neo border-2 border-base-ink bg-white p-3 shadow-neo">
                     {qrUrl ? (
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={qrUrl} alt="QRIS" className="h-48 w-48 max-w-full sm:h-56 sm:w-56" />
                     ) : (
                       <div className="flex h-48 w-48 items-center justify-center sm:h-56 sm:w-56">
@@ -413,7 +414,7 @@ export function OrderClient({ product }: { product: Product }) {
                       )}
                       <div className="flex justify-between gap-2">
                         <dt className="font-semibold text-base-ink/60">Qty</dt>
-                        <dd className="font-bold">{order.invoice ? qty : qty}</dd>
+                        <dd className="font-bold">{qty}</dd>
                       </div>
                       <div className="flex justify-between gap-2">
                         <dt className="font-semibold text-base-ink/60">Harga Satuan</dt>
