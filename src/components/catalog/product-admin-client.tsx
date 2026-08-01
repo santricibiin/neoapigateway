@@ -10,6 +10,23 @@ import { Modal } from "@/components/ui/modal";
 import { createProduct, deleteProduct, updateProduct } from "@/app/actions/products";
 import { cn } from "@/lib/utils";
 
+const QUOTA_PACKAGES = [
+  { code: "1M", tokens: "1.000.000", days: 7 },
+  { code: "5M", tokens: "5.000.000", days: 7 },
+  { code: "10M", tokens: "10.000.000", days: 7 },
+  { code: "20M", tokens: "20.000.000", days: 7 },
+  { code: "50M", tokens: "50.000.000", days: 14 },
+  { code: "100M", tokens: "100.000.000", days: 14 },
+  { code: "200M", tokens: "200.000.000", days: 21 },
+  { code: "500M", tokens: "500.000.000", days: 28 },
+  { code: "1B", tokens: "1.000.000.000", days: 28 },
+  { code: "2B", tokens: "2.000.000.000", days: 28 },
+  { code: "3B", tokens: "3.000.000.000", days: 28 },
+  { code: "4B", tokens: "4.000.000.000", days: 28 },
+  { code: "5B", tokens: "5.000.000.000", days: 28 },
+  { code: "10B", tokens: "10.000.000.000", days: 28 },
+] as const;
+
 type Product = { id: number; categoryId: number | null; categoryName: string; sku: string; name: string; model: string; description: string; price: number; stockMode: string; stock: number; sold: number; active: boolean; transactionCount: number };
 type Category = { id: number; name: string };
 
@@ -23,11 +40,13 @@ export function ProductAdminClient({ initialProducts, categories }: { initialPro
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stockMode, setStockMode] = useState("counted");
+  const [selectedPackage, setSelectedPackage] = useState("");
   const filtered = useMemo(() => initialProducts.filter((item) => { const term = query.trim().toLowerCase(); return (!term || `${item.name} ${item.sku} ${item.model}`.toLowerCase().includes(term)) && (category === "all" || String(item.categoryId) === category) && (status === "all" || (status === "active") === item.active); }), [category, initialProducts, query, status]);
 
   function show(item: Product | null) {
     setEditing(item);
     setStockMode(item?.stockMode || "counted");
+    setSelectedPackage(item?.stockMode === "external" ? (item?.sku || "") : "");
     setError(null);
     setOpen(true);
   }
@@ -60,7 +79,7 @@ export function ProductAdminClient({ initialProducts, categories }: { initialPro
       </div>
       {!filtered.length ? <div className="rounded-neo border-2 border-dashed border-base-ink bg-white py-16 text-center"><Boxes className="mx-auto h-10 w-10 text-base-ink/20" /><p className="mt-3 font-black">Produk tidak ditemukan</p></div> : null}
       <Modal open={open} onClose={() => setOpen(false)} title={editing ? "Edit Produk" : "Tambah Produk"} className="max-h-[92vh] overflow-y-auto">
-        <form action={save} className="space-y-4"><label className="block text-sm font-bold">Kategori<select name="categoryId" defaultValue={editing?.categoryId || categories[0]?.id} className="mt-1.5 h-11 w-full rounded-neo border-2 border-base-ink bg-white px-3 shadow-neo-sm" required>{categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><div className="grid gap-3 sm:grid-cols-2"><Input name="sku" label="SKU / kode" defaultValue={editing?.sku || ""} maxLength={50} required /><Input name="name" label="Nama produk" defaultValue={editing?.name || ""} maxLength={200} required /><Input name="model" label="Model" defaultValue={editing?.model || ""} maxLength={100} required /><Input name="price" label="Harga" type="number" min={0} step={1} defaultValue={editing?.price || 0} required /></div><label className="block text-sm font-bold">Deskripsi<textarea name="description" defaultValue={editing?.description || ""} maxLength={4000} rows={5} className="mt-1.5 w-full resize-y rounded-neo border-2 border-base-ink bg-white px-4 py-3 text-sm font-semibold shadow-neo-sm outline-none" /></label><div className="grid gap-3 sm:grid-cols-2"><label className="block text-sm font-bold">Mode stok<select name="stockMode" value={stockMode} onChange={(event) => setStockMode(event.target.value)} className="mt-1.5 h-11 w-full rounded-neo border-2 border-base-ink bg-white px-3 shadow-neo-sm"><option value="counted">Stok angka</option><option value="external">External/API</option></select></label><Input name="stock" label="Jumlah stok" type="number" min={0} step={1} defaultValue={editing?.stock || 0} disabled={stockMode === "external"} required={stockMode === "counted"} /></div><label className="flex items-center gap-3 rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold"><input type="checkbox" name="active" defaultChecked={editing?.active ?? true} className="h-5 w-5 accent-black" /> Produk aktif</label>{error ? <p className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{error}</p> : null}<Button type="submit" className="w-full" disabled={saving}>{saving ? "Menyimpan..." : "Simpan Produk"}</Button></form>
+        <form action={save} className="space-y-4"><label className="block text-sm font-bold">Kategori<select name="categoryId" defaultValue={editing?.categoryId || categories[0]?.id} className="mt-1.5 h-11 w-full rounded-neo border-2 border-base-ink bg-white px-3 shadow-neo-sm" required>{categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><div className="grid gap-3 sm:grid-cols-2"><div className="flex flex-col gap-1.5"><label className="text-sm font-bold">SKU / kode</label>{stockMode === "external" ? (<select name="sku" value={selectedPackage} onChange={(e) => setSelectedPackage(e.target.value)} className="mt-0 h-11 w-full rounded-neo border-2 border-base-ink bg-white px-3 shadow-neo-sm" required><option value="" disabled>Pilih paket...</option>{QUOTA_PACKAGES.map((pkg) => <option key={pkg.code} value={pkg.code}>{pkg.code} - {pkg.days}D</option>)}</select>) : (<input name="sku" defaultValue={editing?.sku || ""} maxLength={50} required className="h-11 w-full rounded-neo border-2 border-base-ink bg-white px-3 text-sm font-bold shadow-neo-sm outline-none" />)}</div><Input name="name" label="Nama produk" defaultValue={editing?.name || ""} maxLength={200} required /><Input name="model" label="Model" defaultValue={editing?.model || ""} maxLength={100} required /><Input name="price" label="Harga" type="number" min={0} step={1} defaultValue={editing?.price || 0} required /></div><label className="block text-sm font-bold">Deskripsi<textarea name="description" defaultValue={editing?.description || ""} maxLength={4000} rows={5} className="mt-1.5 w-full resize-y rounded-neo border-2 border-base-ink bg-white px-4 py-3 text-sm font-semibold shadow-neo-sm outline-none" /></label><div className="grid gap-3 sm:grid-cols-2"><label className="block text-sm font-bold">Mode stok<select name="stockMode" value={stockMode} onChange={(event) => setStockMode(event.target.value)} className="mt-1.5 h-11 w-full rounded-neo border-2 border-base-ink bg-white px-3 shadow-neo-sm"><option value="counted">Stok angka</option><option value="external">External/API</option></select></label><Input name="stock" label="Jumlah stok" type="number" min={0} step={1} defaultValue={editing?.stock || 0} disabled={stockMode === "external"} required={stockMode === "counted"} /></div><label className="flex items-center gap-3 rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold"><input type="checkbox" name="active" defaultChecked={editing?.active ?? true} className="h-5 w-5 accent-black" /> Produk aktif</label>{error ? <p className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{error}</p> : null}<Button type="submit" className="w-full" disabled={saving}>{saving ? "Menyimpan..." : "Simpan Produk"}</Button></form>
       </Modal>
     </div>
   );

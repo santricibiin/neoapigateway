@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Zap, BadgeDollarSign, Cpu, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -146,12 +147,16 @@ export default function HomePage() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="flex flex-wrap items-center justify-center gap-4"
         >
-          <Button variant="primary" size="lg">
-            Beli Token
-          </Button>
-          <Button variant="outline" size="lg">
-            Lihat Paket
-          </Button>
+          <Link href="/products">
+            <Button variant="primary" size="lg">
+              Order Produk
+            </Button>
+          </Link>
+          <Link href="/products">
+            <Button variant="outline" size="lg">
+              Lihat Paket
+            </Button>
+          </Link>
         </motion.div>
       </section>
 
@@ -250,10 +255,12 @@ export default function HomePage() {
           Beli token API AI sekarang dan langsung integrasi ke proyekmu. Proses
           cepat, harga jelas, tanpa ribet.
         </p>
-        <Button variant="sun" size="lg" className="relative">
-          Beli Sekarang
-          <ArrowRight className="h-5 w-5" />
-        </Button>
+        <Link href="/products" className="relative">
+          <Button variant="sun" size="lg">
+            Order Sekarang
+            <ArrowRight className="h-5 w-5" />
+          </Button>
+        </Link>
       </motion.section>
     </div>
   );

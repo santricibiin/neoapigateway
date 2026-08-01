@@ -10,20 +10,16 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   className?: string;
+  hideClose?: boolean;
 }
 
-export function Modal({ open, onClose, title, children, className }: ModalProps) {
+export function Modal({ open, onClose, title, children, className, hideClose }: ModalProps) {
   return (
     <AnimatePresence>
       {open && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-base-ink/40"
+            className="fixed inset-0 bg-black/50"
             onClick={onClose}
           />
           <motion.div
@@ -40,17 +36,19 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
               {title && (
                 <h2 className="text-xl font-bold text-base-ink">{title}</h2>
               )}
-              <button
-                onClick={onClose}
-                className="ml-auto rounded-neo border-2 border-base-ink p-1.5 shadow-neo-sm transition-shadow hover:shadow-neo"
-                aria-label="Close"
-              >
-                <X size={16} />
-              </button>
+              {!hideClose && (
+                <button
+                  onClick={onClose}
+                  className="ml-auto rounded-neo border-2 border-base-ink p-1.5 shadow-neo-sm transition-shadow hover:shadow-neo"
+                  aria-label="Close"
+                >
+                  <X size={16} />
+                </button>
+              )}
             </div>
             {children}
           </motion.div>
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );

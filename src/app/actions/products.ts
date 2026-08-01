@@ -4,6 +4,19 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 
+export async function getPublicProducts() {
+  try {
+    const tokens = await prisma.token.findMany({
+      where: { active: true, category: { active: true } },
+      include: { category: true },
+      orderBy: [{ category: { name: "asc" } }, { name: "asc" }],
+    });
+    return { ok: true, data: tokens } as const;
+  } catch {
+    return { ok: false, error: "Gagal memuat produk" } as const;
+  }
+}
+
 function parseProduct(formData: FormData) {
   const categoryId = Number(formData.get("categoryId"));
   const sku = String(formData.get("sku") || "").trim().toUpperCase();

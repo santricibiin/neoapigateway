@@ -18,11 +18,21 @@ model Admin {
 }
 
 model Setting {
-  id        Int      @id @default(1)
-  secretKey String?
-  pin       String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              Int      @id @default(1)
+  secretKey       String?
+  pin             String?
+  /// none | dana | nobu
+  qrisProvider    String   @default("none") @db.VarChar(20)
+  /// Raw payload QRIS statis (EMVCo)
+  qrisStatic      String?  @db.Text
+  /// Masa berlaku QRIS invoice (menit)
+  qrisTtlMinutes  Int      @default(5)
+  /// Secret untuk autentikasi callback Android notification forwarder
+  forwarderSecret String?  @db.VarChar(200)
+  /// Aktifkan kode unik 3 digit pada nominal QRIS
+  uniqueCodeEnabled Boolean @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model News {
@@ -44,21 +54,22 @@ model Category {
 }
 
 model Token {
-  id           Int      @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   categoryId   Int?
-  category     Category? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  sku          String?   @unique @db.VarChar(50)
-  name         String    @db.VarChar(200)
+  category     Category?     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  sku          String?       @unique @db.VarChar(50)
+  name         String        @db.VarChar(200)
   model        String
-  description  String?   @db.Text
+  description  String?       @db.Text
   price        Decimal
-  stockMode    String    @default("counted") @db.VarChar(20)
-  stock        Int       @default(0)
-  sold         Int       @default(0)
-  active       Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  stockMode    String        @default("counted") @db.VarChar(20)
+  stock        Int           @default(0)
+  sold         Int           @default(0)
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   transactions Transaction[]
+  orders       PaymentOrder[]
 
   @@index([categoryId, active, createdAt])
 }
@@ -107,4 +118,53 @@ model Post {
   author    User     @relation(fields: [authorId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model PaymentOrder {
+  id             String        @id @default(cuid())
+  invoice        String        @unique @db.VarChar(40)
+  /// pending | processing | paid | expired | failed
+  status         String        @default("pending") @db.VarChar(20)
+  amount         Int
+  qty            Int           @default(1)
+  unitPrice      Int
+  productName    String        @db.VarChar(200)
+  productSku     String?       @db.VarChar(50)
+  buyerPhone     String?       @db.VarChar(24)
+  qrisProvider   String        @db.VarChar(20)
+  qrisPayload    String        @db.Text
+  tokenId        Int
+  token          Token         @relation(fields: [tokenId], references: [id], onDelete: Restrict)
+  paymentEventId String?       @unique
+  paymentEvent   PaymentEvent? @relation(fields: [paymentEventId], references: [id], onDelete: SetNull)
+  expiresAt      DateTime
+  paidAt         DateTime?
+  delivered      String?       @db.Text
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status, amount, expiresAt])
+  @@index([tokenId, status])
+}
+
+model PaymentEvent {
+  id        String   @id @default(cuid())
+  eventKey  String   @unique
+  provider  String   @db.VarChar(20)
+  pkg       String   @db.VarChar(120)
+  name      String?  @db.VarChar(80)
+  title     String?  @db.VarChar(500)
+  text      String   @db.Text
+  subtext   String?  @db.Text
+  bigtext   String?  @db.Text
+  infotext  String?  @db.Text
+  amount    Int?
+  account   String?  @db.VarChar(40)
+  raw       String   @db.Text
+  matched   Boolean  @default(false)
+  order     PaymentOrder?
+  createdAt DateTime @default(now())
+
+  @@index([matched, amount, createdAt])
+  @@index([provider, amount, createdAt])
 }
