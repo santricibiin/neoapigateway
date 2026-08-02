@@ -48,6 +48,16 @@ deploy_awal() {
     exit 1
   fi
 
+  read -rp "Port aplikasi (default 3000): " APP_PORT_INPUT
+  APP_PORT=$(echo "$APP_PORT_INPUT" | tr -d '[:space:]')
+  if [ -z "$APP_PORT" ]; then
+    APP_PORT=3000
+  fi
+  if ! [[ "$APP_PORT" =~ ^[0-9]+$ ]] || [ "$APP_PORT" -lt 1 ] || [ "$APP_PORT" -gt 65535 ]; then
+    err "Port tidak valid (1-65535)"
+    exit 1
+  fi
+
   read -rp "Email untuk Let's Encrypt SSL (contoh: admin@domain.com): " SSL_EMAIL
   SSL_EMAIL=$(echo "$SSL_EMAIL" | tr -d '[:space:]')
   if [ -z "$SSL_EMAIL" ]; then
@@ -57,6 +67,7 @@ deploy_awal() {
 
   echo ""
   info "Domain : $DOMAIN"
+  info "Port   : $APP_PORT"
   info "Email  : $SSL_EMAIL"
   read -rp "Lanjutkan? (y/N): " CONFIRM
   if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
@@ -165,6 +176,7 @@ BANDEL_UPSTREAM="https://bandelbanget.xyz"
 PUBLIC_API_BASE="https://$DOMAIN"
 PUBLIC_BRAND_NAME="Neo API Gateway"
 NODE_ENV="production"
+PORT="$APP_PORT"
 SESSION_SECRET="$SESSION_SECRET"
 PAYMENT_FORWARD_SECRET="$FORWARD_SECRET"
 EOF
@@ -215,8 +227,8 @@ EOF
   fi
 
   pm2 delete "$APP_NAME" 2>/dev/null || true
-  info "Start aplikasi via PM2 ..."
-  pm2 start npm --name "$APP_NAME" -- start
+  info "Start aplikasi via PM2 (port $APP_PORT) ..."
+  PORT="$APP_PORT" pm2 start npm --name "$APP_NAME" -- start
   pm2 save
   pm2 startup systemd -u root --hp /root 2>/dev/null || true
   log "Aplikasi berjalan di port $APP_PORT (PM2)"
@@ -361,6 +373,10 @@ update() {
       echo "PAYMENT_FORWARD_SECRET=\"$(openssl rand -hex 24)\"" >> "$ENV_FILE"
       log "PAYMENT_FORWARD_SECRET ditambahkan ke .env"
     fi
+    APP_PORT=$(grep '^PORT=' "$ENV_FILE" 2>/dev/null | sed -n 's/.*="\(.*\)"/\1/p' || true)
+    if [ -z "$APP_PORT" ]; then
+      APP_PORT=3000
+    fi
   fi
 
   # npm install
@@ -381,10 +397,10 @@ update() {
   log "Build sukses"
 
   # Restart PM2
-  info "Restart PM2 ..."
+  info "Restart PM2 (port $APP_PORT) ..."
   pm2 restart "$APP_NAME" --update-env 2>/dev/null || {
     warn "Process '$APP_NAME' tidak ditemukan, start baru ..."
-    pm2 start npm --name "$APP_NAME" -- start
+    PORT="$APP_PORT" pm2 start npm --name "$APP_NAME" -- start
     pm2 save
   }
   log "Aplikasi direstart"
