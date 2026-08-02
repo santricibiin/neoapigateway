@@ -11,11 +11,6 @@ export async function GET(
     select: {
       invoice: true,
       status: true,
-      amount: true,
-      qty: true,
-      unitPrice: true,
-      productName: true,
-      productSku: true,
       paidAt: true,
       expiresAt: true,
       delivered: true,
@@ -34,12 +29,13 @@ export async function GET(
     return NextResponse.json({
       ok: true,
       status: "expired",
-      amount: order.amount,
     });
   }
 
   return NextResponse.json({
     ok: true,
-    ...order,
+    status: order.status,
+    paidAt: order.paidAt,
+    delivered: order.status === "paid" ? order.delivered : null,
   });
 }

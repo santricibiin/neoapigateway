@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSettings } from "@/app/actions/settings";
+import { getSettingsRaw } from "@/app/actions/settings";
+import { getSession } from "@/lib/auth";
 import { createTopup, fetchTopupHistory, fetchTopupStatus } from "@/lib/bandelbanget";
 
 export async function GET(request: NextRequest) {
+  if (!getSession()) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
   try {
-    const settings = await getSettings();
+    const settings = await getSettingsRaw();
     if (!settings.secretKey) throw new Error("Secret Key belum diatur");
     const orderId = request.nextUrl.searchParams.get("orderId")?.trim();
     if (orderId) {
@@ -20,8 +24,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!getSession()) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
   try {
-    const settings = await getSettings();
+    const settings = await getSettingsRaw();
     if (!settings.secretKey) throw new Error("Secret Key belum diatur");
     const body = await request.json();
     const tierId = typeof body.tierId === "string" ? body.tierId.trim() : "";

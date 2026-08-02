@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSettings } from "@/app/actions/settings";
+import { getSettingsRaw } from "@/app/actions/settings";
+import { getSession } from "@/lib/auth";
 import {
   fetchResellerData,
   fetchResellerKeys,
@@ -7,7 +8,11 @@ import {
 } from "@/lib/bandelbanget";
 
 export async function POST() {
-  const settings = await getSettings();
+  if (!getSession()) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  const settings = await getSettingsRaw();
 
   if (!settings.secretKey || !settings.pin) {
     return NextResponse.json({

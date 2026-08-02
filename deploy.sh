@@ -12,6 +12,10 @@ APP_PORT=3000
 MYSQL_DB="neo"
 MYSQL_USER="neo_app"
 MYSQL_PASS=$(openssl rand -hex 16)
+SESSION_SECRET=$(openssl rand -base64 48)
+FORWARD_SECRET=$(openssl rand -hex 24)
+ADMIN_EMAIL="admin@neo.ai"
+ADMIN_PASS=$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-20)
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -119,6 +123,28 @@ EOF
   ENV_FILE="$APP_DIR/.env"
   if [ -f "$ENV_FILE" ] && grep -q "$DOMAIN" "$ENV_FILE" 2>/dev/null; then
     log ".env sudah konfigurasi untuk $DOMAIN — skip"
+    # Pastikan SESSION_SECRET & FORWARD_SECRET ada (untuk deploy lama yang belum punya)
+    if ! grep -q "SESSION_SECRET" "$ENV_FILE"; then
+      echo "SESSION_SECRET=\"${SESSION_SECRET}\"" >> "$ENV_FILE"
+      log "SESSION_SECRET ditambahkan ke .env"
+    fi
+    if ! grep -q "PAYMENT_FORWARD_SECRET" "$ENV_FILE"; then
+      echo "PAYMENT_FORWARD_SECRET=\"${FORWARD_SECRET}\"" >> "$ENV_FILE"
+      log "PAYMENT_FORWARD_SECRET ditambahkan ke .env"
+    fi
+    # Reload nilai dari .env yang existing
+    EXISTING_PASS=$(grep 'DATABASE_URL' "$ENV_FILE" 2>/dev/null | sed -n 's/.*:\([^@]*\)@localhost.*/\1/p' || true)
+    if [ -n "$EXISTING_PASS" ]; then
+      MYSQL_PASS="$EXISTING_PASS"
+    fi
+    EXISTING_SESSION=$(grep 'SESSION_SECRET' "$ENV_FILE" 2>/dev/null | sed -n 's/.*="\(.*\)".*/\1/p' || true)
+    if [ -n "$EXISTING_SESSION" ]; then
+      SESSION_SECRET="$EXISTING_SESSION"
+    fi
+    EXISTING_FORWARD=$(grep 'PAYMENT_FORWARD_SECRET' "$ENV_FILE" 2>/dev/null | sed -n 's/.*="\(.*\)".*/\1/p' || true)
+    if [ -n "$EXISTING_FORWARD" ]; then
+      FORWARD_SECRET="$EXISTING_FORWARD"
+    fi
   else
     info "Mengkonfigurasi .env ..."
 
@@ -139,6 +165,8 @@ BANDEL_UPSTREAM="https://bandelbanget.xyz"
 PUBLIC_API_BASE="https://$DOMAIN"
 PUBLIC_BRAND_NAME="Neo API Gateway"
 NODE_ENV="production"
+SESSION_SECRET="$SESSION_SECRET"
+PAYMENT_FORWARD_SECRET="$FORWARD_SECRET"
 EOF
     log ".env dibuat"
   fi
@@ -149,6 +177,28 @@ EOF
   info "Push schema ke database ..."
   npx prisma db push --accept-data-loss
   log "Database schema sinkron"
+
+  # 6b. Seed admin dengan password random
+  info "Seed admin & data awal ..."
+  ADMIN_PASS="$ADMIN_PASS" npx tsx -e "
+    import { PrismaClient } from '@prisma/client';
+    import bcrypt from 'bcryptjs';
+    const prisma = new PrismaClient();
+    async function main() {
+      const email = '${ADMIN_EMAIL}';
+      const password = process.env.ADMIN_PASS;
+      if (!password) throw new Error('ADMIN_PASS env not set');
+      const hashed = await bcrypt.hash(password, 10);
+      const admin = await prisma.admin.upsert({
+        where: { email },
+        update: {},
+        create: { email, name: 'Super Admin', password: hashed, role: 'admin' },
+      });
+      console.log('Admin ready:', admin.email);
+    }
+    main().catch(console.error).finally(() => prisma.\$disconnect());
+  " 2>&1 | tail -1
+  log "Admin seeded"
 
   # 7. Build
   info "Build Next.js ..."
@@ -252,10 +302,26 @@ EOF
   echo ""
   log "=== DEPLOY AWAL SELESAI ==="
   echo ""
-  info "Aplikasi : https://$DOMAIN"
-  info "Admin    : https://$DOMAIN/login/admin"
-  info "PM2      : pm2 status"
-  info "Log      : pm2 logs $APP_NAME"
+  echo -e "${CYAN}╔══════════════════════════════════════════════════════════╗${NC}"
+  echo -e "${CYAN}║              KREDENSIAL & INFO APLIKASI                   ║${NC}"
+  echo -e "${CYAN}╠══════════════════════════════════════════════════════════╣${NC}"
+  echo -e "${CYAN}║${NC}  URL Aplikasi  : https://$DOMAIN"
+  echo -e "${CYAN}║${NC}  Admin Login   : https://$DOMAIN/login/admin"
+  echo -e "${CYAN}║${NC}  PM2           : pm2 status | pm2 logs $APP_NAME"
+  echo -e "${CYAN}╠══════════════════════════════════════════════════════════╣${NC}"
+  echo -e "${CYAN}║${NC}  ${YELLOW}↓ SALIN KREDENSIAL BERIKUT ↓${NC}${CYAN}                              ║${NC}"
+  echo -e "${CYAN}╠══════════════════════════════════════════════════════════╣${NC}"
+  echo -e "${CYAN}║${NC}  Admin Email   : ${GREEN}$ADMIN_EMAIL${NC}"
+  echo -e "${CYAN}║${NC}  Admin Pass    : ${GREEN}$ADMIN_PASS${NC}"
+  echo -e "${CYAN}║${NC}  DB URL        : ${GREEN}mysql://$MYSQL_USER:$MYSQL_PASS@localhost:3306/$MYSQL_DB${NC}"
+  echo -e "${CYAN}║${NC}  Session Secret: ${GREEN}$SESSION_SECRET${NC}"
+  echo -e "${CYAN}║${NC}  Forward Secret: ${GREEN}$FORWARD_SECRET${NC}"
+  echo -e "${CYAN}╠══════════════════════════════════════════════════════════╣${NC}"
+  echo -e "${CYAN}║${NC}  ${YELLOW}App Android Forwarder:${NC}"
+  echo -e "${CYAN}║${NC}  Callback URL  : https://$DOMAIN/api/payment/callback"
+  echo -e "${CYAN}║${NC}  Param1        : ${GREEN}secret${NC}"
+  echo -e "${CYAN}║${NC}  Value1        : ${GREEN}$FORWARD_SECRET${NC}"
+  echo -e "${CYAN}╚══════════════════════════════════════════════════════════╝${NC}"
   echo ""
   warn "Jika SSL gagal, pastikan DNS A record → $(curl -s ifconfig.me) & port 80 terbuka"
   echo ""
@@ -277,6 +343,19 @@ update() {
   info "Git pull ..."
   git pull --ff-only
   log "Code terbaru ditarik"
+
+  # Pastikan SESSION_SECRET & PAYMENT_FORWARD_SECRET ada di .env lama
+  ENV_FILE="$APP_DIR/.env"
+  if [ -f "$ENV_FILE" ]; then
+    if ! grep -q "SESSION_SECRET" "$ENV_FILE"; then
+      echo "SESSION_SECRET=\"$(openssl rand -base64 48)\"" >> "$ENV_FILE"
+      log "SESSION_SECRET ditambahkan ke .env"
+    fi
+    if ! grep -q "PAYMENT_FORWARD_SECRET" "$ENV_FILE"; then
+      echo "PAYMENT_FORWARD_SECRET=\"$(openssl rand -hex 24)\"" >> "$ENV_FILE"
+      log "PAYMENT_FORWARD_SECRET ditambahkan ke .env"
+    fi
+  fi
 
   # npm install
   info "Install dependencies ..."

@@ -18,9 +18,14 @@ export default function AdminLoginPage() {
     setLoading(true);
     setError("");
     const formData = new FormData(e.currentTarget);
-    const res = await loginAdmin(formData);
-    if (!res.ok) {
-      setError(res.error ?? "Gagal masuk");
+    try {
+      const res = await loginAdmin(formData);
+      if (res && !res.ok) {
+        setError(res.error ?? "Gagal masuk");
+        setLoading(false);
+      }
+    } catch {
+      setError("Gagal masuk");
       setLoading(false);
     }
   }

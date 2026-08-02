@@ -12,15 +12,58 @@ import { createOrder } from "@/app/actions/payment";
 import { copyText } from "@/lib/copy";
 import {
   ArrowLeft,
-  ShoppingCart,
-  Clock,
-  CheckCircle2,
-  XCircle,
   Loader2,
-  Copy,
-  Wallet,
-  Receipt,
 } from "lucide-react";
+
+// Custom SVG Icons
+const ShoppingCartIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+    <path d="M2 2h1.5l.3 1.5M7 13h10l4-8H5.5M7 13L5.5 3.5M7 13l-2 6h14l-2-6M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const ClockIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+    <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+const CheckCircleIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" className="h-12 w-12">
+    <circle cx="12" cy="12" r="10" fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeWidth="2"/>
+    <path d="M8 12l2.5 2.5L16 9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const XCircleIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" className="h-12 w-12">
+    <circle cx="12" cy="12" r="10" fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeWidth="2"/>
+    <path d="M9 9l6 6m0-6l-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+  </svg>
+);
+
+const CopyIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className}>
+    <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2"/>
+    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" strokeWidth="2"/>
+  </svg>
+);
+
+const WalletIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+    <path d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5z" stroke="currentColor" strokeWidth="2"/>
+    <path d="M21 10h-5a2 2 0 00-2 2v0a2 2 0 002 2h5" stroke="currentColor" strokeWidth="2"/>
+    <circle cx="17" cy="12" r="1" fill="currentColor"/>
+  </svg>
+);
+
+const ReceiptIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className}>
+    <path d="M4 2v20l2-1.5L8 22l2-1.5L12 22l2-1.5L16 22l2-1.5L20 22V2l-2 1.5L16 2l-2 1.5L12 2l-2 1.5L8 2 6 3.5 4 2z" stroke="currentColor" strokeWidth="2"/>
+    <path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
 
 interface Product {
   id: number;
@@ -255,7 +298,7 @@ export function OrderClient({ product }: { product: Product }) {
       <form onSubmit={handleCreateOrder} className="flex flex-col gap-4">
         <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo">
           <label className="mb-2 flex items-center gap-2 text-sm font-bold">
-            <ShoppingCart className="h-4 w-4" />
+            <ShoppingCartIcon />
             Jumlah
           </label>
           <div className="flex items-center gap-3">
@@ -290,19 +333,19 @@ export function OrderClient({ product }: { product: Product }) {
         )}
 
         <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
-          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Wallet className="h-5 w-5" />}
+          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <WalletIcon />}
           {loading ? "Membuat Invoice..." : "Lanjutkan Pembayaran"}
         </Button>
 
         {order && !isPaid && !modalOpen && (
           <Button type="button" variant="outline" size="lg" className="w-full" onClick={() => setModalOpen(true)}>
-            <Clock className="h-5 w-5" />
+            <ClockIcon />
             Lihat Invoice
           </Button>
         )}
 
         <Button type="button" variant="outline" size="lg" className="w-full" onClick={openHistory}>
-          <Receipt className="h-5 w-5" />
+          <ReceiptIcon />
           Riwayat Pesanan
         </Button>
       </form>
@@ -352,13 +395,13 @@ export function OrderClient({ product }: { product: Product }) {
                       onClick={copyAmount}
                       className="mt-3 inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-base-surface px-3 py-1.5 text-xs font-bold shadow-neo-sm"
                     >
-                      <Copy className="h-3.5 w-3.5" />
+                      <CopyIcon className="h-3.5 w-3.5" />
                       {copied ? "Tersalin" : "Salin Nominal"}
                     </button>
                   </div>
 
                   <div className="flex items-center gap-2 text-sm font-bold text-base-ink/70">
-                    <Clock className="h-4 w-4" />
+                    <ClockIcon />
                     Berlaku {countdown}
                   </div>
 
@@ -376,13 +419,13 @@ export function OrderClient({ product }: { product: Product }) {
                   className="flex w-full flex-col items-center gap-3"
                 >
                   <div className="flex w-full flex-col items-center gap-2 rounded-neo border-2 border-base-ink bg-accent-mint p-6 text-center shadow-neo">
-                    <CheckCircle2 className="h-12 w-12" />
+                    <CheckCircleIcon />
                     <h3 className="text-xl font-extrabold">Pembayaran Berhasil!</h3>
                   </div>
 
                   <div className="w-full rounded-neo border-2 border-base-ink bg-base-surface p-4 shadow-neo">
                     <div className="mb-3 flex items-center gap-2 border-b-2 border-base-ink/10 pb-2">
-                      <Receipt className="h-4 w-4" />
+                      <ReceiptIcon className="h-4 w-4" />
                       <span className="text-sm font-extrabold uppercase tracking-wide">Invoice</span>
                     </div>
                     <dl className="space-y-2 text-sm">
@@ -436,14 +479,14 @@ export function OrderClient({ product }: { product: Product }) {
                     <div className="w-full rounded-neo border-2 border-base-ink bg-base-bg p-4 shadow-neo-sm">
                       <div className="mb-2 flex items-center justify-between">
                         <span className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide">
-                          <ShoppingCart className="h-4 w-4" />
+                          <ShoppingCartIcon />
                           Detail Produk
                         </span>
                         <button
                           onClick={copyDelivered}
                           className="inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-base-surface px-2 py-1 text-xs font-bold shadow-neo-sm"
                         >
-                          <Copy className="h-3 w-3" />
+                          <CopyIcon className="h-3 w-3" />
                           {copied ? "Tersalin" : "Salin"}
                         </button>
                       </div>
@@ -466,7 +509,7 @@ export function OrderClient({ product }: { product: Product }) {
                   animate={{ opacity: 1, scale: 1 }}
                   className="flex w-full flex-col items-center gap-3 rounded-neo border-2 border-base-ink bg-accent-sun p-6 text-center shadow-neo"
                 >
-                  <XCircle className="h-12 w-12" />
+                  <XCircleIcon />
                   <h3 className="text-xl font-extrabold">Invoice Kedaluwarsa</h3>
                   <div className="rounded-neo border-2 border-base-ink bg-base-bg p-3">
                     <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/60">No. Invoice</div>

@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/auth";
@@ -28,12 +29,12 @@ export async function loginAdmin(
     }
 
     createSession(admin.id);
+    redirect("/dashboard");
   } catch (err) {
+    if (isRedirectError(err)) throw err;
     console.error("loginAdmin error:", err);
     return { ok: false, error: "Terjadi kesalahan, coba lagi" };
   }
-
-  redirect("/dashboard");
 }
 
 export async function logoutAdmin() {

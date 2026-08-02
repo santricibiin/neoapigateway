@@ -16,31 +16,9 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { title, content, authorId } = body as {
-      title: string;
-      content?: string;
-      authorId: number;
-    };
-
-    if (!title || !authorId) {
-      return NextResponse.json(
-        { ok: false, error: "title and authorId are required" },
-        { status: 400 }
-      );
-    }
-
-    const post = await prisma.post.create({
-      data: { title, content: content ?? null, authorId },
-    });
-    return NextResponse.json({ ok: true, data: post }, { status: 201 });
-  } catch (err) {
-    console.error("POST /api/posts error:", err);
-    return NextResponse.json(
-      { ok: false, error: "Failed to create post" },
-      { status: 500 }
-    );
-  }
+export async function POST() {
+  return NextResponse.json(
+    { ok: false, error: "Method not allowed" },
+    { status: 405 }
+  );
 }

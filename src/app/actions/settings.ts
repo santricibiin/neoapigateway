@@ -2,12 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth";
 import { verifyQrisCrc } from "@/lib/qris";
 import type { ActionResult } from "@/types";
 
 const VALID_PROVIDERS = ["none", "dana", "nobu"] as const;
 
-export async function getSettings() {
+export async function getSettingsRaw() {
   const setting = await prisma.setting.findUnique({ where: { id: 1 } });
   return {
     secretKey: setting?.secretKey ?? "",
@@ -20,9 +21,15 @@ export async function getSettings() {
   };
 }
 
+export async function getSettings() {
+  requireAdmin();
+  return getSettingsRaw();
+}
+
 export async function saveSettings(
   formData: FormData
 ): Promise<ActionResult> {
+  requireAdmin();
   const secretKey = formData.get("secretKey")?.toString().trim() ?? "";
   const pin = formData.get("pin")?.toString().trim() ?? "";
   const qrisProvider = formData.get("qrisProvider")?.toString().trim() ?? "none";
@@ -33,6 +40,10 @@ export async function saveSettings(
 
   if (!secretKey && !pin) {
     return { ok: false, error: "Secret Key dan PIN tidak boleh kosong" };
+  }
+
+  if (forwarderSecret && forwarderSecret.length < 24) {
+    return { ok: false, error: "Forwarder Secret minimal 24 karakter" };
   }
 
   if (!VALID_PROVIDERS.includes(qrisProvider as (typeof VALID_PROVIDERS)[number])) {
