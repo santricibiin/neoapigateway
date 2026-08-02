@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useBrand } from "@/lib/use-brand";
 
 const footerLinks = [
   { href: "/", label: "Beranda" },
@@ -7,11 +10,14 @@ const footerLinks = [
 ];
 
 export function Footer() {
+  const brand = useBrand();
+  const siteName = brand?.siteName ?? "Neo API Gateway";
+
   return (
     <footer className="bg-base-bg px-4 py-6">
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 sm:flex-row">
         <p className="text-sm font-semibold text-base-ink/60">
-          &copy; {new Date().getFullYear()} Neo · Token API AI
+          &copy; {new Date().getFullYear()} {siteName} · Token API AI
         </p>
         <ul className="flex items-center gap-5">
           {footerLinks.map((link) => (

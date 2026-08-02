@@ -24,6 +24,8 @@ export async function getSettingsRaw() {
     backupUnit: setting?.backupUnit ?? "minutes",
     telegramBotToken: setting?.telegramBotToken ?? "",
     telegramChatId: setting?.telegramChatId ?? "",
+    siteName: setting?.siteName ?? "",
+    logoPath: setting?.logoPath ?? "",
   };
 }
 
@@ -48,6 +50,7 @@ export async function saveSettings(
   const backupUnit = formData.get("backupUnit")?.toString().trim() ?? "minutes";
   const telegramBotToken = formData.get("telegramBotToken")?.toString().trim() ?? "";
   const telegramChatId = formData.get("telegramChatId")?.toString().trim() ?? "";
+  const siteName = formData.get("siteName")?.toString().trim() ?? "";
 
   // Preserve existing values jika field kosong (memungkinkan update section lain tanpa re-input)
   const existing = await prisma.setting.findUnique({ where: { id: 1 } });
@@ -56,6 +59,7 @@ export async function saveSettings(
   const finalForwarderSecret = forwarderSecret || existing?.forwarderSecret || "";
   const finalTelegramBotToken = telegramBotToken || existing?.telegramBotToken || "";
   const finalTelegramChatId = telegramChatId || existing?.telegramChatId || "";
+  const finalSiteName = siteName || existing?.siteName || "";
 
   if (!finalSecretKey && !finalPin) {
     return { ok: false, error: "Secret Key dan PIN tidak boleh kosong" };
@@ -109,6 +113,7 @@ export async function saveSettings(
         backupUnit,
         telegramBotToken: finalTelegramBotToken,
         telegramChatId: finalTelegramChatId,
+        siteName: finalSiteName,
       },
       create: {
         id: 1,
@@ -124,6 +129,7 @@ export async function saveSettings(
         backupUnit,
         telegramBotToken: finalTelegramBotToken,
         telegramChatId: finalTelegramChatId,
+        siteName: finalSiteName,
       },
     });
     revalidatePath("/dashboard/settings");

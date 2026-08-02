@@ -1,11 +1,19 @@
-import type { Metadata, Viewport } from "next";
+import type { Viewport } from "next";
 import "./globals.css";
+import { getBranding } from "@/lib/branding";
 
-export const metadata: Metadata = {
-  title: "Neo — Soft Neobrutalism",
-  description:
-    "Next.js boilerplate with Soft Neobrutalism design, Prisma, and MySQL.",
-};
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata() {
+  const { siteName } = await getBranding();
+  return {
+    title: {
+      default: siteName,
+      template: `%s · ${siteName}`,
+    },
+    description: `${siteName} — Token API AI Multi Model`,
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -14,14 +22,20 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { siteName, logoUrl } = await getBranding();
   return (
-    <html lang="en">
+    <html lang="id">
       <body className="min-h-screen bg-base-bg text-base-ink antialiased">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__BRAND__=${JSON.stringify({ siteName, logoUrl })};`,
+          }}
+        />
         {children}
       </body>
     </html>

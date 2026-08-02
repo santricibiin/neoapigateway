@@ -13,6 +13,13 @@ export default async function SettingsPage() {
       initialQrisTtlMinutes={settings.qrisTtlMinutes}
       initialForwarderSecret={settings.forwarderSecret}
       initialUniqueCodeEnabled={settings.uniqueCodeEnabled}
+      initialBackupEnabled={settings.backupEnabled}
+      initialBackupInterval={settings.backupInterval}
+      initialBackupUnit={settings.backupUnit}
+      initialTelegramBotToken={settings.telegramBotToken}
+      initialTelegramChatId={settings.telegramChatId}
+      initialSiteName={settings.siteName}
+      hasLogo={Boolean(settings.logoPath)}
     />
   );
 }

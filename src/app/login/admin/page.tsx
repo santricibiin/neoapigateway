@@ -7,11 +7,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { loginAdmin } from "@/app/actions/auth";
+import { useBrand } from "@/lib/use-brand";
 
 export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const brand = useBrand();
+  const siteName = brand?.siteName ?? "Neo API Gateway";
+  const logoUrl = brand?.logoUrl;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -78,15 +82,19 @@ export default function AdminLoginPage() {
       >
         <div className="rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-lg">
           <div className="flex flex-col items-center gap-3 border-b-2 border-base-ink bg-accent-lavender p-6">
-            <motion.span
-              initial={{ scale: 0, rotate: -30 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 18 }}
-              className="inline-flex h-14 w-14 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun shadow-neo-sm"
-            >
-              <ShieldCheck className="h-7 w-7 text-base-ink" strokeWidth={2.5} />
-            </motion.span>
-            <h1 className="text-2xl font-extrabold tracking-tight">Admin Login</h1>
+            {logoUrl ? (
+              <img src={logoUrl} alt={siteName} className="h-14 max-w-[180px] object-contain" />
+            ) : (
+              <motion.span
+                initial={{ scale: 0, rotate: -30 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 18 }}
+                className="inline-flex h-14 w-14 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun shadow-neo-sm"
+              >
+                <ShieldCheck className="h-7 w-7 text-base-ink" strokeWidth={2.5} />
+              </motion.span>
+            )}
+            <h1 className="text-2xl font-extrabold tracking-tight">{siteName}</h1>
             <p className="text-sm text-base-ink/70">
               Masuk untuk mengelola token & transaksi
             </p>

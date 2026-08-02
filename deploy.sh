@@ -239,6 +239,10 @@ EOF
   pm2 save 2>/dev/null || true
   log "Backup cron aktif (cek tiap jam via PM2)"
 
+  # 8c. Uploads dir (logo, dll — di luar public)
+  mkdir -p "$APP_DIR/uploads"
+  log "Uploads directory ready"
+
   # 9. Nginx
   if command -v nginx &>/dev/null; then
     log "Nginx sudah terinstall — skip"

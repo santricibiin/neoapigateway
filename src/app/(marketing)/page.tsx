@@ -7,6 +7,7 @@ import { Zap, BadgeDollarSign, Cpu, ShieldCheck, Sparkles, ArrowRight, Terminal,
 import { Button } from "@/components/ui/button";
 import { copyText } from "@/lib/copy";
 import { ModelShowcase } from "@/components/landing/model-showcase";
+import { useBrand } from "@/lib/use-brand";
 
 const API_BASE = process.env.NEXT_PUBLIC_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -109,6 +110,8 @@ const item = {
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState(0);
   const [copied, setCopied] = useState(false);
+  const brand = useBrand();
+  const siteName = brand?.siteName ?? "Neo API Gateway";
 
   async function handleCopy() {
     await copyText(codeExamples[activeTab].code);
@@ -163,7 +166,7 @@ export default function HomePage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="max-w-xl text-lg text-base-ink/70"
         >
-          Neo API Gateway menghubungkan proyekmu ke berbagai model AI populer
+          {siteName} menghubungkan proyekmu ke berbagai model AI populer
           lewat satu endpoint yang kompatibel dengan OpenAI API.
         </motion.p>
         <motion.div

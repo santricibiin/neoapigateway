@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useBrand } from "@/lib/use-brand";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -11,6 +12,11 @@ const navLinks = [
 ];
 
 export function Navbar() {
+  const brand = useBrand();
+  const siteName = brand?.siteName ?? "Neo API Gateway";
+  const logoUrl = brand?.logoUrl;
+  const shortName = siteName.charAt(0).toUpperCase();
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -16 }}
@@ -20,9 +26,13 @@ export function Navbar() {
     >
       <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-2">
-          <span className="rounded-neo border-2 border-base-ink bg-accent-sun px-2 py-1 text-lg font-extrabold shadow-neo-sm">
-            NEO
-          </span>
+          {logoUrl ? (
+            <img src={logoUrl} alt={siteName} className="h-8 max-w-[140px] object-contain" />
+          ) : (
+            <span className="rounded-neo border-2 border-base-ink bg-accent-sun px-2 py-1 text-lg font-extrabold shadow-neo-sm">
+              {shortName}
+            </span>
+          )}
         </Link>
         <ul className="hidden items-center gap-6 sm:flex">
           {navLinks.map((link) => (

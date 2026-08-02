@@ -31,3 +31,9 @@ export interface ActionResult<T = unknown> {
   data?: T;
   error?: string;
 }
+
+declare global {
+  interface Window {
+    __BRAND__?: { siteName: string; logoUrl: string | null };
+  }
+}
