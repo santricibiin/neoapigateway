@@ -261,7 +261,7 @@ EOF
     cat > "$NGINX_CONF" <<EOF
 server {
     listen 80;
-    server_name $DOMAIN www.$DOMAIN;
+    server_name $DOMAIN;
 
     client_max_body_size 50M;
 
@@ -308,12 +308,24 @@ EOF
     warn "Pastikan DNS $DOMAIN sudah mengarah ke IP server ini!"
     read -rp "Lanjutkan request SSL? (y/N): " SSL_CONFIRM
     if [[ "$SSL_CONFIRM" =~ ^[Yy]$ ]]; then
-      certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" \
-        --non-interactive --agree-tos -m "$SSL_EMAIL" \
-        --redirect || {
-        err "Certbot gagal — cek DNS / port 80"
-        warn "Aplikasi tetap jalan di http://$DOMAIN"
-      }
+      # Hitung jumlah titik — subdomain (mis. ai.autoapp.biz.id) punya >2 titik
+      DOT_COUNT=$(echo "$DOMAIN" | tr -cd '.' | wc -c)
+      if [ "$DOT_COUNT" -gt 2 ]; then
+        info "Subdomain terdeteksi — skip www.$DOMAIN"
+        certbot --nginx -d "$DOMAIN" \
+          --non-interactive --agree-tos -m "$SSL_EMAIL" \
+          --redirect || {
+          err "Certbot gagal — cek DNS / port 80"
+          warn "Aplikasi tetap jalan di http://$DOMAIN"
+        }
+      else
+        certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" \
+          --non-interactive --agree-tos -m "$SSL_EMAIL" \
+          --redirect || {
+          err "Certbot gagal — cek DNS / port 80"
+          warn "Aplikasi tetap jalan di http://$DOMAIN"
+        }
+      fi
       log "SSL certificate terinstall"
     else
       warn "Skip SSL — aplikasi jalan di http://$DOMAIN"

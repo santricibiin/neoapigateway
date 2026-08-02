@@ -232,7 +232,7 @@ export async function fetchCustomerActivity(
 
 export async function fetchResellerKeys(
   secretKey: string
-): Promise<{ keys: ResellerKey[]; resellerApiKey?: string }> {
+): Promise<{ keys: ResellerKey[]; resellerApiKey?: string; resellerQuota?: number }> {
   const url = new URL(`${BASE_URL}/api/public/reseller/keys`);
   url.searchParams.set("token", secretKey);
   const res = await fetch(url.toString(), { cache: "no-store" });
@@ -240,7 +240,7 @@ export async function fetchResellerKeys(
   if (!res.ok) {
     throw new Error(data.error || "Gagal mengambil daftar key");
   }
-  return data as { keys: ResellerKey[]; resellerApiKey?: string };
+  return data as { keys: ResellerKey[]; resellerApiKey?: string; resellerQuota?: number };
 }
 
 export async function fetchResellerActivity(

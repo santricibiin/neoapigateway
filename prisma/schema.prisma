@@ -149,6 +149,8 @@ model PaymentOrder {
   productName    String        @db.VarChar(200)
   productSku     String?       @db.VarChar(50)
   buyerPhone     String?       @db.VarChar(24)
+  /// Token member (secretToken) untuk add quota langsung
+  buyerQuotaToken String?      @db.VarChar(128)
   qrisProvider   String        @db.VarChar(20)
   qrisPayload    String        @db.Text
   tokenId        Int

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { QUOTA_PACKAGES, provisionCustomerKey, formatBandelDelivery } from "@/lib/bandelbanget";
+import { QUOTA_PACKAGES, provisionCustomerKey, formatBandelDelivery, addCustomerQuota, fetchResellerKeys } from "@/lib/bandelbanget";
 import type { ActionResult } from "@/types";
 
 /** Claim event dengan order pending yang cocok secara atomic. */
@@ -79,17 +79,42 @@ export async function fulfillOrder(orderId: string): Promise<ActionResult<{ deli
         return { ok: false, error: "Secret Key BandelBanget belum diatur" };
       }
 
-      try {
-        const created = await provisionCustomerKey(
-          setting.secretKey,
-          pack.tokens * order.qty,
-          pack.validDays,
-          setting.pin || undefined
-        );
-        delivered = formatBandelDelivery(created, code);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : "Gagal membuat customer key";
-        return { ok: false, error: msg };
+      // Jika ada buyerQuotaToken, tambah kuota ke member yang sudah ada
+      if (order.buyerQuotaToken) {
+        try {
+          const keys = await fetchResellerKeys(setting.secretKey);
+          const member = keys.keys.find((k) => k.secretToken === order.buyerQuotaToken);
+          if (!member) {
+            return { ok: false, error: "Member tidak ditemukan untuk penambahan kuota" };
+          }
+          const result = await addCustomerQuota(
+            setting.secretKey,
+            Number(member.id),
+            pack.tokens * order.qty,
+            pack.validDays
+          );
+          delivered = `Kuota +${(pack.tokens * order.qty).toLocaleString("id-ID")} token (${order.qty}x ${code})`;
+          if (result.remainingQuota != null) {
+            delivered += `\nSisa kuota: ${result.remainingQuota.toLocaleString("id-ID")}`;
+          }
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Gagal menambah kuota member";
+          return { ok: false, error: msg };
+        }
+      } else {
+        // Default: provision key baru
+        try {
+          const created = await provisionCustomerKey(
+            setting.secretKey,
+            pack.tokens * order.qty,
+            pack.validDays,
+            setting.pin || undefined
+          );
+          delivered = formatBandelDelivery(created, code);
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Gagal membuat customer key";
+          return { ok: false, error: msg };
+        }
       }
     }
 

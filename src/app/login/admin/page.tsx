@@ -119,7 +119,7 @@ export default function AdminLoginPage() {
                 label="Email Admin"
                 name="email"
                 type="email"
-                placeholder="admin@neo.ai"
+                placeholder="email@domain.com"
                 autoComplete="email"
                 required
               />

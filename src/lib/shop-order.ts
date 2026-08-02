@@ -37,6 +37,7 @@ export async function createShopOrder(opts: {
   tokenId: number;
   qty?: number;
   phone?: string;
+  buyerQuotaToken?: string;
 }): Promise<CreateShopOrderResult> {
   const setting = await prisma.setting.findUnique({ where: { id: 1 } });
   if (!setting || setting.qrisProvider === "none" || !setting.qrisStatic) {
@@ -116,6 +117,7 @@ export async function createShopOrder(opts: {
       productName: product.name,
       productSku: product.sku,
       buyerPhone: opts.phone || null,
+      buyerQuotaToken: opts.buyerQuotaToken || null,
       qrisProvider: setting.qrisProvider,
       qrisPayload,
       expiresAt,

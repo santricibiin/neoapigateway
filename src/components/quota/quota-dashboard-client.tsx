@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { BarChart3, BookOpen, Boxes, Copy, Eye, EyeOff, Gauge, KeyRound, LockKeyhole, LogOut, MessageCircle } from "lucide-react";
+import QRCode from "qrcode";
+import { BarChart3, BookOpen, Boxes, Copy, Eye, EyeOff, Gauge, KeyRound, LockKeyhole, LogOut, MessageCircle, PlusCircle, X, Check, Lock, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,16 @@ type Meta = {
 };
 
 type Tab = "quota" | "models" | "usage" | "contact" | "tutorial";
+
+interface QuotaProduct {
+  id: number;
+  name: string;
+  sku: string;
+  price: number;
+  tokens: number;
+  validDays: number;
+  affordable: boolean;
+}
 
 const tabs: Array<[Tab, string]> = [
   ["quota", "Kuota"],
@@ -59,6 +70,9 @@ export function QuotaDashboardClient({ token, brandName }: { token: string; bran
   const [tab, setTab] = useState<Tab>("quota");
   const [showKey, setShowKey] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [showBuyPopup, setShowBuyPopup] = useState(false);
+  const [products, setProducts] = useState<QuotaProduct[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   const loadData = useCallback(async (accessToken: string) => {
     const response = await fetch(`/api/public/quota/${encodeURIComponent(token)}/data`, {
@@ -129,6 +143,23 @@ export function QuotaDashboardClient({ token, brandName }: { token: string; bran
       setCopied("error");
     }
     window.setTimeout(() => setCopied(null), 1500);
+  }
+
+  async function loadProducts() {
+    setLoadingProducts(true);
+    try {
+      const res = await fetch(`/api/public/quota/${encodeURIComponent(token)}/products`, { cache: "no-store" });
+      const data = await res.json();
+      if (data.ok) {
+        setProducts(data.products || []);
+      }
+    } catch {}
+    setLoadingProducts(false);
+  }
+
+  function openBuyPopup() {
+    if (!products.length) loadProducts();
+    setShowBuyPopup(true);
   }
 
   const usageRows = useMemo(() => {
@@ -249,7 +280,20 @@ export function QuotaDashboardClient({ token, brandName }: { token: string; bran
               <p className="mt-3 text-xs font-bold text-base-ink/50">{data.baseUrl}/models · {data.baseUrl}/chat/completions</p>
             </CardContent>
           </Card>
+
+          <Button type="button" variant="primary" size="lg" className="w-full" onClick={openBuyPopup}>
+            <PlusCircle className="h-5 w-5" /> Tambah Kuota
+          </Button>
         </motion.div>
+      ) : null}
+
+      {showBuyPopup ? (
+        <BuyQuotaPopup
+          token={token}
+          products={products}
+          loading={loadingProducts}
+          onClose={() => setShowBuyPopup(false)}
+        />
       ) : null}
 
       {tab === "models" ? (
@@ -352,4 +396,276 @@ function Alert({ children }: { children: React.ReactNode }) {
 
 function Step({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
   return <div className="flex gap-3 rounded-neo border-2 border-base-ink bg-white p-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky font-extrabold">{number}</span><div className="min-w-0"><p className="font-extrabold">{title}</p><div className="mt-1 text-sm font-semibold text-base-ink/60">{children}</div></div></div>;
+}
+
+function BuyQuotaPopup({
+  token,
+  products,
+  loading,
+  onClose,
+}: {
+  token: string;
+  products: QuotaProduct[];
+  loading: boolean;
+  onClose: () => void;
+}) {
+  const [selected, setSelected] = useState<QuotaProduct | null>(null);
+  const [ordering, setOrdering] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Payment state
+  const [invoice, setInvoice] = useState<string | null>(null);
+  const [amount, setAmount] = useState(0);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState("");
+  const [paid, setPaid] = useState(false);
+  const [expired, setExpired] = useState(false);
+
+  async function handleOrder() {
+    if (!selected) return;
+    setOrdering(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/public/quota/${encodeURIComponent(token)}/buy`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: selected.id }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.error || "Gagal membuat pesanan");
+        setOrdering(false);
+        return;
+      }
+      setInvoice(data.invoice);
+      setAmount(data.amount);
+      setPaid(false);
+      setExpired(false);
+
+      try {
+        const url = await QRCode.toDataURL(data.qrisPayload, { width: 400, margin: 2 });
+        setQrUrl(url);
+      } catch {}
+
+      // Countdown
+      const expires = new Date(data.expiresAt);
+      const tick = () => {
+        const diff = Math.max(0, expires.getTime() - Date.now());
+        if (diff <= 0) {
+          setCountdown("00:00");
+          setExpired(true);
+          return true;
+        }
+        const m = Math.floor(diff / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        setCountdown(`${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
+        return false;
+      };
+      tick();
+      const timer = setInterval(() => {
+        if (tick()) clearInterval(timer);
+      }, 1000);
+
+      // Poll status
+      const poll = async () => {
+        try {
+          const r = await fetch(`/api/payment/status/${data.invoice}`);
+          const st = await r.json();
+          if (st.ok && st.status === "paid") {
+            setPaid(true);
+            clearInterval(timer);
+            clearInterval(poller);
+          }
+          if (st.ok && (st.status === "expired" || st.status === "failed")) {
+            setExpired(true);
+            clearInterval(timer);
+            clearInterval(poller);
+          }
+        } catch {}
+      };
+      poll();
+      const poller = setInterval(poll, 3000);
+    } catch {
+      setError("Gagal membuat pesanan");
+    }
+    setOrdering(false);
+  }
+
+  function reset() {
+    setSelected(null);
+    setInvoice(null);
+    setAmount(0);
+    setQrUrl(null);
+    setPaid(false);
+    setExpired(false);
+    setError(null);
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-base-ink/50" />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="relative z-10 flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header dengan SVG */}
+        <div className="relative flex items-center justify-between border-b-2 border-base-ink bg-accent-sky p-4">
+          <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 text-base-ink/10">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="10" />
+            <path d="M50 20 L60 45 L85 45 L65 60 L72 85 L50 70 L28 85 L35 60 L15 45 L40 45 Z" fill="currentColor" />
+          </svg>
+          <div className="relative flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-white shadow-neo-sm">
+              <PlusCircle className="h-5 w-5" strokeWidth={2.5} />
+            </span>
+            <div>
+              <h2 className="font-extrabold">
+                {paid ? "Kuota Berhasil" : invoice ? "Scan QRIS" : "Tambah Kuota"}
+              </h2>
+              <p className="text-xs font-semibold text-base-ink/65">
+                {paid ? "Token telah ditambahkan" : invoice ? "Bayar sesuai nominal" : "Pilih paket token"}
+              </p>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} className="relative flex h-9 w-9 items-center justify-center rounded-neo border-2 border-base-ink bg-white shadow-neo-sm">
+            <X className="h-4 w-4" strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {/* Phase 1: Select product */}
+          {!invoice && !paid && (
+            <>
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <motion.svg animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} viewBox="0 0 50 50" className="h-8 w-8 text-base-ink/40">
+                    <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeDasharray="31.4 94.2" />
+                  </motion.svg>
+                </div>
+              ) : products.length === 0 ? (
+                <p className="py-12 text-center text-sm font-bold text-base-ink/50">Belum ada paket tersedia.</p>
+              ) : (
+                <div className="grid gap-2">
+                  {products.map((product, i) => {
+                    const isSelected = selected?.id === product.id;
+                    return (
+                      <button
+                        key={product.id}
+                        type="button"
+                        disabled={!product.affordable}
+                        onClick={() => product.affordable && setSelected(product)}
+                        className={cn(
+                          "relative flex items-center justify-between gap-3 rounded-neo border-2 p-3 text-left transition-all",
+                          !product.affordable
+                            ? "cursor-not-allowed border-base-ink/20 bg-base-bg opacity-50"
+                            : isSelected
+                              ? "border-base-ink bg-accent-sky shadow-neo-sm"
+                              : "border-base-ink bg-white hover:bg-accent-sky/30"
+                        )}
+                      >
+                        <svg viewBox="0 0 100 100" aria-hidden className={cn("pointer-events-none absolute -right-3 -top-3 h-16 w-16", i % 3 === 0 ? "text-accent-sun/20" : i % 3 === 1 ? "text-accent-lavender/20" : "text-accent-sky/20")}>
+                          <polygon points="50,10 90,90 10,90" fill="currentColor" />
+                        </svg>
+                        <div className="relative flex items-center gap-3">
+                          <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink text-xs font-black", i % 3 === 0 ? "bg-accent-sun" : i % 3 === 1 ? "bg-accent-lavender" : "bg-accent-mint")}>
+                            {product.sku}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate font-extrabold">{product.name}</p>
+                            <p className="text-xs font-semibold text-base-ink/55">
+                              {formatTokens(product.tokens)} token · {product.validDays} hari
+                            </p>
+                          </div>
+                        </div>
+                        <div className="relative flex items-center gap-2">
+                          {!product.affordable ? (
+                            <span className="flex items-center gap-1 text-xs font-bold text-red-500">
+                              <Lock className="h-3 w-3" /> Stok habis
+                            </span>
+                          ) : isSelected ? (
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-base-ink bg-accent-mint">
+                              <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                            </span>
+                          ) : null}
+                          <span className="font-mono text-sm font-extrabold">Rp{product.price.toLocaleString("id-ID")}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {error && <p className="mt-3 rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{error}</p>}
+            </>
+          )}
+
+          {/* Phase 2: QRIS Payment */}
+          {invoice && !paid && !expired && (
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-full rounded-neo border-2 border-base-ink bg-accent-sun p-3 text-center">
+                <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/60">No. Invoice</div>
+                <div className="mt-0.5 break-all font-mono text-sm font-extrabold">{invoice}</div>
+              </div>
+              <div className="rounded-neo border-2 border-base-ink bg-white p-3 shadow-neo-sm">
+                {qrUrl ? (
+                  <img src={qrUrl} alt="QRIS" className="h-48 w-48" />
+                ) : (
+                  <div className="flex h-48 w-48 items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-base-ink/40" />
+                  </div>
+                )}
+              </div>
+              <div className="w-full rounded-neo border-2 border-base-ink bg-base-bg p-4 text-center">
+                <div className="text-xs font-bold uppercase text-base-ink/50">Total Bayar</div>
+                <div className="mt-1 text-2xl font-extrabold">Rp{amount.toLocaleString("id-ID")}</div>
+              </div>
+              <div className="flex items-center gap-2 text-sm font-bold text-base-ink/70">
+                <Clock className="h-4 w-4" /> Berlaku {countdown}
+              </div>
+              <p className="text-center text-xs text-base-ink/55">Bayar tepat sesuai nominal. Kuota otomatis bertambah setelah pembayaran terverifikasi.</p>
+            </div>
+          )}
+
+          {/* Phase 3: Expired */}
+          {invoice && expired && !paid && (
+            <div className="flex flex-col items-center gap-4 py-6 text-center">
+              <svg viewBox="0 0 100 100" className="h-16 w-16 text-red-400">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6" />
+                <path d="M30 30 L70 70 M70 30 L30 70" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
+              </svg>
+              <h3 className="text-lg font-extrabold">Invoice Kedaluwarsa</h3>
+              <p className="text-sm text-base-ink/60">Silakan buat pesanan baru.</p>
+              <Button type="button" variant="primary" onClick={reset}>Buat Pesanan Baru</Button>
+            </div>
+          )}
+
+          {/* Phase 4: Paid */}
+          {paid && (
+            <div className="flex flex-col items-center gap-4 py-6 text-center">
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300, damping: 18 }}>
+                <svg viewBox="0 0 100 100" className="h-16 w-16 text-green-500">
+                  <circle cx="50" cy="50" r="45" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="5" />
+                  <path d="M30 50 L45 65 L72 35" fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </motion.div>
+              <h3 className="text-lg font-extrabold">Kuota Bertambah!</h3>
+              <p className="text-sm text-base-ink/60">Token telah ditambahkan ke akun Anda. Dashboard akan dimuat ulang.</p>
+              <Button type="button" variant="primary" onClick={() => window.location.reload()}>Muat Ulang Dashboard</Button>
+            </div>
+          )}
+        </div>
+
+        {/* Footer — Order button */}
+        {!invoice && !paid && products.length > 0 && (
+          <div className="border-t-2 border-base-ink p-4">
+            <Button type="button" variant="primary" size="lg" className="w-full" disabled={!selected || ordering} onClick={handleOrder}>
+              {ordering ? "Memproses..." : selected ? `Order — Rp${selected.price.toLocaleString("id-ID")}` : "Pilih paket dulu"}
+            </Button>
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
 }
