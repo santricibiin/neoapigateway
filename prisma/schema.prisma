@@ -31,6 +31,16 @@ model Setting {
   forwarderSecret String?  @db.VarChar(200)
   /// Aktifkan kode unik 3 digit pada nominal QRIS
   uniqueCodeEnabled Boolean @default(true)
+  /// Backup otomatis aktif
+  backupEnabled     Boolean @default(false)
+  /// Interval backup (angka)
+  backupInterval    Int      @default(1440)
+  /// Satuan interval: minutes | hours | days
+  backupUnit        String   @default("minutes") @db.VarChar(10)
+  /// Token Telegram Bot
+  telegramBotToken  String?  @db.VarChar(200)
+  /// Chat ID Telegram
+  telegramChatId    String?  @db.VarChar(50)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

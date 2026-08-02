@@ -13,6 +13,7 @@ import {
   WalletCards,
   Newspaper,
   FolderOpen,
+  Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ const menu = [
   { href: "/dashboard/reseller", label: "Reseller", icon: Users },
   { href: "/dashboard/customer-keys", label: "Keys", icon: KeyRound },
   { href: "/dashboard/topup", label: "Topup", icon: WalletCards },
+  { href: "/dashboard/backup", label: "Backup", icon: Database },
   { href: "/dashboard/news", label: "Berita", icon: Newspaper },
   { href: "/dashboard/settings", label: "Setting", icon: Settings },
 ];

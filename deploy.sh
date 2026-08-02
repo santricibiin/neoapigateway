@@ -221,6 +221,12 @@ EOF
   pm2 startup systemd -u root --hp /root 2>/dev/null || true
   log "Aplikasi berjalan di port $APP_PORT (PM2)"
 
+  # 8b. Backup cron via PM2
+  pm2 delete "neo-backup" 2>/dev/null || true
+  pm2 start "$APP_DIR/scripts/backup-cron.sh" --name "neo-backup" --cron "0 * * * *" 2>/dev/null || true
+  pm2 save 2>/dev/null || true
+  log "Backup cron aktif (cek tiap jam via PM2)"
+
   # 9. Nginx
   if command -v nginx &>/dev/null; then
     log "Nginx sudah terinstall — skip"
@@ -391,6 +397,117 @@ update() {
   echo ""
 }
 
+# ===== Fungsi: Restore Backup =====
+restore_backup() {
+  echo ""
+  info "=== Restore Backup ==="
+  echo ""
+
+  # Cari file .sql / .zip di APP_DIR
+  BACKUP_FILES=$(find "$APP_DIR" -maxdepth 1 \( -name '*.sql' -o -name 'bc-*.zip' \) 2>/dev/null | sort)
+
+  if [ -z "$BACKUP_FILES" ]; then
+    err "Tidak ada file backup (.sql / .zip) di $APP_DIR"
+    warn "Upload file backup ke $APP_DIR/ lalu jalankan lagi."
+    exit 1
+  fi
+
+  echo "File backup ditemukan:"
+  echo ""
+  local i=1
+  local files=()
+  while IFS= read -r f; do
+    local fname=$(basename "$f")
+    local fsize=$(du -h "$f" | cut -f1)
+    local fdate=$(stat -c %y "$f" 2>/dev/null | cut -d. -f1)
+    echo "  $i) $fname ($fsize, $fdate)"
+    files+=("$f")
+    i=$((i + 1))
+  done <<< "$BACKUP_FILES"
+  echo ""
+
+  read -rp "Pilih file (1-$((i-1))): " PILIH
+
+  if ! [[ "$PILIH" =~ ^[0-9]+$ ]] || [ "$PILIH" -lt 1 ] || [ "$PILIH" -gt $((i-1)) ]; then
+    err "Pilihan tidak valid"
+    exit 1
+  fi
+
+  local selected="${files[$((PILIH-1))]}"
+  local fname=$(basename "$selected")
+
+  echo ""
+  warn "PERINGATAN: Restore akan MENIMPA database saat ini!"
+  warn "File: $fname"
+  read -rp "Lanjutkan restore? (y/N): " CONFIRM
+  if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
+    warn "Dibatalkan."
+    exit 0
+  fi
+
+  # Parse DB credentials dari .env
+  ENV_FILE="$APP_DIR/.env"
+  if [ ! -f "$ENV_FILE" ]; then
+    err ".env tidak ditemukan"
+    exit 1
+  fi
+  export $(grep -v '^#' "$ENV_FILE" | xargs)
+  DB_URL="$DATABASE_URL"
+  DB_USER=$(echo "$DB_URL" | sed -n 's|mysql://\([^:]*\):.*@.*|\1|p')
+  DB_PASS=$(echo "$DB_URL" | sed -n 's|mysql://[^:]*:\([^@]*\)@.*|\1|p')
+  DB_HOST=$(echo "$DB_URL" | sed -n 's|.*@\([^:]*\):.*|\1|p')
+  DB_PORT=$(echo "$DB_URL" | sed -n 's|.*@\([^:]*\):\([0-9]*\)/.*|\2|p')
+  DB_NAME=$(echo "$DB_URL" | sed -n 's|.*/\([^?]*\).*|\1|p')
+
+  local tmp_sql="/tmp/restore_$$.sql"
+
+  # Unzip jika .zip
+  case "$fname" in
+    *.zip)
+      info "Ekstrak $fname ..."
+      unzip -o "$selected" -d /tmp/restore_$$ >/dev/null
+      tmp_sql=$(find /tmp/restore_$$ -name '*.sql' | head -1)
+      if [ -z "$tmp_sql" ]; then
+        err "File .sql tidak ditemukan dalam zip"
+        rm -rf /tmp/restore_$$
+        exit 1
+      fi
+      ;;
+    *.sql)
+      tmp_sql="$selected"
+      ;;
+  esac
+
+  # Stop app
+  info "Stop aplikasi (PM2) ..."
+  pm2 stop "$APP_NAME" 2>/dev/null || true
+
+  # Restore
+  info "Restore database ..."
+  mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$tmp_sql" 2>/dev/null
+  log "Database restored"
+
+  # Cleanup
+  [ "$fname" = "*.zip" ] && rm -rf /tmp/restore_$$
+
+  # Prisma generate (schema mungkin berubah)
+  info "Generate Prisma Client ..."
+  cd "$APP_DIR"
+  npx prisma generate
+
+  # Start app
+  info "Start aplikasi (PM2) ..."
+  pm2 start "$APP_NAME" 2>/dev/null || pm2 start npm --name "$APP_NAME" -- start
+  pm2 save
+
+  echo ""
+  log "=== RESTORE SELESAI ==="
+  echo ""
+  info "Database: $DB_NAME"
+  info "File    : $fname"
+  echo ""
+}
+
 # ===== Menu Utama =====
 echo ""
 echo -e "${CYAN}╔══════════════════════════════════════╗${NC}"
@@ -398,14 +515,16 @@ echo -e "${CYAN}║   Neo API Gateway — Deploy Script    ║${NC}"
 echo -e "${CYAN}╠══════════════════════════════════════╣${NC}"
 echo -e "${CYAN}║  1. Deploy Awal                      ║${NC}"
 echo -e "${CYAN}║  2. Update                           ║${NC}"
-echo -e "${CYAN}║  3. Keluar                           ║${NC}"
+echo -e "${CYAN}║  3. Restore Backup                   ║${NC}"
+echo -e "${CYAN}║  4. Keluar                           ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════╝${NC}"
 echo ""
-read -rp "Pilih (1/2/3): " PILIHAN
+read -rp "Pilih (1/2/3/4): " PILIHAN
 
 case "$PILIHAN" in
   1) deploy_awal ;;
   2) update ;;
-  3) echo "Bye." ; exit 0 ;;
+  3) restore_backup ;;
+  4) echo "Bye." ; exit 0 ;;
   *) err "Pilihan tidak valid." ; exit 1 ;;
 esac

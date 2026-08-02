@@ -7,6 +7,7 @@ import { verifyQrisCrc } from "@/lib/qris";
 import type { ActionResult } from "@/types";
 
 const VALID_PROVIDERS = ["none", "dana", "nobu"] as const;
+const VALID_BACKUP_UNITS = ["minutes", "hours", "days"] as const;
 
 export async function getSettingsRaw() {
   const setting = await prisma.setting.findUnique({ where: { id: 1 } });
@@ -18,6 +19,11 @@ export async function getSettingsRaw() {
     qrisTtlMinutes: setting?.qrisTtlMinutes ?? 5,
     forwarderSecret: setting?.forwarderSecret ?? "",
     uniqueCodeEnabled: setting?.uniqueCodeEnabled ?? true,
+    backupEnabled: setting?.backupEnabled ?? false,
+    backupInterval: setting?.backupInterval ?? 1440,
+    backupUnit: setting?.backupUnit ?? "minutes",
+    telegramBotToken: setting?.telegramBotToken ?? "",
+    telegramChatId: setting?.telegramChatId ?? "",
   };
 }
 
@@ -37,17 +43,42 @@ export async function saveSettings(
   const qrisTtlMinutes = Number(formData.get("qrisTtlMinutes") ?? "5");
   const forwarderSecret = formData.get("forwarderSecret")?.toString().trim() ?? "";
   const uniqueCodeEnabled = formData.get("uniqueCodeEnabled") === "on";
+  const backupEnabled = formData.get("backupEnabled") === "on";
+  const backupInterval = Number(formData.get("backupInterval") ?? "1440");
+  const backupUnit = formData.get("backupUnit")?.toString().trim() ?? "minutes";
+  const telegramBotToken = formData.get("telegramBotToken")?.toString().trim() ?? "";
+  const telegramChatId = formData.get("telegramChatId")?.toString().trim() ?? "";
 
-  if (!secretKey && !pin) {
+  // Preserve existing values jika field kosong (memungkinkan update section lain tanpa re-input)
+  const existing = await prisma.setting.findUnique({ where: { id: 1 } });
+  const finalSecretKey = secretKey || existing?.secretKey || "";
+  const finalPin = pin || existing?.pin || "";
+  const finalForwarderSecret = forwarderSecret || existing?.forwarderSecret || "";
+  const finalTelegramBotToken = telegramBotToken || existing?.telegramBotToken || "";
+  const finalTelegramChatId = telegramChatId || existing?.telegramChatId || "";
+
+  if (!finalSecretKey && !finalPin) {
     return { ok: false, error: "Secret Key dan PIN tidak boleh kosong" };
   }
 
-  if (forwarderSecret && forwarderSecret.length < 24) {
+  if (finalForwarderSecret && finalForwarderSecret.length < 24) {
     return { ok: false, error: "Forwarder Secret minimal 24 karakter" };
   }
 
   if (!VALID_PROVIDERS.includes(qrisProvider as (typeof VALID_PROVIDERS)[number])) {
     return { ok: false, error: "Provider QRIS tidak valid" };
+  }
+
+  if (!VALID_BACKUP_UNITS.includes(backupUnit as (typeof VALID_BACKUP_UNITS)[number])) {
+    return { ok: false, error: "Satuan backup tidak valid" };
+  }
+
+  if (!Number.isInteger(backupInterval) || backupInterval < 1 || backupInterval > 100000) {
+    return { ok: false, error: "Interval backup tidak valid" };
+  }
+
+  if (backupEnabled && (!finalTelegramBotToken || !finalTelegramChatId)) {
+    return { ok: false, error: "Bot Token dan Chat ID Telegram wajib diisi jika backup aktif" };
   }
 
   if (qrisProvider !== "none" && !qrisStatic) {
@@ -65,8 +96,35 @@ export async function saveSettings(
   try {
     await prisma.setting.upsert({
       where: { id: 1 },
-      update: { secretKey, pin, qrisProvider, qrisStatic, qrisTtlMinutes, forwarderSecret, uniqueCodeEnabled },
-      create: { id: 1, secretKey, pin, qrisProvider, qrisStatic, qrisTtlMinutes, forwarderSecret, uniqueCodeEnabled },
+      update: {
+        secretKey: finalSecretKey,
+        pin: finalPin,
+        qrisProvider,
+        qrisStatic,
+        qrisTtlMinutes,
+        forwarderSecret: finalForwarderSecret,
+        uniqueCodeEnabled,
+        backupEnabled,
+        backupInterval,
+        backupUnit,
+        telegramBotToken: finalTelegramBotToken,
+        telegramChatId: finalTelegramChatId,
+      },
+      create: {
+        id: 1,
+        secretKey: finalSecretKey,
+        pin: finalPin,
+        qrisProvider,
+        qrisStatic,
+        qrisTtlMinutes,
+        forwarderSecret: finalForwarderSecret,
+        uniqueCodeEnabled,
+        backupEnabled,
+        backupInterval,
+        backupUnit,
+        telegramBotToken: finalTelegramBotToken,
+        telegramChatId: finalTelegramChatId,
+      },
     });
     revalidatePath("/dashboard/settings");
     return { ok: true };
