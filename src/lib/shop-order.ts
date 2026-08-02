@@ -65,6 +65,7 @@ export async function createShopOrder(opts: {
   const safeQty = Math.max(1, Math.min(opts.qty ?? 1, stockMode === "counted" ? product.stock : 999));
 
   const unitPrice = Number(product.price);
+  const unitCost = Number(product.costPrice);
   const base = unitPrice * safeQty;
 
   let amount = base;
@@ -111,6 +112,7 @@ export async function createShopOrder(opts: {
       amount,
       qty: safeQty,
       unitPrice,
+      unitCost,
       productName: product.name,
       productSku: product.sku,
       buyerPhone: opts.phone || null,

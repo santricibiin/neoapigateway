@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Zap, BadgeDollarSign, Cpu, ShieldCheck, Sparkles, ArrowRight, Terminal, Copy, Check, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { copyText } from "@/lib/copy";
+import { ModelShowcase } from "@/components/landing/model-showcase";
 
 const API_BASE = process.env.NEXT_PUBLIC_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -38,15 +39,6 @@ const features = [
     accent: "bg-accent-lavender",
     icon: ShieldCheck,
   },
-];
-
-const models = [
-  { name: "Claude", color: "#D97757", initial: "C", desc: "Anthropic Claude 3.5 Sonnet / Opus" },
-  { name: "GPT", color: "#10A37F", initial: "G", desc: "OpenAI GPT-4o / GPT-4 Turbo" },
-  { name: "DeepSeek", color: "#4D6BFE", initial: "D", desc: "DeepSeek V3 / DeepSeek R1" },
-  { name: "GLM", color: "#3B82F6", initial: "Z", desc: "Zhipu GLM-4 / GLM-4-Plus" },
-  { name: "Kimi", color: "#1A1A1A", initial: "K", desc: "Moonshot Kimi K1.5 / K2" },
-  { name: "Llama", color: "#0866FF", initial: "L", desc: "Meta Llama 3.1 / 3.3 70B" },
 ];
 
 const codeExamples = [
@@ -100,7 +92,7 @@ console.log(res.choices[0].message.content);`,
 const stats = [
   { value: "99.9%", label: "Uptime" },
   { value: "10K+", label: "Token Terjual" },
-  { value: "50+", label: "Model AI" },
+  { value: "Realtime", label: "Model AI" },
   { value: "24/7", label: "Dukungan" },
 ];
 
@@ -171,8 +163,8 @@ export default function HomePage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="max-w-xl text-lg text-base-ink/70"
         >
-          Neo API Gateway menghubungkan proyekmu ke Claude, GPT, DeepSeek, GLM, Kimi,
-          dan Llama lewat satu endpoint yang kompatibel dengan OpenAI API.
+          Neo API Gateway menghubungkan proyekmu ke berbagai model AI populer
+          lewat satu endpoint yang kompatibel dengan OpenAI API.
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -200,33 +192,8 @@ export default function HomePage() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="flex flex-col gap-6"
       >
-        <div className="text-center">
-          <h2 className="text-2xl font-extrabold sm:text-3xl">Model AI Tersedia</h2>
-          <p className="mt-2 text-base-ink/60">Akses semua model ini dengan satu API key.</p>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {models.map((model, i) => (
-            <motion.div
-              key={model.name}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: i * 0.06 }}
-              className="group flex flex-col items-center gap-2 rounded-neo border-2 border-base-ink bg-base-surface p-4 text-center shadow-neo-sm transition-shadow hover:shadow-neo"
-            >
-              <span
-                className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-base-ink text-lg font-black text-white shadow-neo-sm"
-                style={{ backgroundColor: model.color }}
-              >
-                {model.initial}
-              </span>
-              <span className="text-sm font-extrabold">{model.name}</span>
-              <span className="text-[10px] font-semibold leading-tight text-base-ink/50">{model.desc}</span>
-            </motion.div>
-          ))}
-        </div>
+        <ModelShowcase />
       </motion.section>
 
       {/* Features */}

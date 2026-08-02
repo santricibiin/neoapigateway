@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Activity, ArrowUpRight, Gauge, KeyRound, Users } from "lucide-react";
+import { Activity, ArrowUpRight, Gauge, KeyRound, TrendingUp, Wallet, Users } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Card } from "@/components/ui/card";
 
@@ -14,6 +14,8 @@ interface DashboardClientProps {
     totalRequests: number;
     promptTokens: number;
     completionTokens: number;
+    omzet: number;
+    margin: number;
   };
   customerUsage: { name: string; used: number; requests: number }[];
   modelUsage: { name: string; tokens: number; requests: number }[];
@@ -27,6 +29,10 @@ function format(value: number) {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(2)}K`;
   return value.toLocaleString("id-ID");
+}
+
+function formatRupiah(value: number) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 }
 
 const statusColor: Record<string, string> = {
@@ -44,6 +50,11 @@ export function DashboardClient({ stats, customerUsage, modelUsage, statusBreakd
     { label: "Total Request", value: format(stats.totalRequests), detail: `${format(stats.promptTokens)} input · ${format(stats.completionTokens)} output`, icon: Activity, accent: "bg-accent-lavender" },
   ];
 
+  const financeCards = [
+    { label: "Omzet", value: formatRupiah(stats.omzet), detail: "Dari transaksi lunas", icon: Wallet, accent: "bg-accent-mint" },
+    { label: "Margin", value: formatRupiah(stats.margin), detail: "Keuntungan setelah modal", icon: TrendingUp, accent: "bg-accent-sky" },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
       <div><h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Dashboard Customer</h1><p className="mt-1 text-sm text-base-ink/60">Ringkasan pemakaian kuota, request, dan model seluruh member</p></div>
@@ -53,6 +64,13 @@ export function DashboardClient({ stats, customerUsage, modelUsage, statusBreakd
         {statCards.map((card, index) => {
           const Icon = card.icon;
           return <motion.div key={card.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.08 }}><Card className="relative overflow-hidden p-5"><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-7 -top-7 h-24 w-24 text-base-ink/[0.06]"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg><div className="relative flex items-center justify-between"><span className={`inline-flex h-10 w-10 items-center justify-center border-2 border-base-ink ${card.accent}`}><Icon className="h-5 w-5" strokeWidth={2.5} /></span><ArrowUpRight className="h-4 w-4 text-base-ink/30" /></div><div className="relative mt-4 text-2xl font-extrabold">{card.value}</div><div className="relative mt-1 text-sm font-semibold text-base-ink/60">{card.label}</div><p className="relative mt-2 text-[10px] font-bold uppercase tracking-wide text-base-ink/40">{card.detail}</p></Card></motion.div>;
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {financeCards.map((card, index) => {
+          const Icon = card.icon;
+          return <motion.div key={card.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.08 }}><Card className="relative overflow-hidden p-5"><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-7 -top-7 h-24 w-24 text-base-ink/[0.06]"><polygon points="50,10 90,90 10,90" fill="none" stroke="currentColor" strokeWidth="10" /></svg><div className="relative flex items-center justify-between"><span className={`inline-flex h-10 w-10 items-center justify-center border-2 border-base-ink ${card.accent}`}><Icon className="h-5 w-5" strokeWidth={2.5} /></span><ArrowUpRight className="h-4 w-4 text-base-ink/30" /></div><div className="relative mt-4 text-2xl font-extrabold">{card.value}</div><div className="relative mt-1 text-sm font-semibold text-base-ink/60">{card.label}</div><p className="relative mt-2 text-[10px] font-bold uppercase tracking-wide text-base-ink/40">{card.detail}</p></Card></motion.div>;
         })}
       </div>
 

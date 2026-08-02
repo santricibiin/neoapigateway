@@ -62,6 +62,8 @@ model Token {
   model        String
   description  String?       @db.Text
   price        Decimal
+  /// Harga modal internal, tidak ditampilkan ke pembeli
+  costPrice    Decimal       @default(0) @db.Decimal(18, 2)
   stockMode    String        @default("counted") @db.VarChar(20)
   stock        Int           @default(0)
   sold         Int           @default(0)
@@ -128,6 +130,8 @@ model PaymentOrder {
   amount         Int
   qty            Int           @default(1)
   unitPrice      Int
+  /// Snapshot harga modal saat invoice dibuat
+  unitCost       Int           @default(0)
   productName    String        @db.VarChar(200)
   productSku     String?       @db.VarChar(50)
   buyerPhone     String?       @db.VarChar(24)

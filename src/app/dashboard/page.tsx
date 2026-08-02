@@ -1,6 +1,7 @@
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
-import { getSettings } from "@/app/actions/settings";
+import { getSettingsRaw } from "@/app/actions/settings";
 import { fetchResellerKeys, type ResellerKey } from "@/lib/bandelbanget";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ function modelRows(key: ResellerKey) {
 }
 
 export default async function DashboardPage() {
-  const settings = await getSettings();
+  const settings = await getSettingsRaw();
   let keys: ResellerKey[] = [];
   let error: string | null = null;
   if (!settings.secretKey) {
@@ -77,9 +78,27 @@ export default async function DashboardPage() {
     .sort((a, b) => b.used - a.used)
     .slice(0, 6);
 
+  // Omzet & margin dari PaymentOrder berstatus paid
+  const paidOrders = await prisma.paymentOrder.findMany({
+    where: { status: "paid" },
+    select: { amount: true, qty: true, unitPrice: true, unitCost: true },
+  });
+  const omzet = paidOrders.reduce((sum, order) => sum + order.unitPrice * order.qty, 0);
+  const margin = paidOrders.reduce((sum, order) => sum + (order.unitPrice - order.unitCost) * order.qty, 0);
+
   return (
     <DashboardClient
-      stats={{ totalCustomers: keys.length, totalQuota, usedQuota, remainingQuota: Math.max(0, totalQuota - usedQuota), totalRequests, promptTokens, completionTokens }}
+      stats={{
+        totalCustomers: keys.length,
+        totalQuota,
+        usedQuota,
+        remainingQuota: Math.max(0, totalQuota - usedQuota),
+        totalRequests,
+        promptTokens,
+        completionTokens,
+        omzet,
+        margin,
+      }}
       customerUsage={customerUsage}
       modelUsage={modelUsage}
       statusBreakdown={statusBreakdown}
