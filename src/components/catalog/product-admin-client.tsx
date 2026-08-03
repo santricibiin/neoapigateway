@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Boxes, CircleDollarSign, PackagePlus, Pencil, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -9,22 +9,23 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { createProduct, deleteProduct, updateProduct } from "@/app/actions/products";
 import { cn } from "@/lib/utils";
+import { QUOTA_PACKAGES } from "@/lib/bandelbanget";
 
-const QUOTA_PACKAGES = [
-  { code: "1M", tokens: "1.000.000", days: 7 },
-  { code: "5M", tokens: "5.000.000", days: 7 },
-  { code: "10M", tokens: "10.000.000", days: 7 },
-  { code: "20M", tokens: "20.000.000", days: 7 },
-  { code: "50M", tokens: "50.000.000", days: 14 },
-  { code: "100M", tokens: "100.000.000", days: 14 },
-  { code: "200M", tokens: "200.000.000", days: 21 },
-  { code: "500M", tokens: "500.000.000", days: 28 },
-  { code: "1B", tokens: "1.000.000.000", days: 28 },
-  { code: "2B", tokens: "2.000.000.000", days: 28 },
-  { code: "3B", tokens: "3.000.000.000", days: 28 },
-  { code: "4B", tokens: "4.000.000.000", days: 28 },
-  { code: "5B", tokens: "5.000.000.000", days: 28 },
-  { code: "10B", tokens: "10.000.000.000", days: 28 },
+const QUOTA_PACKAGE_OPTIONS = [
+  { code: "1M", label: "1.000.000", days: 7 },
+  { code: "5M", label: "5.000.000", days: 7 },
+  { code: "10M", label: "10.000.000", days: 7 },
+  { code: "20M", label: "20.000.000", days: 7 },
+  { code: "50M", label: "50.000.000", days: 14 },
+  { code: "100M", label: "100.000.000", days: 14 },
+  { code: "200M", label: "200.000.000", days: 21 },
+  { code: "500M", label: "500.000.000", days: 28 },
+  { code: "1B", label: "1.000.000.000", days: 28 },
+  { code: "2B", label: "2.000.000.000", days: 28 },
+  { code: "3B", label: "3.000.000.000", days: 28 },
+  { code: "4B", label: "4.000.000.000", days: 28 },
+  { code: "5B", label: "5.000.000.000", days: 28 },
+  { code: "10B", label: "10.000.000.000", days: 28 },
 ] as const;
 
 type Product = {
@@ -62,6 +63,14 @@ export function ProductAdminClient({
   const [error, setError] = useState<string | null>(null);
   const [stockMode, setStockMode] = useState("counted");
   const [selectedPackage, setSelectedPackage] = useState("");
+  const [resellerQuota, setResellerQuota] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("/api/public/reseller-quota")
+      .then((r) => r.json())
+      .then((d) => { if (d.ok) setResellerQuota(d.quota); })
+      .catch(() => {});
+  }, []);
 
   const filtered = useMemo(
     () =>
@@ -160,7 +169,14 @@ export function ProductAdminClient({
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map((item, index) => {
-          const available = item.stockMode === "external" || item.stock > 0;
+          const isExternal = item.stockMode === "external";
+          const productTokens = (() => {
+            const code = (item.sku || item.model || "").toUpperCase();
+            return QUOTA_PACKAGES[code as keyof typeof QUOTA_PACKAGES]?.tokens ?? null;
+          })();
+          const available = isExternal
+            ? resellerQuota === null ? true : productTokens !== null ? productTokens <= resellerQuota : true
+            : item.stock > 0;
           const margin = item.price - item.costPrice;
           return (
             <motion.article
@@ -190,7 +206,7 @@ export function ProductAdminClient({
               </p>
               <div className="relative mt-4 grid grid-cols-3 gap-2">
                 <Metric label="Harga" value={`Rp ${item.price.toLocaleString("id-ID")}`} />
-                <Metric label="Stok" value={item.stockMode === "external" ? "External" : item.stock.toLocaleString("id-ID")} />
+                <Metric label="Stok" value={isExternal ? (available ? "Tersedia" : "Habis") : item.stock.toLocaleString("id-ID")} />
                 <Metric label="Terjual" value={item.sold.toLocaleString("id-ID")} />
               </div>
               <div className="relative mt-2 grid grid-cols-2 gap-2">
@@ -254,7 +270,7 @@ export function ProductAdminClient({
                   <option value="" disabled>
                     Pilih paket...
                   </option>
-                  {QUOTA_PACKAGES.map((pkg) => (
+                  {QUOTA_PACKAGE_OPTIONS.map((pkg) => (
                     <option key={pkg.code} value={pkg.code}>
                       {pkg.code} - {pkg.days}D
                     </option>
