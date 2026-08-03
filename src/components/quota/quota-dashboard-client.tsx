@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import QRCode from "qrcode";
-import { BarChart3, BookOpen, Boxes, Copy, Eye, EyeOff, Gauge, KeyRound, LockKeyhole, LogOut, MessageCircle, PlusCircle, X, Check, Lock, Clock, Loader2 } from "lucide-react";
+import { BarChart3, BookOpen, Boxes, ChevronDown, ChevronUp, Copy, Eye, EyeOff, Gauge, KeyRound, LockKeyhole, LogOut, MessageCircle, PlusCircle, X, Check, Lock, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -347,23 +347,82 @@ function Tutorial({ copy, copied, data }: { copy: (label: string, value: string)
   const command = "npx --yes @buatprem/autosetup@latest";
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader><CardTitle>Setup OpenCode</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
+      <CollapsibleCard title="Setup VSCode" defaultOpen={false}>
+        <div className="space-y-3">
+          <p className="text-sm font-semibold text-base-ink/60">Tonton panduan setup VSCode di bawah ini:</p>
+          <div className="overflow-hidden rounded-neo border-2 border-base-ink shadow-neo-sm">
+            <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+              <iframe
+                className="absolute inset-0 h-full w-full"
+                src="https://www.youtube-nocookie.com/embed/JsrCHUkFuH4"
+                title="Setup VSCode"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      </CollapsibleCard>
+
+      <CollapsibleCard title="Setup OpenCode" defaultOpen={false}>
+        <div className="space-y-3">
           <Step number="1" title="Buka terminal">Gunakan Terminal, PowerShell, atau CMD.</Step>
           <Step number="2" title="Jalankan perintah"><code className="mt-2 block break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 font-mono text-sm font-bold">{command}</code><Button type="button" size="sm" className="mt-2" onClick={() => copy("command", command)}>{copied === "command" ? "Tersalin" : "Salin perintah"}</Button></Step>
           <Step number="3" title="Isi data API">Gunakan Base URL dan API key dari tab Kuota.</Step>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader><CardTitle>Setup 9Router</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
+          <div className="overflow-hidden rounded-neo border-2 border-base-ink shadow-neo-sm">
+            <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+              <iframe
+                className="absolute inset-0 h-full w-full"
+                src="https://www.youtube-nocookie.com/embed/yMuxkKcuGww"
+                title="Setup OpenCode"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      </CollapsibleCard>
+
+      <CollapsibleCard title="Setup 9Router" defaultOpen={false}>
+        <div className="space-y-3">
           <Step number="1" title="Install">Jalankan <code className="font-mono font-bold">npm install -g 9router</code>.</Step>
           <Step number="2" title="Tambah provider">Pilih OpenAI Compatible. Base URL: <code className="break-all font-mono font-bold">{data.baseUrl}</code>.</Step>
           <Step number="3" title="Tambah key">Masukkan API key dari tab Kuota, lalu import model dari <code className="font-mono font-bold">/models</code>.</Step>
-        </CardContent>
-      </Card>
+          <div className="overflow-hidden rounded-neo border-2 border-base-ink shadow-neo-sm">
+            <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+              <iframe
+                className="absolute inset-0 h-full w-full"
+                src="https://www.youtube-nocookie.com/embed/tu-F3AjxPmc"
+                title="Setup 9Router"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      </CollapsibleCard>
     </div>
+  );
+}
+
+function CollapsibleCard({ title, defaultOpen = false, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <Card>
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between p-4 text-left sm:p-5">
+        <CardTitle className="flex items-center gap-2">
+          {title}
+        </CardTitle>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-base-bg">
+          {open ? <ChevronUp className="h-4 w-4" strokeWidth={2.5} /> : <ChevronDown className="h-4 w-4" strokeWidth={2.5} />}
+        </span>
+      </button>
+      {open && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="overflow-hidden">
+          <CardContent className="pt-0">{children}</CardContent>
+        </motion.div>
+      )}
+    </Card>
   );
 }
 

@@ -30,7 +30,7 @@ const nextConfig = {
               "img-src 'self' data: blob:",
               "font-src 'self' data:",
               "connect-src 'self' https://app.midtrans.com https://app.sandbox.midtrans.com https://bandelbanget.xyz",
-              "frame-src 'self' https://app.midtrans.com https://app.sandbox.midtrans.com",
+              "frame-src 'self' https://app.midtrans.com https://app.sandbox.midtrans.com https://www.youtube-nocookie.com",
               "object-src 'none'",
               "base-uri 'self'",
             ].join("; "),
