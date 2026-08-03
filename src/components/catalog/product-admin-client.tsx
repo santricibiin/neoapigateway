@@ -42,6 +42,7 @@ type Product = {
   stock: number;
   sold: number;
   active: boolean;
+  sortOrder: number;
   transactionCount: number;
 };
 type Category = { id: number; name: string };
@@ -195,6 +196,11 @@ export function ProductAdminClient({
                   <span className={`inline-flex rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase ${item.active ? "bg-accent-mint" : "bg-base-bg"}`}>
                     {item.active ? "Aktif" : "Nonaktif"}
                   </span>
+                  {item.sortOrder !== 0 && (
+                    <span className="ml-1 inline-flex rounded-full border-2 border-base-ink bg-accent-lavender px-2 py-0.5 text-[10px] font-black uppercase">
+                      Urutan #{item.sortOrder}
+                    </span>
+                  )}
                   <p className="mt-2 font-mono text-[10px] font-bold text-base-ink/45">{item.sku}</p>
                   <h2 className="text-xl font-black">{item.name}</h2>
                   <p className="text-sm font-bold text-base-ink/50">{item.categoryName} · {item.model}</p>
@@ -290,6 +296,7 @@ export function ProductAdminClient({
             <Input name="model" label="Model" defaultValue={editing?.model || ""} maxLength={100} required />
             <Input name="price" label="Harga jual" type="number" min={0} step={1} defaultValue={editing?.price || 0} required />
             <Input name="costPrice" label="Harga modal (internal)" type="number" min={0} step={1} defaultValue={editing?.costPrice || 0} required />
+            <Input name="sortOrder" label="Urutan tampil (0=terbawah, angka kecil di atas)" type="number" step={1} defaultValue={editing?.sortOrder ?? 0} />
           </div>
           <p className="-mt-2 text-xs font-semibold text-base-ink/50">
             Harga modal hanya terlihat admin dan dipakai menghitung margin.

@@ -9,7 +9,7 @@ export async function getPublicProducts() {
     const tokens = await prisma.token.findMany({
       where: { active: true, category: { active: true } },
       include: { category: true },
-      orderBy: [{ category: { name: "asc" } }, { name: "asc" }],
+      orderBy: [{ category: { name: "asc" } }, { sortOrder: "asc" }, { name: "asc" }],
     });
     return { ok: true, data: tokens } as const;
   } catch {
@@ -28,6 +28,7 @@ function parseProduct(formData: FormData) {
   const stock = Number(formData.get("stock"));
   const stockMode = String(formData.get("stockMode") || "counted");
   const active = formData.get("active") === "on";
+  const sortOrder = Number(formData.get("sortOrder"));
   if (!Number.isInteger(categoryId) || categoryId < 1) return { error: "Pilih kategori" } as const;
   if (!sku || sku.length > 50 || !/^[A-Z0-9_-]+$/.test(sku)) return { error: "SKU wajib 1-50 karakter: huruf, angka, _ atau -" } as const;
   if (name.length < 1 || name.length > 200) return { error: "Nama produk harus 1-200 karakter" } as const;
@@ -36,8 +37,9 @@ function parseProduct(formData: FormData) {
   if (!Number.isFinite(price) || price < 0 || price > 2_000_000_000) return { error: "Harga tidak valid" } as const;
   if (!Number.isFinite(costPrice) || costPrice < 0 || costPrice > 2_000_000_000) return { error: "Harga modal tidak valid" } as const;
   if (!Number.isInteger(stock) || stock < 0 || stock > 2_000_000_000) return { error: "Stok tidak valid" } as const;
+  if (!Number.isFinite(sortOrder) || !Number.isInteger(sortOrder) || sortOrder < -2_000_000_000 || sortOrder > 2_000_000_000) return { error: "Urutan tidak valid" } as const;
   if (!(["counted", "external"] as string[]).includes(stockMode)) return { error: "Mode stok tidak valid" } as const;
-  return { categoryId, sku, name, model, description: description || null, price, costPrice, stock: stockMode === "external" ? 0 : stock, stockMode, active };
+  return { categoryId, sku, name, model, description: description || null, price, costPrice, stock: stockMode === "external" ? 0 : stock, stockMode, active, sortOrder };
 }
 
 export async function createProduct(formData: FormData) {

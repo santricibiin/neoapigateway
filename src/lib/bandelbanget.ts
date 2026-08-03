@@ -300,7 +300,7 @@ export async function fetchTopupStatus(secretKey: string, orderId: string): Prom
   return data as Record<string, unknown>;
 }
 
-export const BANDEL_DEFAULT_MEMBER_PIN = "123456";
+export const BANDEL_DEFAULT_MEMBER_PIN = "111111";
 
 export type BandelCreatedKey = {
   success?: boolean;

@@ -18,21 +18,21 @@ model Admin {
 }
 
 model Setting {
-  id              Int      @id @default(1)
-  secretKey       String?
-  pin             String?
+  id                Int      @id @default(1)
+  secretKey         String?
+  pin               String?
   /// none | dana | nobu
-  qrisProvider    String   @default("none") @db.VarChar(20)
+  qrisProvider      String   @default("none") @db.VarChar(20)
   /// Raw payload QRIS statis (EMVCo)
-  qrisStatic      String?  @db.Text
+  qrisStatic        String?  @db.Text
   /// Masa berlaku QRIS invoice (menit)
-  qrisTtlMinutes  Int      @default(5)
+  qrisTtlMinutes    Int      @default(5)
   /// Secret untuk autentikasi callback Android notification forwarder
-  forwarderSecret String?  @db.VarChar(200)
+  forwarderSecret   String?  @db.VarChar(200)
   /// Aktifkan kode unik 3 digit pada nominal QRIS
-  uniqueCodeEnabled Boolean @default(true)
+  uniqueCodeEnabled Boolean  @default(true)
   /// Backup otomatis aktif
-  backupEnabled     Boolean @default(false)
+  backupEnabled     Boolean  @default(false)
   /// Interval backup (angka)
   backupInterval    Int      @default(1440)
   /// Satuan interval: minutes | hours | days
@@ -45,8 +45,8 @@ model Setting {
   siteName          String?  @db.VarChar(100)
   /// Path file logo (di luar public, disajikan via API)
   logoPath          String?  @db.VarChar(500)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model News {
@@ -68,48 +68,50 @@ model Category {
 }
 
 model Token {
-  id           Int           @id @default(autoincrement())
+  id           Int            @id @default(autoincrement())
   categoryId   Int?
-  category     Category?     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  sku          String?       @unique @db.VarChar(50)
-  name         String        @db.VarChar(200)
+  category     Category?      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  sku          String?        @unique @db.VarChar(50)
+  name         String         @db.VarChar(200)
   model        String
-  description  String?       @db.Text
+  description  String?        @db.Text
   price        Decimal
   /// Harga modal internal, tidak ditampilkan ke pembeli
-  costPrice    Decimal       @default(0) @db.Decimal(18, 2)
-  stockMode    String        @default("counted") @db.VarChar(20)
-  stock        Int           @default(0)
-  sold         Int           @default(0)
-  active       Boolean       @default(true)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  costPrice    Decimal        @default(0) @db.Decimal(18, 2)
+  stockMode    String         @default("counted") @db.VarChar(20)
+  stock        Int            @default(0)
+  sold         Int            @default(0)
+  active       Boolean        @default(true)
+  sortOrder    Int            @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   transactions Transaction[]
   orders       PaymentOrder[]
 
   @@index([categoryId, active, createdAt])
+  @@index([sortOrder, active])
 }
 
 model Transaction {
-  id             Int      @id @default(autoincrement())
-  reference      String?  @unique @db.VarChar(50)
-  buyerName      String   @db.VarChar(200)
-  buyerEmail     String   @db.VarChar(320)
-  tokenId        Int
-  token          Token    @relation(fields: [tokenId], references: [id], onDelete: Restrict)
-  productName    String?  @db.VarChar(200)
-  productSku     String?  @db.VarChar(50)
-  qty            Int      @default(1)
-  unitPrice      Decimal? @db.Decimal(18, 2)
-  amount         Decimal
-  status         String   @default("pending")
-  failureReason  String?  @db.Text
-  expiresAt      DateTime?
-  paidAt         DateTime?
-  failedAt       DateTime?
-  cancelledAt    DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            Int       @id @default(autoincrement())
+  reference     String?   @unique @db.VarChar(50)
+  buyerName     String    @db.VarChar(200)
+  buyerEmail    String    @db.VarChar(320)
+  tokenId       Int
+  token         Token     @relation(fields: [tokenId], references: [id], onDelete: Restrict)
+  productName   String?   @db.VarChar(200)
+  productSku    String?   @db.VarChar(50)
+  qty           Int       @default(1)
+  unitPrice     Decimal?  @db.Decimal(18, 2)
+  amount        Decimal
+  status        String    @default("pending")
+  failureReason String?   @db.Text
+  expiresAt     DateTime?
+  paidAt        DateTime?
+  failedAt      DateTime?
+  cancelledAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([status, createdAt])
   @@index([tokenId, createdAt])
@@ -137,54 +139,156 @@ model Post {
 }
 
 model PaymentOrder {
-  id             String        @id @default(cuid())
-  invoice        String        @unique @db.VarChar(40)
+  id              String        @id @default(cuid())
+  invoice         String        @unique @db.VarChar(40)
   /// pending | processing | paid | expired | failed
-  status         String        @default("pending") @db.VarChar(20)
-  amount         Int
-  qty            Int           @default(1)
-  unitPrice      Int
+  status          String        @default("pending") @db.VarChar(20)
+  amount          Int
+  qty             Int           @default(1)
+  unitPrice       Int
   /// Snapshot harga modal saat invoice dibuat
-  unitCost       Int           @default(0)
-  productName    String        @db.VarChar(200)
-  productSku     String?       @db.VarChar(50)
-  buyerPhone     String?       @db.VarChar(24)
+  unitCost        Int           @default(0)
+  productName     String        @db.VarChar(200)
+  productSku      String?       @db.VarChar(50)
+  buyerPhone      String?       @db.VarChar(24)
   /// Token member (secretToken) untuk add quota langsung
-  buyerQuotaToken String?      @db.VarChar(128)
-  qrisProvider   String        @db.VarChar(20)
-  qrisPayload    String        @db.Text
-  tokenId        Int
-  token          Token         @relation(fields: [tokenId], references: [id], onDelete: Restrict)
-  paymentEventId String?       @unique
-  paymentEvent   PaymentEvent? @relation(fields: [paymentEventId], references: [id], onDelete: SetNull)
-  expiresAt      DateTime
-  paidAt         DateTime?
-  delivered      String?       @db.Text
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  buyerQuotaToken String?       @db.VarChar(128)
+  qrisProvider    String        @db.VarChar(20)
+  qrisPayload     String        @db.Text
+  tokenId         Int
+  token           Token         @relation(fields: [tokenId], references: [id], onDelete: Restrict)
+  paymentEventId  String?       @unique
+  paymentEvent    PaymentEvent? @relation(fields: [paymentEventId], references: [id], onDelete: SetNull)
+  expiresAt       DateTime
+  paidAt          DateTime?
+  delivered       String?       @db.Text
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@index([status, amount, expiresAt])
   @@index([tokenId, status])
 }
 
 model PaymentEvent {
-  id        String   @id @default(cuid())
-  eventKey  String   @unique
-  provider  String   @db.VarChar(20)
-  pkg       String   @db.VarChar(120)
-  name      String?  @db.VarChar(80)
-  title     String?  @db.VarChar(500)
-  text      String   @db.Text
-  subtext   String?  @db.Text
-  bigtext   String?  @db.Text
-  infotext  String?  @db.Text
+  id        String        @id @default(cuid())
+  eventKey  String        @unique
+  provider  String        @db.VarChar(20)
+  pkg       String        @db.VarChar(120)
+  name      String?       @db.VarChar(80)
+  title     String?       @db.VarChar(500)
+  text      String        @db.Text
+  subtext   String?       @db.Text
+  bigtext   String?       @db.Text
+  infotext  String?       @db.Text
   amount    Int?
-  account   String?  @db.VarChar(40)
-  raw       String   @db.Text
-  matched   Boolean  @default(false)
+  account   String?       @db.VarChar(40)
+  raw       String        @db.Text
+  matched   Boolean       @default(false)
   order     PaymentOrder?
-  createdAt DateTime @default(now())
+  createdAt DateTime      @default(now())
 
   @@index([matched, amount, createdAt])
   @@index([provider, amount, createdAt])
+}
+
+/// Reseller website (login terpisah dari admin)
+model ResellerWeb {
+  id        Int                @id @default(autoincrement())
+  email     String             @unique @db.VarChar(320)
+  name      String             @db.VarChar(200)
+  password  String             @db.VarChar(200)
+  /// Saldo token (dipakai untuk add member)
+  balance   BigInt             @default(0)
+  active    Boolean            @default(true)
+  tiers     ResellerWebTier[]
+  orders    ResellerWebOrder[]
+  members   Member[]
+  news      ResellerWebNews[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([active])
+}
+
+/// Berita yang dibuat reseller untuk member miliknya
+model ResellerWebNews {
+  id         Int         @id @default(autoincrement())
+  resellerId Int
+  reseller   ResellerWeb @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+  title      String      @db.VarChar(120)
+  content    String      @db.Text
+  active     Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([resellerId, active, createdAt])
+}
+
+/// Paket topup yang dikelola admin untuk resweb
+model ResellerWebTier {
+  id         Int                @id @default(autoincrement())
+  /// kode kuota: 1M, 5M, 10M, ... 10B (harus cocok QUOTA_PACKAGES)
+  code       String             @unique @db.VarChar(10)
+  label      String             @db.VarChar(50)
+  tokens     BigInt
+  validDays  Int
+  /// Harga khusus resweb (diatur admin)
+  price      Int
+  /// Harga modal internal untuk perhitungan margin
+  costPrice  Int                @default(0)
+  active     Boolean            @default(true)
+  sortOrder  Int                @default(0)
+  resellerId Int?
+  reseller   ResellerWeb?       @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+  orders     ResellerWebOrder[]
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@index([active, sortOrder])
+  @@index([resellerId, active])
+}
+
+/// Transaksi topup resweb
+model ResellerWebOrder {
+  id           String          @id @default(cuid())
+  invoice      String          @unique @db.VarChar(40)
+  resellerId   Int
+  reseller     ResellerWeb     @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+  tierId       Int
+  tier         ResellerWebTier @relation(fields: [tierId], references: [id], onDelete: Restrict)
+  /// pending | processing | paid | expired | failed
+  status       String          @default("pending") @db.VarChar(20)
+  amount       Int
+  tokens       BigInt
+  /// Snapshot harga jual paket tanpa kode unik
+  unitPrice    Int             @default(0)
+  /// Snapshot harga modal saat invoice dibuat
+  unitCost     Int             @default(0)
+  qrisProvider String          @db.VarChar(20)
+  qrisPayload  String          @db.Text
+  expiresAt    DateTime
+  paidAt       DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([resellerId, status])
+  @@index([status, amount, expiresAt])
+}
+
+/// Token member dibuat resweb (provisioned via bandel)
+model Member {
+  id          Int         @id @default(autoincrement())
+  resellerId  Int
+  reseller    ResellerWeb @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+  /// secretToken bandel (untuk URL dashboard member)
+  secretToken String      @unique @db.VarChar(128)
+  apiKey      String?     @db.VarChar(200)
+  name        String?     @db.VarChar(200)
+  keyMasked   String?     @db.VarChar(50)
+  tokens      BigInt
+  validDays   Int
+  createdAt   DateTime    @default(now())
+
+  @@index([resellerId])
+  @@index([secretToken])
 }

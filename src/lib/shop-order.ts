@@ -160,3 +160,12 @@ export async function cancelShopOrder(invoice: string) {
   });
   return { ok: true as const };
 }
+
+/** Tandai semua PaymentOrder pending yang lewat expiresAt sebagai expired. */
+export async function expireOverdueOrders(): Promise<number> {
+  const result = await prisma.paymentOrder.updateMany({
+    where: { status: "pending", expiresAt: { lte: new Date() } },
+    data: { status: "expired" },
+  });
+  return result.count;
+}

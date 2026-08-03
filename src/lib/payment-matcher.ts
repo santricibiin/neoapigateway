@@ -4,6 +4,10 @@ import type { ActionResult } from "@/types";
 
 /** Claim event dengan order pending yang cocok secara atomic. */
 export async function claimPaymentEvent(eventId: string) {
+  await prisma.paymentOrder.updateMany({
+    where: { status: "pending", expiresAt: { lte: new Date() } },
+    data: { status: "expired" },
+  });
   return prisma.$transaction(async (tx) => {
     const event = await tx.paymentEvent.findUnique({ where: { id: eventId } });
     if (!event || event.matched || event.amount == null) return null;

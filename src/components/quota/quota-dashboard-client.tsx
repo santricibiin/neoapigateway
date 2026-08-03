@@ -59,7 +59,7 @@ function formatTokens(value: number) {
   return value.toLocaleString("id-ID");
 }
 
-export function QuotaDashboardClient({ token, brandName }: { token: string; brandName: string }) {
+export function QuotaDashboardClient({ token, brandName, hideBuy = false }: { token: string; brandName: string; hideBuy?: boolean }) {
   const storageKey = `quota_at_${token}`;
   const [meta, setMeta] = useState<Meta | null>(null);
   const [data, setData] = useState<QuotaDashboardView | null>(null);
@@ -218,7 +218,7 @@ export function QuotaDashboardClient({ token, brandName }: { token: string; bran
 
   return (
     <QuotaShell wide>
-      <MemberNewsPopup />
+      <MemberNewsPopup token={hideBuy ? token : undefined} />
       <Header brandName={brandName} name={data.name} status={data.status} />
       <div className="mb-5 flex items-center justify-between gap-3">
         <p className="font-mono text-xs font-bold text-base-ink/50">ID #{data.id}</p>
@@ -281,13 +281,15 @@ export function QuotaDashboardClient({ token, brandName }: { token: string; bran
             </CardContent>
           </Card>
 
-          <Button type="button" variant="primary" size="lg" className="w-full" onClick={openBuyPopup}>
-            <PlusCircle className="h-5 w-5" /> Tambah Kuota
-          </Button>
+          {!hideBuy && (
+            <Button type="button" variant="primary" size="lg" className="w-full" onClick={openBuyPopup}>
+              <PlusCircle className="h-5 w-5" /> Tambah Kuota
+            </Button>
+          )}
         </motion.div>
       ) : null}
 
-      {showBuyPopup ? (
+      {showBuyPopup && !hideBuy ? (
         <BuyQuotaPopup
           token={token}
           products={products}

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 type NewsItem = { id: number; title: string; content: string; createdAt: string; updatedAt: string };
 type NewsPayload = { items: NewsItem[]; page: number; total: number; totalPages: number };
 
-export function MemberNewsPopup() {
+export function MemberNewsPopup({ token }: { token?: string }) {
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [data, setData] = useState<NewsPayload | null>(null);
@@ -19,7 +19,8 @@ export function MemberNewsPopup() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/public/news?page=${targetPage}`, { cache: "no-store" });
+      const endpoint = token ? `/api/public/quota/${encodeURIComponent(token)}/news` : "/api/public/news";
+      const response = await fetch(`${endpoint}?page=${targetPage}`, { cache: "no-store" });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "Gagal memuat berita");
       const payload = body as NewsPayload;
@@ -31,7 +32,7 @@ export function MemberNewsPopup() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     void load(1);

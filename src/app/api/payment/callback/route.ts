@@ -3,6 +3,7 @@ import { timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { parsePaymentNotification, makeEventKey } from "@/lib/payment-notification";
 import { claimPaymentEvent, fulfillOrder } from "@/lib/payment-matcher";
+import { claimReswebOrder } from "@/lib/resweb";
 
 const KNOWN = new Set(["com.bnc.finance", "id.dana"]);
 
@@ -94,6 +95,9 @@ export async function POST(req: Request) {
     const order = await claimPaymentEvent(event.id);
     if (order) {
       await fulfillOrder(order.id);
+    } else {
+      // Coba match dengan resweb order
+      await claimReswebOrder(event.id);
     }
   } catch (err) {
     console.error("payment callback fulfillment error:", err);

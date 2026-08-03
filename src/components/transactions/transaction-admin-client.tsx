@@ -22,6 +22,7 @@ type Transaction = {
   createdAt: string;
   expiresAt: string | null;
   paidAt: string | null;
+  source: "Toko" | "ResWeb";
 };
 
 const FULFILLABLE = ["pending", "processing", "expired", "failed"];
@@ -62,7 +63,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
       (item) =>
         (status === "all" || item.status === status) &&
         (!term ||
-          `${item.reference} ${item.buyerName} ${item.productName} ${item.productSku}`
+          `${item.reference} ${item.buyerName} ${item.productName} ${item.productSku} ${item.source}`
             .toLowerCase()
             .includes(term))
     );
@@ -197,7 +198,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
                     <td className="px-4 py-3">
                       <p className="text-sm font-black">{item.productName}</p>
                       <p className="font-mono text-[10px] font-bold text-base-ink/45">
-                        {item.productSku} · {item.qty}x
+                        {item.source} · {item.productSku} · {item.qty}x
                       </p>
                     </td>
                     <td className="px-4 py-3 text-sm font-black">
@@ -220,7 +221,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
                         <Button size="sm" variant="outline" onClick={() => setDetail(item)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        {FULFILLABLE.includes(item.status) ? (
+                        {item.source === "Toko" && FULFILLABLE.includes(item.status) ? (
                           <Button size="sm" variant="mint" onClick={() => startFulfill(item)}>
                             <CheckCircle2 className="h-4 w-4" />
                             Selesaikan

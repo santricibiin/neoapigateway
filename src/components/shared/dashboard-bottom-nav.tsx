@@ -23,6 +23,7 @@ const menu = [
   { href: "/dashboard/tokens", label: "Produk", icon: Package },
   { href: "/dashboard/transactions", label: "Transaksi", icon: ShoppingCart },
   { href: "/dashboard/reseller", label: "Reseller", icon: Users },
+  { href: "/dashboard/resweb", label: "ResWeb", icon: Users },
   { href: "/dashboard/customer-keys", label: "Keys", icon: KeyRound },
   { href: "/dashboard/topup", label: "Topup", icon: WalletCards },
   { href: "/dashboard/backup", label: "Backup", icon: Database },

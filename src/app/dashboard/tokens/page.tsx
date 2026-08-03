@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ProductsPage() {
   const [products, categories] = await Promise.all([
-    prisma.token.findMany({ orderBy: { createdAt: "desc" }, include: { category: true, _count: { select: { transactions: true } } } }),
+    prisma.token.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }], include: { category: true, _count: { select: { transactions: true } } } }),
     prisma.category.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
   ]);
   return (
@@ -24,6 +24,7 @@ export default async function ProductsPage() {
         stock: item.stock,
         sold: item.sold,
         active: item.active,
+        sortOrder: item.sortOrder,
         transactionCount: item._count.transactions,
       }))}
       categories={categories.map((item) => ({ id: item.id, name: item.name }))}
