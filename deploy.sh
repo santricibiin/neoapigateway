@@ -308,25 +308,32 @@ EOF
     warn "Pastikan DNS $DOMAIN sudah mengarah ke IP server ini!"
     read -rp "Lanjutkan request SSL? (y/N): " SSL_CONFIRM
     if [[ "$SSL_CONFIRM" =~ ^[Yy]$ ]]; then
+      CERT_DOMAINS=(-d "$DOMAIN")
       # Hitung jumlah titik — subdomain (mis. ai.autoapp.biz.id) punya >2 titik
       DOT_COUNT=$(echo "$DOMAIN" | tr -cd '.' | wc -c)
       if [ "$DOT_COUNT" -gt 2 ]; then
         info "Subdomain terdeteksi — skip www.$DOMAIN"
-        certbot --nginx -d "$DOMAIN" \
-          --non-interactive --agree-tos -m "$SSL_EMAIL" \
-          --redirect || {
-          err "Certbot gagal — cek DNS / port 80"
-          warn "Aplikasi tetap jalan di http://$DOMAIN"
-        }
       else
-        certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" \
-          --non-interactive --agree-tos -m "$SSL_EMAIL" \
-          --redirect || {
-          err "Certbot gagal — cek DNS / port 80"
-          warn "Aplikasi tetap jalan di http://$DOMAIN"
-        }
+        WWW_IP=$(dig +short "www.$DOMAIN" A 2>/dev/null | head -1 || true)
+        [ -z "$WWW_IP" ] && WWW_IP=$(dig +short "www.$DOMAIN" AAAA 2>/dev/null | head -1 || true)
+        if [ -n "$WWW_IP" ]; then
+          info "DNS www.$DOMAIN valid ($WWW_IP) — sertakan www di sertifikat"
+          CERT_DOMAINS+=(-d "www.$DOMAIN")
+        elif nslookup "www.$DOMAIN" >/dev/null 2>&1; then
+          info "DNS www.$DOMAIN valid — sertakan www di sertifikat"
+          CERT_DOMAINS+=(-d "www.$DOMAIN")
+        else
+          warn "www.$DOMAIN tidak punya DNS record (NXDOMAIN) — lanjut tanpa www"
+        fi
       fi
-      log "SSL certificate terinstall"
+      if certbot --nginx "${CERT_DOMAINS[@]}" \
+          --non-interactive --agree-tos -m "$SSL_EMAIL" \
+          --redirect; then
+        log "SSL certificate terinstall"
+      else
+        err "Certbot gagal — cek DNS / port 80"
+        warn "Aplikasi tetap jalan di http://$DOMAIN"
+      fi
     else
       warn "Skip SSL — aplikasi jalan di http://$DOMAIN"
     fi
