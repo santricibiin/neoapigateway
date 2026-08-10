@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { LogOut, Wallet, LayoutDashboard, Newspaper, Sparkles, Boxes } from "lucide-react";
+import { LogOut, Wallet, LayoutDashboard, Newspaper, Sparkles, Boxes, Settings, Code } from "lucide-react";
 import { logoutResWeb } from "@/app/actions/resweb-auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ const nav: NavItem[] = [
   { href: "/res/topup", label: "Topup", icon: Wallet },
   { href: "/res/models", label: "Model", icon: Boxes },
   { href: "/res/news", label: "Berita", icon: Newspaper },
+  { href: "/res/api-docs", label: "API Docs", icon: Code },
+  { href: "/res/settings", label: "Setting", icon: Settings },
 ];
 
 export function ReswebShell({
@@ -27,7 +29,7 @@ export function ReswebShell({
   const pathname = usePathname();
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-base-bg">
+    <div className="relative min-h-screen overflow-x-clip bg-base-bg">
       <svg viewBox="0 0 200 200" aria-hidden className="pointer-events-none fixed -left-24 top-24 h-80 w-80 text-accent-sky/10"><circle cx="100" cy="100" r="72" fill="none" stroke="currentColor" strokeWidth="24" /></svg>
       <svg viewBox="0 0 200 200" aria-hidden className="pointer-events-none fixed -bottom-20 -right-20 h-72 w-72 text-accent-sun/15"><path d="M100 18 183 172H17Z" fill="currentColor" /></svg>
       <header className="sticky top-0 z-40 border-b-2 border-base-ink bg-base-surface/95 shadow-neo-sm backdrop-blur">
@@ -73,7 +75,7 @@ export function ReswebShell({
         </nav>
       </aside>
       <main className="relative p-4 pb-24 sm:p-6 sm:pb-24 lg:ml-64 lg:p-8">{children}</main>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-4 gap-1 border-t-2 border-base-ink bg-base-surface px-2 py-1.5 lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-6 gap-1 border-t-2 border-base-ink bg-base-surface px-2 py-1.5 lg:hidden">
         {nav.map((item) => { const active = pathname === item.href; return <Link key={item.href} href={item.href} className={cn("flex flex-col items-center gap-0.5 rounded-neo py-1 text-[10px] font-bold", active ? "text-base-ink" : "text-base-ink/45")}><motion.span whileTap={{ scale: 0.9 }} className={cn("flex h-8 w-8 items-center justify-center rounded-neo border border-base-ink", active ? "bg-accent-sky shadow-neo-sm" : "bg-transparent")}><item.icon className="h-4 w-4" /></motion.span>{item.label}</Link>; })}
       </nav>
     </div>

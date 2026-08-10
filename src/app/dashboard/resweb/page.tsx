@@ -43,6 +43,7 @@ export default async function ReswebAdminPage() {
         name: r.name,
         balance: Number(r.balance),
         active: r.active,
+        apiKey: r.apiKey,
         memberCount: r._count.members,
         orderCount: r._count.orders,
         createdAt: r.createdAt.toISOString(),

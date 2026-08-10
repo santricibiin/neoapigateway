@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Boxes, Users, PackagePlus, Pencil, Trash2, Power, RefreshCw, Eye, EyeOff, ChevronLeft, ChevronRight, Wallet, Gauge, Sparkles } from "lucide-react";
+import { Boxes, Users, PackagePlus, Pencil, Trash2, Power, RefreshCw, Eye, EyeOff, ChevronLeft, ChevronRight, Wallet, Gauge, Sparkles, KeyRound, Copy, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +38,7 @@ type Reseller = {
   name: string;
   balance: number;
   active: boolean;
+  apiKey: string | null;
   memberCount: number;
   orderCount: number;
   createdAt: string;
@@ -72,6 +73,12 @@ function formatRupiah(value: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
 }
 
+function generateApiKey() {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return "res_" + Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export function ReswebAdminClient({
   tiers: initialTiers,
   resellers: initialResellers,
@@ -89,6 +96,8 @@ export function ReswebAdminClient({
   const [tab, setTab] = useState<"tiers" | "resellers" | "members">("tiers");
   const [tierModal, setTierModal] = useState<{ open: boolean; editing: Tier | null }>({ open: false, editing: null });
   const [resellerModal, setResellerModal] = useState<{ open: boolean; editing: Reseller | null }>({ open: false, editing: null });
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [apiKeyCopied, setApiKeyCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [showTokens, setShowTokens] = useState<Record<number, boolean>>({});
@@ -173,7 +182,7 @@ export function ReswebAdminClient({
           <div><span className="inline-flex items-center gap-2 rounded-full border-2 border-base-ink bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Sparkles className="h-3 w-3" /> ResWeb Control</span><h1 className="mt-3 text-3xl font-black sm:text-4xl">Kelola jaringan reseller.</h1><p className="mt-1 text-sm font-bold text-base-ink/60">Paket, saldo, reseller, dan member dalam satu panel.</p></div>
           <div className="flex flex-wrap gap-2">
             <Button variant="sky" onClick={() => setTierModal({ open: true, editing: null })}><PackagePlus className="h-4 w-4" /> Paket</Button>
-            <Button variant="primary" onClick={() => setResellerModal({ open: true, editing: null })}><Users className="h-4 w-4" /> Reseller</Button>
+            <Button variant="primary" onClick={() => { setApiKeyInput(""); setApiKeyCopied(false); setResellerModal({ open: true, editing: null }); }}><Users className="h-4 w-4" /> Reseller</Button>
           </div>
         </div>
       </motion.section>
@@ -283,7 +292,7 @@ export function ReswebAdminClient({
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-2">
-                        <Button size="sm" variant="outline" title="Edit reseller" onClick={() => { setError(null); setResellerModal({ open: true, editing: r }); }}><Pencil className="h-4 w-4" /></Button>
+                        <Button size="sm" variant="outline" title="Edit reseller" onClick={() => { setError(null); setApiKeyInput(r.apiKey || ""); setApiKeyCopied(false); setResellerModal({ open: true, editing: r }); }}><Pencil className="h-4 w-4" /></Button>
                         <Button size="sm" variant="outline" onClick={() => toggleActive(r)}>
                           <Power className="h-4 w-4" />
                         </Button>
@@ -418,6 +427,39 @@ export function ReswebAdminClient({
           <Input name="name" label="Nama reseller" defaultValue={resellerModal.editing?.name || ""} required maxLength={200} />
           <Input name="email" label="Email" type="email" defaultValue={resellerModal.editing?.email || ""} required />
           <Input name="password" label={resellerModal.editing ? "Password baru (opsional)" : "Password (min 6 karakter)"} type="password" required={!resellerModal.editing} minLength={6} />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-base-ink">API Key</label>
+            <div className="flex gap-2">
+              <input
+                name="apiKey"
+                value={apiKeyInput}
+                onChange={(e) => { setApiKeyInput(e.target.value); setApiKeyCopied(false); }}
+                placeholder="Klik generate untuk membuat API key"
+                maxLength={128}
+                className="h-[42px] flex-1 rounded-neo border-2 border-base-ink bg-base-surface px-4 font-mono text-sm text-base-ink shadow-neo-sm outline-none transition-shadow focus:shadow-neo"
+              />
+              <Button
+                type="button"
+                variant="sky"
+                size="md"
+                title="Generate API key acak"
+                onClick={() => { setApiKeyInput(generateApiKey()); setApiKeyCopied(false); }}
+              >
+                <KeyRound className="h-4 w-4" />
+              </Button>
+              {apiKeyInput && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="md"
+                  title="Salin API key"
+                  onClick={() => { navigator.clipboard.writeText(apiKeyInput); setApiKeyCopied(true); }}
+                >
+                  {apiKeyCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              )}
+            </div>
+          </div>
           {resellerModal.editing ? <label className="flex items-center gap-3 rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold"><input name="active" type="checkbox" defaultChecked={resellerModal.editing.active} className="h-5 w-5 accent-black" /> Akun aktif</label> : null}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setResellerModal({ open: false, editing: null })}>Batal</Button>

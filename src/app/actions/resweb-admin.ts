@@ -69,16 +69,18 @@ export async function createResellerWeb(formData: FormData): Promise<ActionResul
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const name = String(formData.get("name") || "").trim();
   const password = String(formData.get("password") || "");
+  const apiKey = String(formData.get("apiKey") || "").trim();
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Email tidak valid" };
   if (name.length < 1 || name.length > 200) return { ok: false, error: "Nama harus 1-200 karakter" };
   if (password.length < 6) return { ok: false, error: "Password minimal 6 karakter" };
+  if (apiKey && apiKey.length > 128) return { ok: false, error: "API key maksimal 128 karakter" };
   try {
     const hash = await bcrypt.hash(password, 10);
-    await prisma.resellerWeb.create({ data: { email, name, password: hash } });
+    await prisma.resellerWeb.create({ data: { email, name, password: hash, ...(apiKey ? { apiKey } : {}) } });
     revalidatePath("/dashboard/resweb");
     return { ok: true };
   } catch {
-    return { ok: false, error: "Email sudah digunakan" };
+    return { ok: false, error: "Email atau API key sudah digunakan" };
   }
 }
 
@@ -88,19 +90,21 @@ export async function updateResellerWeb(id: number, formData: FormData): Promise
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const name = String(formData.get("name") || "").trim();
   const password = String(formData.get("password") || "");
+  const apiKey = String(formData.get("apiKey") || "").trim();
   const active = formData.get("active") === "on";
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Email tidak valid" };
   if (name.length < 1 || name.length > 200) return { ok: false, error: "Nama harus 1-200 karakter" };
   if (password && password.length < 6) return { ok: false, error: "Password minimal 6 karakter" };
+  if (apiKey && apiKey.length > 128) return { ok: false, error: "API key maksimal 128 karakter" };
   try {
     await prisma.resellerWeb.update({
       where: { id },
-      data: { email, name, active, ...(password ? { password: await bcrypt.hash(password, 10) } : {}) },
+      data: { email, name, active, apiKey: apiKey || null, ...(password ? { password: await bcrypt.hash(password, 10) } : {}) },
     });
     revalidatePath("/dashboard/resweb");
     return { ok: true };
   } catch {
-    return { ok: false, error: "Gagal memperbarui reseller atau email sudah digunakan" };
+    return { ok: false, error: "Gagal memperbarui reseller atau email/API key sudah digunakan" };
   }
 }
 

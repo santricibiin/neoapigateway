@@ -200,6 +200,7 @@ model ResellerWeb {
   /// Saldo token (dipakai untuk add member)
   balance   BigInt             @default(0)
   active    Boolean            @default(true)
+  apiKey    String?             @unique @db.VarChar(128)
   tiers     ResellerWebTier[]
   orders    ResellerWebOrder[]
   members   Member[]
