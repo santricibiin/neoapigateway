@@ -13,7 +13,10 @@ export default async function ResTopupPage() {
 
   const [tiers, orders] = await Promise.all([
     prisma.resellerWebTier.findMany({
-      where: { active: true },
+      where: {
+        active: true,
+        OR: [{ resellerId: null }, { resellerId: session.id }],
+      },
       orderBy: [{ sortOrder: "asc" }, { code: "asc" }],
     }),
     prisma.resellerWebOrder.findMany({

@@ -66,6 +66,7 @@ export async function updateResellerApiKey(formData: FormData): Promise<ActionRe
 
   const apiKey = String(formData.get("apiKey") || "").trim();
   if (!apiKey) return { ok: false, error: "API key wajib diisi" };
+  if (apiKey.length < 8) return { ok: false, error: "API key minimal 8 karakter" };
   if (apiKey.length > 128) return { ok: false, error: "API key maksimal 128 karakter" };
 
   try {

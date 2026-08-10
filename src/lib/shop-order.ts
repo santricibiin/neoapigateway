@@ -76,15 +76,25 @@ export async function createShopOrder(opts: {
     for (let i = 0; i < 80; i++) {
       const unik = Math.floor(Math.random() * 999) + 1;
       const candidate = base + unik;
-      const clash = await prisma.paymentOrder.findFirst({
-        where: {
-          status: "pending",
-          amount: candidate,
-          expiresAt: { gt: new Date() },
-        },
-        select: { id: true },
-      });
-      if (!clash) {
+      const [shopClash, reswebClash] = await Promise.all([
+        prisma.paymentOrder.findFirst({
+          where: {
+            status: "pending",
+            amount: candidate,
+            expiresAt: { gt: new Date() },
+          },
+          select: { id: true },
+        }),
+        prisma.resellerWebOrder.findFirst({
+          where: {
+            status: "pending",
+            amount: candidate,
+            expiresAt: { gt: new Date() },
+          },
+          select: { id: true },
+        }),
+      ]);
+      if (!shopClash && !reswebClash) {
         amount = candidate;
         uniqueCode = unik;
         break;

@@ -73,6 +73,7 @@ export async function createResellerWeb(formData: FormData): Promise<ActionResul
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Email tidak valid" };
   if (name.length < 1 || name.length > 200) return { ok: false, error: "Nama harus 1-200 karakter" };
   if (password.length < 6) return { ok: false, error: "Password minimal 6 karakter" };
+  if (apiKey && apiKey.length < 8) return { ok: false, error: "API key minimal 8 karakter" };
   if (apiKey && apiKey.length > 128) return { ok: false, error: "API key maksimal 128 karakter" };
   try {
     const hash = await bcrypt.hash(password, 10);
@@ -95,6 +96,7 @@ export async function updateResellerWeb(id: number, formData: FormData): Promise
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Email tidak valid" };
   if (name.length < 1 || name.length > 200) return { ok: false, error: "Nama harus 1-200 karakter" };
   if (password && password.length < 6) return { ok: false, error: "Password minimal 6 karakter" };
+  if (apiKey && apiKey.length < 8) return { ok: false, error: "API key minimal 8 karakter" };
   if (apiKey && apiKey.length > 128) return { ok: false, error: "API key maksimal 128 karakter" };
   try {
     await prisma.resellerWeb.update({
@@ -132,10 +134,16 @@ export async function adjustResellerWebBalance(id: number, delta: number): Promi
   requireAdmin();
   if (!Number.isInteger(id) || id < 1) return { ok: false, error: "ID tidak valid" };
   if (!Number.isInteger(delta)) return { ok: false, error: "Delta tidak valid" };
-  const reseller = await prisma.resellerWeb.findUnique({ where: { id }, select: { balance: true } });
-  if (!reseller) return { ok: false, error: "Reseller tidak ditemukan" };
-  if (reseller.balance + BigInt(delta) < BigInt(0)) return { ok: false, error: "Saldo tidak boleh negatif" };
-  await prisma.resellerWeb.update({ where: { id }, data: { balance: { increment: BigInt(delta) } } });
+  const bigDelta = BigInt(delta);
+  if (bigDelta >= BigInt(0)) {
+    await prisma.resellerWeb.update({ where: { id }, data: { balance: { increment: bigDelta } } });
+  } else {
+    const result = await prisma.resellerWeb.updateMany({
+      where: { id, balance: { gte: -bigDelta } },
+      data: { balance: { increment: bigDelta } },
+    });
+    if (!result.count) return { ok: false, error: "Saldo tidak boleh negatif" };
+  }
   revalidatePath("/dashboard/resweb");
   return { ok: true };
 }

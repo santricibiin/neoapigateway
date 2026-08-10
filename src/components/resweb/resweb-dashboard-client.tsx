@@ -67,6 +67,7 @@ export function ReswebDashboardClient({
       } else {
         setResult(data.member);
         setAddModal(false);
+        router.refresh();
       }
     } catch {
       setError("Gagal terhubung ke server");

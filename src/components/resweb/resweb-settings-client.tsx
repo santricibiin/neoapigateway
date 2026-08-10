@@ -81,7 +81,7 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
 
         {pwMode ? (
           <form action={handlePassword} className="mt-4 space-y-4">
-            <Input name="currentPassword" label="Password lama" type={pwMode ? "text" : "password"} required minLength={1} />
+            <Input name="currentPassword" label="Password lama" type="password" required minLength={1} />
             <Input name="newPassword" label="Password baru (min 6 karakter)" type="password" required minLength={6} />
             <div className="flex gap-2">
               <Button type="button" variant="outline" onClick={() => { setPwMode(false); setPwError(null); }}>Batal</Button>

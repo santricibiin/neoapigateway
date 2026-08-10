@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { qrisStaticToDynamic } from "@/lib/qris";
 import { addCustomerQuota, provisionCustomerKey } from "@/lib/bandelbanget";
 import { BANDEL_DEFAULT_MEMBER_PIN, fetchQuotaMeta, fetchResellerKeys, QUOTA_PACKAGES } from "@/lib/bandelbanget";
+import { publicApiBase } from "@/lib/bandel-upstream";
 
 function invoiceCode() {
   return `RW${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -30,7 +31,11 @@ export async function createReswebTopup(resellerId: number, tierId: number): Pro
   }
 
   const tier = await prisma.resellerWebTier.findFirst({
-    where: { id: tierId, active: true },
+    where: {
+      id: tierId,
+      active: true,
+      OR: [{ resellerId: null }, { resellerId: resellerId }],
+    },
   });
   if (!tier) return { ok: false, error: "Paket tidak tersedia" };
 
@@ -51,11 +56,17 @@ export async function createReswebTopup(resellerId: number, tierId: number): Pro
     for (let i = 0; i < 80; i++) {
       const unik = Math.floor(Math.random() * 999) + 1;
       const candidate = tier.price + unik;
-      const clash = await prisma.resellerWebOrder.findFirst({
-        where: { status: "pending", amount: candidate, expiresAt: { gt: new Date() } },
-        select: { id: true },
-      });
-      if (!clash) {
+      const [reswebClash, shopClash] = await Promise.all([
+        prisma.resellerWebOrder.findFirst({
+          where: { status: "pending", amount: candidate, expiresAt: { gt: new Date() } },
+          select: { id: true },
+        }),
+        prisma.paymentOrder.findFirst({
+          where: { status: "pending", amount: candidate, expiresAt: { gt: new Date() } },
+          select: { id: true },
+        }),
+      ]);
+      if (!reswebClash && !shopClash) {
         amount = candidate;
         uniqueCode = unik;
         break;
@@ -200,11 +211,9 @@ export async function addMember(resellerId: number, packageCode: string): Promis
   if (!pack) return { ok: false, error: "Paket token tidak valid" };
   const { tokens, validDays } = pack;
 
-  const reseller = await prisma.resellerWeb.findUnique({ where: { id: resellerId } });
+  const reseller = await prisma.resellerWeb.findUnique({ where: { id: resellerId }, select: { active: true, balance: true } });
   if (!reseller || !reseller.active) return { ok: false, error: "Akun tidak aktif" };
-  if (reseller.balance < BigInt(tokens)) return { ok: false, error: "Saldo token tidak cukup" };
 
-  // Cek stok reseller admin
   const adminQuota = await getResellerAdminQuota();
   if (adminQuota !== null && adminQuota < tokens) {
     return { ok: false, error: "Stok kuota admin habis. Hubungi admin." };
@@ -216,25 +225,29 @@ export async function addMember(resellerId: number, packageCode: string): Promis
   });
   if (!setting?.secretKey) return { ok: false, error: "Secret Key admin belum diatur" };
 
+  const reserved = await prisma.resellerWeb.updateMany({
+    where: { id: resellerId, active: true, balance: { gte: BigInt(tokens) } },
+    data: { balance: { decrement: BigInt(tokens) } },
+  });
+  if (!reserved.count) return { ok: false, error: "Saldo token tidak cukup" };
+
   let created;
   try {
     created = await provisionCustomerKey(setting.secretKey, tokens, validDays, setting.pin || undefined);
   } catch (e) {
+    await prisma.resellerWeb.update({ where: { id: resellerId }, data: { balance: { increment: BigInt(tokens) } } });
     return { ok: false, error: e instanceof Error ? e.message : "Gagal provision member" };
   }
 
   const secretToken = created.secretToken;
-  if (!secretToken) return { ok: false, error: "Provision gagal: secretToken kosong" };
+  if (!secretToken) {
+    await prisma.resellerWeb.update({ where: { id: resellerId }, data: { balance: { increment: BigInt(tokens) } } });
+    return { ok: false, error: "Provision gagal: secretToken kosong" };
+  }
 
-  // Simpan member & kurangi saldo dalam transaksi
-  const member = await prisma.$transaction(async (tx) => {
-    const updated = await tx.resellerWeb.update({
-      where: { id: resellerId },
-      data: { balance: { decrement: BigInt(tokens) } },
-    });
-    if (updated.balance < BigInt(0)) throw new Error("Saldo tidak cukup");
-
-    return tx.member.create({
+  let member;
+  try {
+    member = await prisma.member.create({
       data: {
         resellerId,
         secretToken,
@@ -245,10 +258,12 @@ export async function addMember(resellerId: number, packageCode: string): Promis
         validDays,
       },
     });
-  });
+  } catch {
+    await prisma.resellerWeb.update({ where: { id: resellerId }, data: { balance: { increment: BigInt(tokens) } } });
+    return { ok: false, error: "Gagal menyimpan data member" };
+  }
 
-  const pub = process.env.NEXT_PUBLIC_PUBLIC_API_BASE || process.env.PUBLIC_API_BASE;
-  const dashboardUrl = `${pub || ""}/quota/member/${secretToken}`;
+  const dashboardUrl = `${publicApiBase()}/quota/member/${secretToken}`;
 
   return {
     ok: true,
