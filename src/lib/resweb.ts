@@ -166,6 +166,11 @@ export async function addMemberQuota(resellerId: number, memberId: number, packa
   const setting = await prisma.setting.findUnique({ where: { id: 1 }, select: { secretKey: true } });
   if (!setting?.secretKey) return { ok: false, error: "Secret Key admin belum diatur" };
 
+  const adminQuota = await getResellerAdminQuota();
+  if (adminQuota !== null && adminQuota < pack.tokens) {
+    return { ok: false, error: "Stok provider habis. Hubungi admin." };
+  }
+
   let targetKeyId: number | null = null;
   try {
     const target = await fetchQuotaMeta(member.secretToken);
@@ -216,7 +221,7 @@ export async function addMember(resellerId: number, packageCode: string): Promis
 
   const adminQuota = await getResellerAdminQuota();
   if (adminQuota !== null && adminQuota < tokens) {
-    return { ok: false, error: "Stok kuota admin habis. Hubungi admin." };
+    return { ok: false, error: "Stok provider habis. Hubungi admin." };
   }
 
   const setting = await prisma.setting.findUnique({
