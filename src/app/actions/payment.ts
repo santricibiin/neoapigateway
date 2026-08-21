@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { createShopOrder, getOrderByInvoice, cancelShopOrder } from "@/lib/shop-order";
-import { claimPaymentEvent, fulfillOrder } from "@/lib/payment-matcher";
 import type { ActionResult } from "@/types";
 
 export async function createOrder(formData: FormData) {
@@ -12,6 +11,9 @@ export async function createOrder(formData: FormData) {
 
   if (!Number.isInteger(tokenId) || tokenId < 1) {
     return { ok: false, error: "Produk tidak valid" } as const;
+  }
+  if (!Number.isInteger(qty) || qty < 1) {
+    return { ok: false, error: "Jumlah tidak valid" } as const;
   }
 
   const result = await createShopOrder({ tokenId, phone, qty });
@@ -38,10 +40,10 @@ export async function checkOrderStatus(
 }
 
 export async function cancelOrder(invoice: string): Promise<ActionResult> {
+  // Only pending orders can be cancelled; paid/processing/delivering orders are protected.
   const res = await cancelShopOrder(invoice);
   if (!res.ok) return { ok: false, error: res.error };
   revalidatePath("/order");
   return { ok: true };
 }
 
-export { claimPaymentEvent, fulfillOrder };

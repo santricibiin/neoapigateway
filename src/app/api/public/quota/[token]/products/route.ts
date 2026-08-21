@@ -30,6 +30,9 @@ export async function GET(
       resellerQuota = Number(result.resellerQuota ?? 0);
       console.log("[products] resellerQuota:", resellerQuota);
     } catch (e) {
+      // Fail-closed: jika tidak bisa konfirmasi quota reseller, jangan tawarkan paket yang
+      // tidak bisa dijamin. Semua produk ditandai tidak affordable (stok habis).
+      resellerQuota = 0;
       console.error("[products] gagal fetch reseller keys:", e instanceof Error ? e.message : e);
     }
   }

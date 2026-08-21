@@ -14,6 +14,7 @@ import {
   Newspaper,
   FolderOpen,
   Database,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,7 @@ const menu = [
   { href: "/dashboard/topup", label: "Topup", icon: WalletCards },
   { href: "/dashboard/backup", label: "Backup", icon: Database },
   { href: "/dashboard/news", label: "Berita", icon: Newspaper },
+  { href: "/dashboard/bot", label: "Bot Telegram", icon: Bot },
   { href: "/dashboard/settings", label: "Pengaturan", icon: Settings },
 ];
 

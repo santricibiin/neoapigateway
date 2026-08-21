@@ -3,35 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { readSettingsRaw } from "@/lib/settings-raw";
 import { verifyQrisCrc } from "@/lib/qris";
 import type { ActionResult } from "@/types";
 
 const VALID_PROVIDERS = ["none", "dana", "nobu"] as const;
 const VALID_BACKUP_UNITS = ["minutes", "hours", "days"] as const;
 
-export async function getSettingsRaw() {
-  const setting = await prisma.setting.findUnique({ where: { id: 1 } });
-  return {
-    secretKey: setting?.secretKey ?? "",
-    pin: setting?.pin ?? "",
-    qrisProvider: setting?.qrisProvider ?? "none",
-    qrisStatic: setting?.qrisStatic ?? "",
-    qrisTtlMinutes: setting?.qrisTtlMinutes ?? 5,
-    forwarderSecret: setting?.forwarderSecret ?? "",
-    uniqueCodeEnabled: setting?.uniqueCodeEnabled ?? true,
-    backupEnabled: setting?.backupEnabled ?? false,
-    backupInterval: setting?.backupInterval ?? 1440,
-    backupUnit: setting?.backupUnit ?? "minutes",
-    telegramBotToken: setting?.telegramBotToken ?? "",
-    telegramChatId: setting?.telegramChatId ?? "",
-    siteName: setting?.siteName ?? "",
-    logoPath: setting?.logoPath ?? "",
-  };
-}
-
 export async function getSettings() {
   requireAdmin();
-  return getSettingsRaw();
+  return readSettingsRaw();
 }
 
 export async function saveSettings(

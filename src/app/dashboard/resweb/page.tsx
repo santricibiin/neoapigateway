@@ -41,6 +41,8 @@ export default async function ReswebAdminPage() {
         id: r.id,
         email: r.email,
         name: r.name,
+        waNumber: r.waNumber,
+        telegram: r.telegram,
         balance: Number(r.balance),
         active: r.active,
         apiKey: r.apiKey,

@@ -45,13 +45,16 @@ export async function POST(req: Request) {
     setting?.forwarderSecret?.trim(),
   ].filter((s): s is string => Boolean(s));
 
-  // Jika secret diatur, wajib cocok
-  if (secrets.length > 0) {
-    const bodySecret = body.additionalParam1 ?? body.param1 ?? body.secret;
-    const authorized = secrets.some((secret) => checkSecret(bodySecret, secret));
-    if (!authorized) {
-      return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
-    }
+  // Fail-closed: tanpa secret yang terkonfigurasi, callback ditolak total
+  if (secrets.length === 0) {
+    console.error("[payment-callback] Tidak ada forwarder secret yang terkonfigurasi (env PAYMENT_FORWARD_SECRET atau Setting.forwarderSecret). Callback ditolak.");
+    return NextResponse.json({ ok: false, error: "callback secret not configured" }, { status: 403 });
+  }
+
+  const bodySecret = body.additionalParam1 ?? body.param1 ?? body.secret;
+  const authorized = secrets.some((secret) => checkSecret(bodySecret, secret));
+  if (!authorized) {
+    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
   // Hapus field secret dari body supaya tidak masuk raw/log

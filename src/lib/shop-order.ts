@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { qrisStaticToDynamic } from "@/lib/qris";
-import { QUOTA_PACKAGES } from "@/lib/bandelbanget";
+import { QUOTA_PACKAGES, fetchResellerKeys } from "@/lib/bandelbanget";
 
 export function invoiceCode() {
   return `INV${Date.now().toString(36).toUpperCase()}${Math.random()
@@ -44,6 +44,11 @@ export async function createShopOrder(opts: {
     return { ok: false, error: "Pembayaran QRIS belum aktif. Hubungi admin." };
   }
 
+  const rawQty = opts.qty ?? 1;
+  if (!Number.isInteger(rawQty) || rawQty < 1) {
+    return { ok: false, error: "Jumlah tidak valid." };
+  }
+
   const product = await prisma.token.findUnique({
     where: { id: opts.tokenId, active: true },
     include: { category: true },
@@ -61,6 +66,17 @@ export async function createShopOrder(opts: {
     }
     if (!setting.secretKey) {
       return { ok: false, error: "Secret Key BandelBanget belum diatur untuk produk external." };
+    }
+    // Cek kuota reseller upstream cukup sebelum membuat order, supaya pembeli
+    // tidak membayar paket yang tidak bisa dipenuhi (fulfillment pasti gagal).
+    try {
+      const keys = await fetchResellerKeys(setting.secretKey);
+      const need = QUOTA_PACKAGES[code as keyof typeof QUOTA_PACKAGES].tokens * (opts.qty ?? 1);
+      if (typeof keys.resellerQuota === "number" && need > keys.resellerQuota) {
+        return { ok: false, error: "Stok kuota tidak cukup. Hubungi admin." };
+      }
+    } catch {
+      return { ok: false, error: "Gagal memverifikasi stok kuota, coba lagi." };
     }
   }
   const safeQty = Math.max(1, Math.min(opts.qty ?? 1, stockMode === "counted" ? product.stock : 999));
@@ -152,6 +168,144 @@ export async function createShopOrder(opts: {
   };
 }
 
+export type CreateBotOrderResult =
+  | {
+      ok: true;
+      invoice: string;
+      amount: number;
+      qty: number;
+      unitPrice: number;
+      productName: string;
+      productCode: string;
+      qrisPayload: string;
+      provider: string;
+      expiresAt: Date;
+      ttlMinutes: number;
+    }
+  | { ok: false; error: string };
+
+export async function createBotOrder(opts: {
+  tokenId: number;
+  qty: number;
+  telegramUserId: string;
+  chatId: number;
+  detailMessageId?: number;
+}): Promise<CreateBotOrderResult> {
+  const setting = await prisma.setting.findUnique({ where: { id: 1 } });
+  if (!setting || setting.qrisProvider === "none" || !setting.qrisStatic) {
+    return { ok: false, error: "Pembayaran QRIS belum aktif. Hubungi admin." };
+  }
+
+  if (!Number.isInteger(opts.qty) || opts.qty < 1) {
+    return { ok: false, error: "Jumlah tidak valid." };
+  }
+
+  const product = await prisma.token.findUnique({
+    where: { id: opts.tokenId, active: true },
+    include: { category: true },
+  });
+  if (!product) return { ok: false, error: "Produk tidak ditemukan." };
+
+  const stockMode = product.stockMode as "counted" | "external";
+  if (stockMode === "counted" && product.stock < 1) {
+    return { ok: false, error: "Stok habis." };
+  }
+  if (stockMode === "external") {
+    const code = (product.sku || product.model || "").toUpperCase();
+    if (!QUOTA_PACKAGES[code as keyof typeof QUOTA_PACKAGES]) {
+      return { ok: false, error: `Kode produk ${code} tidak mendukung pembelian otomatis.` };
+    }
+    if (!setting.secretKey) {
+      return { ok: false, error: "Secret Key BandelBanget belum diatur untuk produk external." };
+    }
+    try {
+      const keys = await fetchResellerKeys(setting.secretKey);
+      const need = QUOTA_PACKAGES[code as keyof typeof QUOTA_PACKAGES].tokens * opts.qty;
+      if (typeof keys.resellerQuota === "number" && need > keys.resellerQuota) {
+        return { ok: false, error: "Stok kuota tidak cukup. Hubungi admin." };
+      }
+    } catch {
+      return { ok: false, error: "Gagal memverifikasi stok kuota, coba lagi." };
+    }
+  }
+
+  const safeQty = Math.max(1, Math.min(opts.qty, stockMode === "counted" ? product.stock : 1));
+  const unitPrice = Number(product.price);
+  const base = unitPrice * safeQty;
+
+  let amount = base;
+  let uniqueCode = 0;
+  if (setting.uniqueCodeEnabled) {
+    for (let i = 0; i < 80; i++) {
+      const unik = Math.floor(Math.random() * 999) + 1;
+      const candidate = base + unik;
+      const [shopClash, reswebClash] = await Promise.all([
+        prisma.paymentOrder.findFirst({
+          where: { status: "pending", amount: candidate, expiresAt: { gt: new Date() } },
+          select: { id: true },
+        }),
+        prisma.resellerWebOrder.findFirst({
+          where: { status: "pending", amount: candidate, expiresAt: { gt: new Date() } },
+          select: { id: true },
+        }),
+      ]);
+      if (!shopClash && !reswebClash) {
+        amount = candidate;
+        uniqueCode = unik;
+        break;
+      }
+    }
+    if (uniqueCode === 0) {
+      return { ok: false, error: "Nominal pembayaran sedang penuh. Coba lagi." };
+    }
+  }
+
+  let qrisPayload: string;
+  try {
+    qrisPayload = qrisStaticToDynamic(setting.qrisStatic, { amount });
+  } catch {
+    return { ok: false, error: "QRIS statis tidak valid. Hubungi admin." };
+  }
+
+  const invoice = invoiceCode();
+  const ttlMinutes = Math.max(1, Math.min(120, setting.qrisTtlMinutes ?? 5));
+  const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
+
+  await prisma.paymentOrder.create({
+    data: {
+      invoice,
+      status: "pending",
+      amount,
+      qty: safeQty,
+      unitPrice,
+      unitCost: Number(product.costPrice),
+      productName: product.name,
+      productSku: product.sku,
+      telegramUserId: opts.telegramUserId,
+      chatId: String(opts.chatId),
+      detailMessageId: opts.detailMessageId ?? null,
+      qrisProvider: setting.qrisProvider,
+      qrisPayload,
+      expiresAt,
+      tokenId: product.id,
+    },
+  });
+
+  return {
+    ok: true,
+    invoice,
+    amount,
+    qty: safeQty,
+    unitPrice,
+    productName: product.name,
+    productCode: product.sku || product.model,
+    qrisPayload,
+    provider: providerLabel(setting.qrisProvider),
+    expiresAt,
+    ttlMinutes,
+  };
+}
+
 export async function getOrderByInvoice(invoice: string) {
   return prisma.paymentOrder.findUnique({
     where: { invoice },
@@ -171,10 +325,13 @@ export async function cancelShopOrder(invoice: string) {
   return { ok: true as const };
 }
 
-/** Tandai semua PaymentOrder pending yang lewat expiresAt sebagai expired. */
+/** Tandai semua PaymentOrder pending yang lewat masa berlaku + grace period sebagai expired. */
 export async function expireOverdueOrders(): Promise<number> {
+  // Grace 10 menit: notifikasi bank bisa telat. Jangan expire tepat di TTL,
+  // agar claimPaymentEvent (yang juga pakai grace) tetap bisa menandai order.
+  const EXPIRE_GRACE_MS = 10 * 60 * 1000;
   const result = await prisma.paymentOrder.updateMany({
-    where: { status: "pending", expiresAt: { lte: new Date() } },
+    where: { status: "pending", expiresAt: { lte: new Date(Date.now() - EXPIRE_GRACE_MS) } },
     data: { status: "expired" },
   });
   return result.count;

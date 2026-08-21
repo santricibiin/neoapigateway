@@ -45,6 +45,7 @@ function formatRupiah(value: number) {
 const STATUS_LABEL: Record<string, string> = {
   pending: "Menunggu Pembayaran",
   processing: "Memproses",
+  delivering: "Mengirim",
   paid: "Lunas",
   expired: "Kedaluwarsa",
   failed: "Gagal",
@@ -56,7 +57,7 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
 
   const isPaid = order.status === "paid";
   const isExpired = order.status === "expired" || order.status === "failed";
-  const isPending = order.status === "pending" || order.status === "processing";
+  const isPending = order.status === "pending" || order.status === "processing" || order.status === "delivering";
 
   useEffect(() => {
     if (!isPending) return;

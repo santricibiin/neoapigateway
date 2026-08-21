@@ -263,6 +263,7 @@ export function OrderClient({ product }: { product: Product }) {
 
   const isPaid = status === "paid";
   const isExpired = status === "expired" || status === "failed";
+  const isExternal = product.stockMode === "external";
 
   function openHistory() {
     setHistory(readHistory());
@@ -296,35 +297,37 @@ export function OrderClient({ product }: { product: Product }) {
       </div>
 
       <form onSubmit={handleCreateOrder} className="flex flex-col gap-4">
-        <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo">
-          <label className="mb-2 flex items-center gap-2 text-sm font-bold">
-            <ShoppingCartIcon />
-            Jumlah
-          </label>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setQty((q) => Math.max(1, q - 1))}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-base-bg font-bold shadow-neo-sm"
-            >
-              −
-            </button>
-            <input
-              type="number"
-              min={1}
-              value={qty}
-              onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
-              className="w-20 rounded-neo border-2 border-base-ink bg-base-surface py-2 text-center font-bold shadow-neo-sm"
-            />
-            <button
-              type="button"
-              onClick={() => setQty((q) => q + 1)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-base-bg font-bold shadow-neo-sm"
-            >
-              +
-            </button>
+        {!isExternal && (
+          <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo">
+            <label className="mb-2 flex items-center gap-2 text-sm font-bold">
+              <ShoppingCartIcon />
+              Jumlah
+            </label>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-base-bg font-bold shadow-neo-sm"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min={1}
+                value={qty}
+                onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
+                className="w-20 rounded-neo border-2 border-base-ink bg-base-surface py-2 text-center font-bold shadow-neo-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setQty((q) => q + 1)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-base-bg font-bold shadow-neo-sm"
+              >
+                +
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {error && (
           <div className="rounded-neo border-2 border-base-ink bg-red-100 px-4 py-3 text-sm font-semibold text-red-700">
@@ -454,10 +457,12 @@ export function OrderClient({ product }: { product: Product }) {
                           <dd className="font-mono font-bold">{product.sku}</dd>
                         </div>
                       )}
-                      <div className="flex justify-between gap-2">
-                        <dt className="font-semibold text-base-ink/60">Qty</dt>
-                        <dd className="font-bold">{qty}</dd>
-                      </div>
+                      {!isExternal && (
+                        <div className="flex justify-between gap-2">
+                          <dt className="font-semibold text-base-ink/60">Qty</dt>
+                          <dd className="font-bold">{qty}</dd>
+                        </div>
+                      )}
                       <div className="flex justify-between gap-2">
                         <dt className="font-semibold text-base-ink/60">Harga Satuan</dt>
                         <dd className="font-bold">{formatRupiah(order.amount - order.uniqueCode)}</dd>

@@ -1,0 +1,37 @@
+Frequently Asked Questions
+Apa itu Model Multiplier?
+Model Multiplier adalah pengali konsumsi token untuk setiap model. Secara default semua model menggunakan multiplier 1x, artinya token yang terpakai dihitung 1:1 terhadap quota Anda.
+
+Jika sebuah model diatur ke multiplier 1.5x, maka setiap token yang dikonsumsi akan dihitung 1.5 kali lipat terhadap quota. Contoh: upstream menghitung 1.000 token, maka quota Anda berkurang 1.500 token.
+
+Multiplier ditampilkan di daftar Available Models di tab Customer, misalnya glm-5.2-debug (1.5x). Model tanpa tanda kurung berarti tetap 1x.
+
+Apa arti Grade Model?
+Grade membantu Anda memilih model berdasarkan kualitas dan performa layanan. Grade tidak menilai kemampuan dasar model secara mutlak; pengalaman dapat berubah sesuai kondisi layanan.
+
+A
+Kualitas unggulan. Berasal dari layanan ternama dengan kualitas dan performa yang baik.
+B
+Performa terbatas. Berasal dari layanan baru atau layanan dengan batas request per menit yang sangat kecil, sehingga performanya mungkin kurang optimal.
+C
+Pilihan ekonomis. Performa layanan sangat rendah, tetapi tersedia di bandelbanget.xyz dengan harga lebih murah.
+Analogi paling mudah memahami Grade A & B
+Grade A itu analoginya saya ambil barang-nya dari toko-toko besar kayak hypermart, indomarco dan lainnya. Sedangkan Grade B itu analoginya saya ambil dari toko grosir bangladesh, warung bank iman. Bisa jadi grade B itu kualitasnya bagus, tapi tetap saja akan saya kasih grade B karena sumber-nya bukan dari toko besar.
+
+Untuk temen-temen yang concern soal privacy dan keamanan, saran saya pakai model grade A saja. Lebih aman dari resiko cloacking dan lainnya.
+
+Untuk grade B, bandelbanget.xyz tidak bisa jamin, tapi bisa memberi kompensasi kerugian berupa +token kalau misalnya kualitas grade B-nya sangat buruk.
+
+Bagaimana token dan quota dihitung?
+Setelah setiap request berhasil, sistem membaca data penggunaan dari respons model: prompt token (pesan/instruksi yang dikirim) dan completion token (jawaban model). Keduanya dijumlahkan menjadi total token, lalu dicatat ke usage akun dan riwayat per model.
+
+Jika upstream tidak mengirim data prompt token yang lengkap, sistem memakai estimasi minimum dari isi pesan agar pemakaian tetap tercatat. Untuk request gambar, estimasi token gambar dari konfigurasi model juga ikut diperhitungkan. Cache token dicatat sebagai informasi penggunaan, tetapi quota utama tetap memakai total token yang ditagihkan model.
+
+Rumus sederhananya: (prompt token + completion token) x multiplier model. Hasilnya dibulatkan lalu dikurangi dari quota. Saat total penggunaan mencapai quota, API key menjadi exceeded dan request berikutnya ditolak sampai quota ditambah.
+
+Simulasi mudah
+Misal quota awal Anda 1.000.000 token. Anda mengirim request dengan 800 prompt token dan model menjawab 1.200 completion token.
+Model 1x: (800 + 1.200) x 1 = 2.000 token terpakai.
+Sisa quota: 1.000.000 - 2.000 = 998.000 token.
+Model 1,5x: (800 + 1.200) x 1,5 = 3.000 token terpakai.
+Sisa quota: 1.000.000 - 3.000 = 997.000 token.

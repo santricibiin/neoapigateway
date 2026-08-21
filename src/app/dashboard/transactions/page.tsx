@@ -23,7 +23,7 @@ export default async function TransactionsPage() {
     ...orders.map((o) => ({
       reference: o.invoice,
       buyerName: o.buyerPhone || "—",
-      productName: o.productName,
+      productName: o.buyerQuotaToken ? "Tambah Kuota" : o.productName,
       productSku: o.productSku || o.token.sku || `SKU-${o.tokenId}`,
       categoryName: o.token.category?.name || "Tanpa kategori",
       qty: o.qty,

@@ -1,5 +1,5 @@
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
-import { getSettingsRaw } from "@/app/actions/settings";
+import { readSettingsRaw } from "@/lib/settings-raw";
 import { fetchResellerKeys, type ResellerKey } from "@/lib/bandelbanget";
 import { prisma } from "@/lib/prisma";
 
@@ -18,7 +18,7 @@ function modelRows(key: ResellerKey) {
 }
 
 export default async function DashboardPage() {
-  const settings = await getSettingsRaw();
+  const settings = await readSettingsRaw();
   let keys: ResellerKey[] = [];
   let error: string | null = null;
   if (!settings.secretKey) {

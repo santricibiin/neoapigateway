@@ -20,7 +20,7 @@ export type QuotaDashboardView = {
   };
   remainingTokens: number;
   usageByModel: Record<string, { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number; requests?: number }>;
-  models: Array<{ id: string; enabled: boolean; vision: boolean; description: string; multiplier: number }>;
+  models: Array<{ id: string; enabled: boolean; vision: boolean; description: string; multiplier: number; grade: string }>;
   modelMultipliers: Record<string, number>;
   resellerPhone: string | null;
 };
@@ -71,6 +71,7 @@ export async function loadQuotaDashboard(secretKey: string, accessToken: string)
       vision: Boolean(row.vision),
       description: text(row.description),
       multiplier: number(row.multiplier, 1),
+      grade: text(row.grade, "-") || "-",
     };
   });
   return {

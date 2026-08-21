@@ -1,11 +1,13 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth";
 import type { ActionResult, Post } from "@/types";
 
 export async function createPost(
   formData: FormData
 ): Promise<ActionResult<Post>> {
+  requireAdmin();
   const title = formData.get("title")?.toString().trim();
   const content = formData.get("content")?.toString().trim() ?? null;
   const authorId = Number(formData.get("authorId"));
@@ -38,6 +40,7 @@ export async function getPosts(): Promise<ActionResult<Post[]>> {
 }
 
 export async function deletePost(id: number): Promise<ActionResult> {
+  requireAdmin();
   try {
     await prisma.post.delete({ where: { id } });
     return { ok: true };

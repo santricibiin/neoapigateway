@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createShopOrder } from "@/lib/shop-order";
-import { QUOTA_PACKAGES } from "@/lib/bandelbanget";
+import { QUOTA_PACKAGES, fetchResellerKeys } from "@/lib/bandelbanget";
 
 export const dynamic = "force-dynamic";
 
@@ -34,11 +34,36 @@ export async function POST(
     return NextResponse.json({ ok: false, error: "Produk tidak tersedia" }, { status: 404 });
   }
 
-  // Cek saldo reseller cukup
+  // Cek paket produk valid
   const code = (product.sku || product.model || "").toUpperCase();
   const pack = QUOTA_PACKAGES[code as keyof typeof QUOTA_PACKAGES];
   if (!pack) {
     return NextResponse.json({ ok: false, error: "Paket tidak valid" }, { status: 400 });
+  }
+
+  // Validasi token member ke upstream supaya order tidak dibuat untuk token sampah
+  // (bayar QRIS lalu fulfill gagal = uang hilang tanpa refund)
+  const setting = await prisma.setting.findUnique({
+    where: { id: 1 },
+    select: { secretKey: true },
+  });
+  if (!setting?.secretKey) {
+    return NextResponse.json({ ok: false, error: "Pembelian belum dikonfigurasi" }, { status: 503 });
+  }
+  try {
+    const keys = await fetchResellerKeys(setting.secretKey);
+    const member = keys.keys.find((k) => k.secretToken === params.token);
+    if (!member) {
+      return NextResponse.json({ ok: false, error: "Token member tidak valid" }, { status: 404 });
+    }
+    if (typeof keys.resellerQuota === "number" && pack.tokens > keys.resellerQuota) {
+      return NextResponse.json(
+        { ok: false, error: "Kuota reseller tidak cukup untuk paket ini. Hubungi reseller Anda." },
+        { status: 409 }
+      );
+    }
+  } catch {
+    return NextResponse.json({ ok: false, error: "Gagal memverifikasi member, coba lagi" }, { status: 502 });
   }
 
   // Create order dengan buyerQuotaToken = member token

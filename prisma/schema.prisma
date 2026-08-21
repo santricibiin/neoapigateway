@@ -45,8 +45,33 @@ model Setting {
   siteName          String?  @db.VarChar(100)
   /// Path file logo (di luar public, disajikan via API)
   logoPath          String?  @db.VarChar(500)
+  /// Bot Telegram katalog aktif
+  botEnabled        Boolean  @default(false)
+  /// Template pesan bot (null = default)
+  welcomeText       String?  @db.Text
+  categoryText      String?  @db.Text
+  productListText   String?  @db.Text
+  productDetailText String?  @db.Text
+  qrisInvoiceText   String?  @db.Text
+  paymentSuccessText String? @db.Text
+  thankYouText      String?  @db.Text
+  qrisExpiredText   String?  @db.Text
+  /// Channel notif transaksi sukses (@username / -100…)
+  notifyChannelId   String?  @db.VarChar(120)
+  /// Wajib join channel sebelum akses bot
+  forceJoinOn       Boolean  @default(false)
+  forceJoinLink     String?  @db.VarChar(300)
+  forceJoinChatId   String?  @db.VarChar(120)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+}
+
+model TelegramMember {
+  id         Int      @id @default(autoincrement())
+  telegramId String   @unique @db.VarChar(40)
+  name       String?  @db.VarChar(200)
+  username   String?  @db.VarChar(100)
+  joinedAt   DateTime @default(now())
 }
 
 model News {
@@ -153,6 +178,13 @@ model PaymentOrder {
   buyerPhone      String?       @db.VarChar(24)
   /// Token member (secretToken) untuk add quota langsung
   buyerQuotaToken String?       @db.VarChar(128)
+  /// Pembeli via bot Telegram (null = order web)
+  telegramUserId  String?       @db.VarChar(40)
+  chatId          String?       @db.VarChar(40)
+  qrisMessageId   Int?
+  detailMessageId Int?
+  /// Sudah dinotifikasi ke buyer bot Telegram
+  telegramNotifiedAt DateTime?
   qrisProvider    String        @db.VarChar(20)
   qrisPayload     String        @db.Text
   tokenId         Int
@@ -196,6 +228,10 @@ model ResellerWeb {
   id        Int                @id @default(autoincrement())
   email     String             @unique @db.VarChar(320)
   name      String             @db.VarChar(200)
+  /// Nomor WhatsApp CS reseller (format 62xxx, ditampilkan ke member)
+  waNumber  String?            @db.VarChar(20)
+  /// Username Telegram CS reseller (tanpa @, ditampilkan ke member)
+  telegram  String?            @db.VarChar(64)
   password  String             @db.VarChar(200)
   /// Saldo token (dipakai untuk add member)
   balance   BigInt             @default(0)

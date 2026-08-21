@@ -36,6 +36,8 @@ type Reseller = {
   id: number;
   email: string;
   name: string;
+  waNumber: string | null;
+  telegram: string | null;
   balance: number;
   active: boolean;
   apiKey: string | null;
@@ -142,6 +144,7 @@ export function ReswebAdminClient({
     if (!window.confirm(`Hapus paket ${t.code}?`)) return;
     const result = await deleteResWebTier(t.id);
     if (!result.ok) setError(result.error || "Gagal menghapus");
+    else if (result.data?.note) window.alert(result.data.note);
     router.refresh();
   }
 
@@ -281,6 +284,8 @@ export function ReswebAdminClient({
                     <td className="px-4 py-3">
                       <p className="text-sm font-black">{r.name}</p>
                       <p className="font-mono text-[10px] text-base-ink/45">{r.email}</p>
+                      {r.waNumber ? <p className="font-mono text-[10px] font-bold text-base-ink/55">WA: {r.waNumber}</p> : null}
+                      {r.telegram ? <p className="font-mono text-[10px] font-bold text-base-ink/55">TG: @{r.telegram}</p> : null}
                     </td>
                     <td className="px-4 py-3 font-mono text-sm font-black">{formatTokens(r.balance)}</td>
                     <td className="px-4 py-3 text-sm font-bold">{r.memberCount}</td>
@@ -426,6 +431,9 @@ export function ReswebAdminClient({
         <form action={saveReseller} className="space-y-4">
           <Input name="name" label="Nama reseller" defaultValue={resellerModal.editing?.name || ""} required maxLength={200} />
           <Input name="email" label="Email" type="email" defaultValue={resellerModal.editing?.email || ""} required />
+          <Input name="wa" label="No. WhatsApp CS (opsional)" type="tel" defaultValue={resellerModal.editing?.waNumber || ""} placeholder="08xxxxxxxxxx atau 62xxxxxxxxxx" maxLength={20} />
+          <Input name="telegram" label="Telegram CS (opsional)" defaultValue={resellerModal.editing?.telegram || ""} placeholder="@username atau t.me/username" maxLength={64} />
+          {!resellerModal.editing?.waNumber && !resellerModal.editing?.telegram ? <p className="rounded-neo border-2 border-base-ink bg-accent-sun/40 p-2.5 text-xs font-bold">Minimal isi salah satu: No. WhatsApp atau Telegram (ditampilkan ke member sebagai kontak CS).</p> : null}
           <Input name="password" label={resellerModal.editing ? "Password baru (opsional)" : "Password (min 6 karakter)"} type="password" required={!resellerModal.editing} minLength={6} />
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-base-ink">API Key</label>

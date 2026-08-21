@@ -105,10 +105,13 @@ export async function createReswebTopup(resellerId: number, tierId: number): Pro
   return { ok: true, invoice, amount, qrisPayload, expiresAt, ttlMinutes };
 }
 
-/** Expire semua order resweb pending yang lewat expiry. */
+/** Expire semua order resweb pending yang lewat masa berlaku + grace period. */
 export async function expireOverdueReswebOrders(): Promise<number> {
+  // Grace 10 menit: notifikasi bank bisa telat. Jangan expire tepat di TTL
+  // supaya order yang pembayarannya dikonfirmasi telat tetap bisa diclaim.
+  const EXPIRE_GRACE_MS = 10 * 60 * 1000;
   const result = await prisma.resellerWebOrder.updateMany({
-    where: { status: "pending", expiresAt: { lte: new Date() } },
+    where: { status: "pending", expiresAt: { lte: new Date(Date.now() - EXPIRE_GRACE_MS) } },
     data: { status: "expired" },
   });
   return result.count;
@@ -117,6 +120,7 @@ export async function expireOverdueReswebOrders(): Promise<number> {
 /** Claim event dengan order resweb pending yang cocok. */
 export async function claimReswebOrder(eventId: string) {
   await expireOverdueReswebOrders();
+  const EXPIRE_GRACE_MS = 10 * 60 * 1000;
   return prisma.$transaction(async (tx) => {
     const event = await tx.paymentEvent.findUnique({ where: { id: eventId } });
     if (!event || event.matched || event.amount == null) return null;
@@ -125,7 +129,7 @@ export async function claimReswebOrder(eventId: string) {
       where: {
         status: "pending",
         amount: event.amount,
-        expiresAt: { gt: new Date() },
+        expiresAt: { gt: new Date(Date.now() - EXPIRE_GRACE_MS) },
         createdAt: { lte: event.createdAt },
       },
       orderBy: { createdAt: "asc" },

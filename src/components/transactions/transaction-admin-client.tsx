@@ -6,7 +6,7 @@ import { CheckCircle2, ChevronLeft, ChevronRight, Eye, ReceiptText, Search } fro
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
-import { forceFulfillOrder } from "@/app/actions/admin-fulfill";
+import { forceFulfillOrder, forceFulfillReswebOrder } from "@/app/actions/admin-fulfill";
 
 type Transaction = {
   reference: string;
@@ -25,14 +25,16 @@ type Transaction = {
   source: "Toko" | "ResWeb";
 };
 
-const FULFILLABLE = ["pending", "processing", "expired", "failed"];
+const FULFILLABLE = ["pending", "processing", "delivering", "expired", "failed"];
+const FULFILLABLE_RESWEB = ["pending", "processing", "expired", "failed"];
 
 const PAGE_SIZE = 10;
-const statuses = ["all", "pending", "processing", "paid", "failed", "expired"];
+const statuses = ["all", "pending", "processing", "delivering", "paid", "failed", "expired"];
 
 const statusStyle: Record<string, string> = {
   pending: "bg-accent-sun",
   processing: "bg-accent-sky",
+  delivering: "bg-accent-lavender",
   paid: "bg-accent-mint",
   failed: "bg-red-200",
   expired: "bg-orange-200",
@@ -41,6 +43,7 @@ const statusStyle: Record<string, string> = {
 const statusLabel: Record<string, string> = {
   pending: "Menunggu",
   processing: "Memproses",
+  delivering: "Mengirim",
   paid: "Lunas",
   failed: "Gagal",
   expired: "Kedaluwarsa",
@@ -77,7 +80,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
       total: initialTransactions.length,
       paid: initialTransactions.filter((item) => item.status === "paid").length,
       pending: initialTransactions.filter((item) =>
-        ["pending", "processing"].includes(item.status)
+        ["pending", "processing", "delivering"].includes(item.status)
       ).length,
       revenue: initialTransactions
         .filter((item) => item.status === "paid")
@@ -101,7 +104,10 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
     if (!fulfillTarget) return;
     setFulfilling(true);
     setFulfillError(null);
-    const result = await forceFulfillOrder(fulfillTarget.reference);
+    const result =
+      fulfillTarget.source === "ResWeb"
+        ? await forceFulfillReswebOrder(fulfillTarget.reference)
+        : await forceFulfillOrder(fulfillTarget.reference);
     setFulfilling(false);
     if (!result.ok) {
       setFulfillError(result.error || "Gagal menyelesaikan");
@@ -227,6 +233,12 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
                             Selesaikan
                           </Button>
                         ) : null}
+                        {item.source === "ResWeb" && FULFILLABLE_RESWEB.includes(item.status) ? (
+                          <Button size="sm" variant="mint" onClick={() => startFulfill(item)}>
+                            <CheckCircle2 className="h-4 w-4" />
+                            Selesaikan
+                          </Button>
+                        ) : null}
                       </div>
                     </td>
                   </motion.tr>
@@ -277,7 +289,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
                 <pre className="whitespace-pre-wrap break-all font-mono text-xs">{detail.delivered}</pre>
               </div>
             ) : null}
-            {FULFILLABLE.includes(detail.status) ? (
+            {detail.source === "Toko" && FULFILLABLE.includes(detail.status) ? (
               <Button
                 variant="mint"
                 className="w-full"
@@ -285,6 +297,16 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
               >
                 <CheckCircle2 className="h-4 w-4" />
                 Selesaikan Transaksi & Buat Produk
+              </Button>
+            ) : null}
+            {detail.source === "ResWeb" && FULFILLABLE_RESWEB.includes(detail.status) ? (
+              <Button
+                variant="mint"
+                className="w-full"
+                onClick={() => startFulfill(detail)}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Selesaikan & Kredit Saldo Reseller
               </Button>
             ) : null}
           </div>
@@ -312,7 +334,9 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
               </p>
             </div>
             <p className="text-sm font-bold text-base-ink/70">
-              Transaksi akan ditandai lunas & produk dibuat/dikirim langsung. Lanjut?
+              {fulfillTarget.source === "ResWeb"
+                ? `Transaksi akan ditandai lunas & ${fulfillTarget.productName} dikreditkan ke saldo reseller. Lanjut?`
+                : "Transaksi akan ditandai lunas & produk dibuat/dikirim langsung. Lanjut?"}
             </p>
             {fulfillError ? (
               <p className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">

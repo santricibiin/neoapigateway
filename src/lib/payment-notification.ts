@@ -40,11 +40,22 @@ function str(v: unknown): string | null {
   return s.length ? s : null;
 }
 
-/** "Rp196" | "Rp 1.000" | "Rp1.234.567" → number */
+/** "Rp196" | "Rp 1.000" | "Rp1.234.567" | "Rp10.000,00" | "1,000" → number */
 export function parseRupiahAmount(text: string): number | null {
   const m = text.match(/Rp\s*([\d.,]+)/i);
   if (!m) return null;
-  const digits = m[1].replace(/\./g, "").replace(/,/g, "");
+  let s = m[1];
+  // Trailing ",xx" (≤2 digit) = desimal → buang; koma lain = pemisah ribuan
+  const commaIdx = s.lastIndexOf(",");
+  if (commaIdx !== -1) {
+    const decimals = s.slice(commaIdx + 1);
+    if (decimals.length > 0 && decimals.length <= 2 && /^\d+$/.test(decimals)) {
+      s = s.slice(0, commaIdx);
+    } else {
+      s = s.replace(/,/g, "");
+    }
+  }
+  const digits = s.replace(/\./g, "");
   const n = Number.parseInt(digits, 10);
   return Number.isFinite(n) && n > 0 ? n : null;
 }
@@ -68,6 +79,9 @@ function detectProvider(pkg: string, name: string | null): PaymentProvider {
 function isPaymentNotif(provider: PaymentProvider, title: string | null, text: string): boolean {
   const t = `${title ?? ""}\n${text}`;
   if (provider === "neobank") {
+    // Notifikasi agregat ("menerima 3 pembayaran") = total gabungan, bukan 1 pembayaran → tolak
+    const agg = (title ?? "").match(/menerima\s+(\d+)\s+pembayaran/i);
+    if (agg && Number(agg[1]) > 1) return false;
     return (
       /pembayaran\s+qris\s+diterima/i.test(t) ||
       /menerima\s+\d+\s+pembayaran/i.test(title ?? "") ||

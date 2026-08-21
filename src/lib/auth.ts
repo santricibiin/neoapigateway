@@ -64,6 +64,8 @@ export function getSession(): { id: number } | null {
       destroySession();
       return null;
     }
+    // Token admin tidak punya field kind; tolak token resweb (kind:"resweb")
+    if (decoded.kind !== undefined) return null;
     if (typeof decoded.id !== "number") return null;
     return { id: decoded.id };
   } catch {

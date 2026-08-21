@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import QRCode from "qrcode";
-import { BarChart3, BookOpen, Boxes, ChevronDown, ChevronUp, Copy, Eye, EyeOff, Gauge, KeyRound, LockKeyhole, LogOut, MessageCircle, PlusCircle, X, Check, Lock, Clock, Loader2 } from "lucide-react";
+import { BarChart3, BookOpen, Boxes, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Copy, Eye, EyeOff, Gauge, KeyRound, Link2, LockKeyhole, LogOut, MessageCircle, PlusCircle, X, Check, Lock, Clock, Loader2, Search, HelpCircle, Terminal, Send, RotateCcw, ArrowUpCircle, ArrowDownCircle, Play, PackageX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ type Meta = {
   pinLockedUntil: string | null;
 };
 
-type Tab = "quota" | "models" | "usage" | "contact" | "tutorial";
+type Tab = "quota" | "models" | "usage" | "playground" | "faq" | "contact" | "tutorial";
 
 interface QuotaProduct {
   id: number;
@@ -35,6 +35,8 @@ const tabs: Array<[Tab, string]> = [
   ["quota", "Kuota"],
   ["models", "Model"],
   ["usage", "Usage"],
+  ["playground", "Playground"],
+  ["faq", "FAQ"],
   ["contact", "Kontak"],
   ["tutorial", "Tutorial"],
 ];
@@ -43,6 +45,8 @@ const tabIcons = {
   quota: Gauge,
   models: Boxes,
   usage: BarChart3,
+  playground: Terminal,
+  faq: HelpCircle,
   contact: MessageCircle,
   tutorial: BookOpen,
 };
@@ -59,7 +63,7 @@ function formatTokens(value: number) {
   return value.toLocaleString("id-ID");
 }
 
-export function QuotaDashboardClient({ token, brandName, hideBuy = false }: { token: string; brandName: string; hideBuy?: boolean }) {
+export function QuotaDashboardClient({ token, brandName, hideBuy = false, resellerCs = null }: { token: string; brandName: string; hideBuy?: boolean; resellerCs?: { name: string; waNumber: string | null; telegram: string | null } | null }) {
   const storageKey = `quota_at_${token}`;
   const [meta, setMeta] = useState<Meta | null>(null);
   const [data, setData] = useState<QuotaDashboardView | null>(null);
@@ -222,9 +226,16 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false }: { to
       <Header brandName={brandName} name={data.name} status={data.status} />
       <div className="mb-5 flex items-center justify-between gap-3">
         <p className="font-mono text-xs font-bold text-base-ink/50">ID #{data.id}</p>
-        <Button type="button" variant="outline" size="sm" onClick={logout}><LogOut className="h-4 w-4" /> Kunci lagi</Button>
+        <div className="flex items-center gap-2">
+          {!hideBuy ? (
+            <Button type="button" variant="sun" size="sm" className="px-2.5 py-1.5 text-xs" onClick={openBuyPopup}>
+              <PlusCircle className="h-3.5 w-3.5" /> Tambah Kuota
+            </Button>
+          ) : null}
+          <Button type="button" variant="outline" size="sm" className="px-2.5 py-1.5 text-xs" onClick={logout}><LogOut className="h-3.5 w-3.5" /> Kunci lagi</Button>
+        </div>
       </div>
-      <div className="mb-6 grid grid-cols-2 gap-2 rounded-neo border-2 border-base-ink bg-white p-2 shadow-neo sm:grid-cols-5">
+      <div className="mb-6 grid grid-cols-2 gap-2 rounded-neo border-2 border-base-ink bg-white p-2 shadow-neo sm:grid-cols-4 lg:grid-cols-7">
         {tabs.map(([id, label]) => {
           const Icon = tabIcons[id];
           return (
@@ -262,30 +273,28 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false }: { to
               <p className="mt-3 text-xs font-bold text-base-ink/50">Berakhir: {data.expiresAt ? new Date(data.expiresAt).toLocaleString("id-ID") : "-"}</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><KeyRound className="h-5 w-5" /> API Key</CardTitle></CardHeader>
-            <CardContent>
-              <code className="block break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold">{showKey ? data.key : data.keyMasked}</code>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => setShowKey((value) => !value)}>{showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{showKey ? "Sembunyikan" : "Tampilkan"}</Button>
-                <Button type="button" size="sm" onClick={() => copy("key", data.key)}><Copy className="h-4 w-4" />{copied === "key" ? "Tersalin" : "Copy key"}</Button>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle>Base URL</CardTitle></CardHeader>
-            <CardContent>
-              <code className="block break-all font-mono text-sm font-bold">{data.baseUrl}</code>
-              <Button type="button" size="sm" className="mt-3" onClick={() => copy("base", data.baseUrl)}><Copy className="h-4 w-4" />{copied === "base" ? "Tersalin" : "Copy Base URL"}</Button>
-              <p className="mt-3 text-xs font-bold text-base-ink/50">{data.baseUrl}/models · {data.baseUrl}/chat/completions</p>
-            </CardContent>
-          </Card>
-
-          {!hideBuy && (
-            <Button type="button" variant="primary" size="lg" className="w-full" onClick={openBuyPopup}>
-              <PlusCircle className="h-5 w-5" /> Tambah Kuota
-            </Button>
-          )}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="flex flex-col">
+              <CardHeader><CardTitle className="flex items-center gap-2"><KeyRound className="h-5 w-5" /> API Key</CardTitle></CardHeader>
+              <CardContent className="flex flex-1 flex-col">
+                <code className="block break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold">{showKey ? data.key : data.keyMasked}</code>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => setShowKey((value) => !value)}>{showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{showKey ? "Sembunyikan" : "Tampilkan"}</Button>
+                  <Button type="button" size="sm" onClick={() => copy("key", data.key)}><Copy className="h-4 w-4" />{copied === "key" ? "Tersalin" : "Copy key"}</Button>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="flex flex-col">
+              <CardHeader><CardTitle className="flex items-center gap-2"><Link2 className="h-5 w-5" /> Base URL</CardTitle></CardHeader>
+              <CardContent className="flex flex-1 flex-col">
+                <code className="block break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 font-mono text-sm font-bold">{data.baseUrl}</code>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button type="button" size="sm" onClick={() => copy("base", data.baseUrl)}><Copy className="h-4 w-4" />{copied === "base" ? "Tersalin" : "Copy Base URL"}</Button>
+                </div>
+                <p className="mt-3 break-all text-xs font-bold text-base-ink/50">{data.baseUrl}/models · {data.baseUrl}/chat/completions</p>
+              </CardContent>
+            </Card>
+          </div>
         </motion.div>
       ) : null}
 
@@ -294,23 +303,16 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false }: { to
           token={token}
           products={products}
           loading={loadingProducts}
-          onClose={() => setShowBuyPopup(false)}
+          onClose={() => {
+            setShowBuyPopup(false);
+          }}
+          onRefreshProducts={loadProducts}
         />
       ) : null}
 
       {tab === "models" ? (
         <motion.div key="models" variants={reveal} initial="hidden" animate="visible">
-          <h2 className="mb-3 text-xl font-extrabold">{data.models.length} Model</h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {data.models.map((model, index) => (
-              <motion.button key={model.id} type="button" onClick={() => copy(`model:${model.id}`, model.id)} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.035 }} whileHover={{ y: -5, rotate: index % 2 ? 0.5 : -0.5 }} whileTap={{ y: 1 }} className={cn("relative min-h-36 overflow-hidden rounded-neo border-2 border-base-ink p-4 text-left shadow-neo-sm", index % 3 === 0 ? "bg-accent-sky" : index % 3 === 1 ? "bg-accent-sun" : "bg-white")}>
-                <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -bottom-8 -right-8 h-24 w-24 text-base-ink/10"><circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" strokeWidth="12" /></svg>
-                <div className="mb-5 flex justify-between text-[10px] font-extrabold uppercase"><span>{model.enabled ? "Aktif" : "Nonaktif"}</span><span>{model.multiplier || data.modelMultipliers[model.id] || 1}x</span></div>
-                <p className="break-all font-mono text-sm font-extrabold">{model.id}</p>
-                <p className="mt-3 text-[10px] font-bold uppercase text-base-ink/50">{copied === `model:${model.id}` ? "Tersalin" : model.vision ? "Vision · klik untuk copy" : "Text · klik untuk copy"}</p>
-              </motion.button>
-            ))}
-          </div>
+          <ModelsTable models={data.models} multipliers={data.modelMultipliers} copy={copy} copied={copied} />
         </motion.div>
       ) : null}
 
@@ -329,19 +331,766 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false }: { to
         </Card></motion.div>
       ) : null}
 
+      {tab === "playground" ? (
+        <motion.div key="playground" variants={reveal} initial="hidden" animate="visible"><Playground data={data} copy={copy} copied={copied} /></motion.div>
+      ) : null}
+
+      {tab === "faq" ? (
+        <motion.div key="faq" variants={reveal} initial="hidden" animate="visible"><FaqSection /></motion.div>
+      ) : null}
+
       {tab === "contact" ? (
-        <motion.div key="contact" variants={reveal} initial="hidden" animate="visible"><Card className="relative overflow-hidden bg-accent-skySoft">
-          <motion.svg animate={{ rotate: 360 }} transition={{ duration: 24, repeat: Infinity, ease: "linear" }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 text-base-ink/10"><path d="M50 4 61 36 95 37 68 57 77 91 50 71 23 91 32 57 5 37 39 36Z" fill="currentColor" /></motion.svg>
-          <CardHeader><CardTitle>Kontak CS</CardTitle></CardHeader>
-          <CardContent>
-            <p className="mb-4 text-sm font-semibold text-base-ink/60">Butuh bantuan? Hubungi customer service melalui Telegram.</p>
-            <a href="https://t.me/wafasukataro" target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 rounded-neo border-2 border-base-ink bg-accent-sky px-4 py-3 font-extrabold shadow-neo-sm"><MessageCircle className="h-5 w-5" /> Buka Telegram CS</a>
-          </CardContent>
-        </Card></motion.div>
+        <motion.div key="contact" variants={reveal} initial="hidden" animate="visible"><ContactCs resellerCs={resellerCs} /></motion.div>
       ) : null}
 
       {tab === "tutorial" ? <motion.div key="tutorial" variants={reveal} initial="hidden" animate="visible"><Tutorial copy={copy} copied={copied} data={data} /></motion.div> : null}
     </QuotaShell>
+  );
+}
+
+const MODELS_PER_PAGE = 10;
+const gradeRank: Record<string, number> = { A: 0, B: 1, C: 2 };
+
+function gradeStyle(grade: string) {  switch (grade.toUpperCase()) {
+    case "A":
+      return "bg-accent-mint";
+    case "B":
+      return "bg-accent-sun";
+    case "C":
+      return "bg-accent-lavender";
+    default:
+      return "bg-base-bg";
+  }
+}
+
+type ModelRow = QuotaDashboardView["models"][number];
+
+function ModelsTable({
+  models,
+  multipliers,
+  copy,
+  copied,
+}: {
+  models: ModelRow[];
+  multipliers: Record<string, number>;
+  copy: (label: string, value: string) => Promise<void>;
+  copied: string | null;
+}) {
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");
+  const [page, setPage] = useState(1);
+
+  const stats = useMemo(
+    () => ({
+      total: models.length,
+      active: models.filter((model) => model.enabled).length,
+      inactive: models.filter((model) => !model.enabled).length,
+    }),
+    [models]
+  );
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return models
+      .filter((model) => {
+        if (filter === "active" && !model.enabled) return false;
+        if (filter === "inactive" && model.enabled) return false;
+        return !q || model.id.toLowerCase().includes(q);
+      })
+      .sort(
+        (a, b) =>
+          Number(b.enabled) - Number(a.enabled) ||
+          (gradeRank[a.grade?.toUpperCase()] ?? 3) - (gradeRank[b.grade?.toUpperCase()] ?? 3) ||
+          a.id.localeCompare(b.id)
+      );
+  }, [models, query, filter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / MODELS_PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+  const rows = filtered.slice((safePage - 1) * MODELS_PER_PAGE, safePage * MODELS_PER_PAGE);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, filter]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-xl font-extrabold">{stats.total} Model</h2>
+          <p className="text-xs font-bold text-base-ink/50">{stats.active} tersedia · {stats.inactive} out of stock</p>
+        </div>
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-base-ink/45" />
+          <Input className="pl-10" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari nama model..." />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {([
+          ["all", "Semua", stats.total],
+          ["active", "Tersedia", stats.active],
+          ["inactive", "Out of Stock", stats.inactive],
+        ] as Array<["all" | "active" | "inactive", string, number]>).map(([value, label, count]) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setFilter(value)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink px-3 py-1.5 text-[11px] font-black uppercase transition-colors",
+              filter === value ? "bg-base-ink text-white shadow-neo-sm" : "bg-white hover:bg-accent-sky/25"
+            )}
+          >
+            {label}
+            <span className={cn("rounded-full px-1.5 py-0.5 text-[9px]", filter === value ? "bg-white/25" : "bg-base-bg")}>{count}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+            <thead>
+              <tr className="border-b-2 border-base-ink bg-accent-sky">
+                <th className="px-3 py-3 text-[10px] font-black uppercase tracking-wider">Nama Model</th>
+                <th className="px-3 py-3 text-center text-[10px] font-black uppercase tracking-wider">Vision</th>
+                <th className="px-3 py-3 text-center text-[10px] font-black uppercase tracking-wider">Multiplier</th>
+                <th className="px-3 py-3 text-center text-[10px] font-black uppercase tracking-wider">Grade</th>
+                <th className="px-3 py-3 text-center text-[10px] font-black uppercase tracking-wider">Status</th>
+                <th className="px-3 py-3 text-right text-[10px] font-black uppercase tracking-wider">Copy</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((model, index) => {
+                const multiplier = model.multiplier || multipliers[model.id] || 1;
+                return (
+                  <motion.tr
+                    key={model.id}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.02 }}
+                    className={cn("border-b border-base-ink/15 last:border-b-0", index % 2 ? "bg-base-bg/50" : "bg-white", !model.enabled && "opacity-70")}
+                  >
+                    <td className="px-3 py-2.5">
+                      <span className="break-all font-mono text-[13px] font-extrabold">{model.id}</span>
+                    </td>
+                    <td className="px-3 py-2.5 text-center">
+                      {model.vision ? (
+                        <span title="Vision (text + image)" className="inline-flex items-center gap-1 rounded-full border-2 border-base-ink bg-accent-mint px-2 py-0.5 text-[9px] font-black uppercase">
+                          <Eye className="h-3 w-3" /> Vision
+                        </span>
+                      ) : (
+                        <span title="Text only" className="inline-flex items-center gap-1 rounded-full border-2 border-base-ink/25 bg-base-bg px-2 py-0.5 text-[9px] font-black uppercase text-base-ink/45">
+                          <EyeOff className="h-3 w-3" /> Text
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5 text-center">
+                      <span className={cn("inline-block rounded-neo border-2 border-base-ink px-2 py-0.5 font-mono text-xs font-black", multiplier > 1 ? "bg-accent-sun" : "bg-white")}>{multiplier}x</span>
+                    </td>
+                    <td className="px-3 py-2.5 text-center">
+                      <span className={cn("inline-flex h-7 w-7 items-center justify-center rounded-neo border-2 border-base-ink text-xs font-black", gradeStyle(model.grade))}>{model.grade || "-"}</span>
+                    </td>
+                    <td className="px-3 py-2.5 text-center">
+                      {model.enabled ? (
+                        <span className="inline-flex items-center gap-1 rounded-full border-2 border-base-ink bg-accent-mint px-2 py-0.5 text-[9px] font-black uppercase">
+                          <Check className="h-3 w-3" strokeWidth={3} /> Tersedia
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border-2 border-base-ink bg-red-200 px-2 py-0.5 text-[9px] font-black uppercase">
+                          <PackageX className="h-3 w-3" /> Out of Stock
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5 text-right">
+                      <button
+                        type="button"
+                        onClick={() => void copy(`model:${model.id}`, model.id)}
+                        className="inline-flex items-center gap-1 rounded-neo border-2 border-base-ink bg-white px-2 py-1 text-[10px] font-black uppercase shadow-neo-sm transition-colors hover:bg-accent-sky/40"
+                      >
+                        {copied === `model:${model.id}` ? <Check className="h-3 w-3" strokeWidth={3} /> : <Copy className="h-3 w-3" />}
+                        {copied === `model:${model.id}` ? "Ok" : "Copy"}
+                      </button>
+                    </td>
+                  </motion.tr>
+                );
+              })}
+              {!rows.length ? (
+                <tr>
+                  <td colSpan={6} className="px-3 py-12 text-center font-bold text-base-ink/45">Model tidak ditemukan.</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {filtered.length > 0 ? (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs font-bold text-base-ink/50">
+            Menampilkan {(safePage - 1) * MODELS_PER_PAGE + 1}–{Math.min(safePage * MODELS_PER_PAGE, filtered.length)} dari {filtered.length} model
+          </p>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              disabled={safePage <= 1}
+              onClick={() => setPage(safePage - 1)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-neo border-2 border-base-ink bg-white font-black shadow-neo-sm disabled:opacity-35"
+            >
+              <ChevronLeft className="h-4 w-4" strokeWidth={3} />
+            </button>
+            {pageNumbers(safePage, totalPages).map((item, index) =>
+              item === "…" ? (
+                <span key={`gap-${index}`} className="px-1 text-xs font-black text-base-ink/40">…</span>
+              ) : (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setPage(item as number)}
+                  className={cn(
+                    "inline-flex h-8 min-w-8 items-center justify-center rounded-neo border-2 border-base-ink px-2 text-xs font-black shadow-neo-sm",
+                    item === safePage ? "bg-accent-sky" : "bg-white hover:bg-accent-sky/30"
+                  )}
+                >
+                  {item}
+                </button>
+              )
+            )}
+            <button
+              type="button"
+              disabled={safePage >= totalPages}
+              onClick={() => setPage(safePage + 1)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-neo border-2 border-base-ink bg-white font-black shadow-neo-sm disabled:opacity-35"
+            >
+              <ChevronRight className="h-4 w-4" strokeWidth={3} />
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function pageNumbers(current: number, total: number): Array<number | "…"> {
+  if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1);
+  const items: Array<number | "…"> = [1];
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  if (start > 2) items.push("…");
+  for (let page = start; page <= end; page += 1) items.push(page);
+  if (end < total - 1) items.push("…");
+  items.push(total);
+  return items;
+}
+
+const GRADE_INFO: Array<{ grade: string; title: string; body: string }> = [
+  {
+    grade: "A",
+    title: "Kualitas unggulan",
+    body: "Berasal dari layanan ternama dengan kualitas dan performa yang baik.",
+  },
+  {
+    grade: "B",
+    title: "Performa terbatas",
+    body: "Berasal dari layanan baru atau layanan dengan batas request per menit yang sangat kecil, sehingga performanya mungkin kurang optimal.",
+  },
+  {
+    grade: "C",
+    title: "Pilihan ekonomis",
+    body: "Performa layanan sangat rendah, tetapi tersedia dengan harga lebih murah.",
+  },
+];
+
+type ChatCompletionResult = {
+  content: string;
+  usage: Record<string, number> | null;
+  raw: unknown;
+};
+
+const QUOTA_SAMPLE_RESPONSE: Record<string, unknown> = {
+  object: "quota",
+  id: 1,
+  name: "melati",
+  status: "active",
+  maxTokens: 50000000,
+  remainingTokens: 47500000,
+  usagePercent: 5,
+  usage: {
+    prompt_tokens: 1500000,
+    completion_tokens: 1000000,
+    total_tokens: 2500000,
+    cached_tokens: 0,
+    requests: 42,
+  },
+  validDays: 14,
+  expiresAt: "2026-02-01T00:00:00.000Z",
+  createdAt: "2026-01-18T00:00:00.000Z",
+  penaltyActive: false,
+  penaltyUntil: null,
+  penaltyReason: null,
+};
+
+function Playground({
+  data,
+  copy,
+  copied,
+}: {
+  data: QuotaDashboardView;
+  copy: (label: string, value: string) => Promise<void>;
+  copied: string | null;
+}) {
+  const [models, setModels] = useState<string[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("");
+  const [bodyText, setBodyText] = useState("");
+  const [bodyError, setBodyError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [response, setResponse] = useState<ChatCompletionResult | null>(null);
+  const [meta, setMeta] = useState<{ lastRequest: string; duration: number; statusCode: string }>({ lastRequest: "", duration: 0, statusCode: "" });
+
+  const [quotaLoading, setQuotaLoading] = useState(false);
+  const [quotaResult, setQuotaResult] = useState<Record<string, unknown> | { error: string } | null>(null);
+  const [quotaMeta, setQuotaMeta] = useState<{ duration: number; statusCode: string }>({ duration: 0, statusCode: "" });
+
+  const chatBase = data.baseUrl.replace(/\/$/, "");
+
+  function buildBodyTemplate(model: string) {
+    return JSON.stringify(
+      {
+        model: model || "glm-5.2",
+        messages: [{ role: "user", content: "Say hello in 5 words" }],
+        max_tokens: 100,
+      },
+      null,
+      2
+    );
+  }
+
+  async function loadPlaygroundModels() {
+    setLoadingModels(true);
+    try {
+      const res = await fetch(`${chatBase}/models`, { headers: { Authorization: `Bearer ${data.key}` } });
+      if (res.ok) {
+        const body = await res.json();
+        if (Array.isArray(body.data)) setModels(body.data.map((m: { id: string }) => m.id));
+      }
+      setSelectedModel((current) => {
+        const next = current || models[0] || "";
+        if (!current && next) setBodyText(buildBodyTemplate(next));
+        return next;
+      });
+    } catch {}
+    setLoadingModels(false);
+  }
+
+  function selectModel(model: string) {
+    setSelectedModel(model);
+    setBodyText(buildBodyTemplate(model));
+  }
+
+  async function testChatCompletion() {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(bodyText);
+      setBodyError(null);
+    } catch (reason) {
+      setBodyError(reason instanceof Error ? `Invalid JSON: ${reason.message}` : "Invalid JSON");
+      return;
+    }
+    setSending(true);
+    setResponse(null);
+    setMeta({ lastRequest: "", duration: 0, statusCode: "" });
+    const sentBody = JSON.stringify(parsed, null, 2);
+    const start = Date.now();
+    try {
+      const res = await fetch(`${chatBase}/chat/completions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.key}` },
+        body: JSON.stringify(parsed),
+      });
+      const duration = Date.now() - start;
+      setMeta({ lastRequest: sentBody, duration, statusCode: String(res.status) });
+      if (!res.ok) {
+        let message = `Request failed (${res.status})`;
+        try {
+          const err = await res.json();
+          message = err.error?.message || err.error || message;
+        } catch {}
+        setResponse({ content: "", usage: null, raw: { error: message } });
+      } else {
+        const result = await res.json();
+        setResponse({
+          content: result.choices?.[0]?.message?.content || "No response",
+          usage: result.usage || null,
+          raw: result,
+        });
+      }
+    } catch (reason) {
+      setMeta({ lastRequest: sentBody, duration: Date.now() - start, statusCode: "" });
+      setResponse({ content: "", usage: null, raw: { error: reason instanceof Error ? reason.message : "Network error" } });
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function testQuotaCheck() {
+    setQuotaLoading(true);
+    setQuotaResult(null);
+    setQuotaMeta({ duration: 0, statusCode: "" });
+    const start = Date.now();
+    try {
+      const res = await fetch(`${chatBase}/quota`, { headers: { Authorization: `Bearer ${data.key}` } });
+      setQuotaMeta({ duration: Date.now() - start, statusCode: String(res.status) });
+      const result = await res.json();
+      if (!res.ok) {
+        setQuotaResult({ error: result.error?.message || result.error || `Failed to fetch quota (${res.status})` });
+      } else {
+        setQuotaResult(result);
+      }
+    } catch (reason) {
+      setQuotaMeta({ duration: Date.now() - start, statusCode: "" });
+      setQuotaResult({ error: reason instanceof Error ? reason.message : "Network error" });
+    } finally {
+      setQuotaLoading(false);
+    }
+  }
+
+  const playgroundCurl = `curl -X POST ${chatBase}/chat/completions \\\n  -H "Content-Type: application/json" \\\n  -H "Authorization: Bearer ${data.key}" \\\n  -d '${bodyText.replace(/'/g, "'\\''")}'`;
+  const quotaCurl = `curl ${chatBase}/quota \\\n  -H "Authorization: Bearer ${data.key}"`;
+  const quotaRaw = quotaResult && "error" in quotaResult ? null : (quotaResult as Record<string, unknown> | null);
+
+  return (
+    <div className="space-y-4">
+      <div className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-lavender p-5 shadow-neo">
+        <motion.svg animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 text-white/35">
+          <path d="M50 5 61 38 95 39 68 58 77 91 50 72 23 91 32 58 5 39 39 38Z" fill="currentColor" />
+        </motion.svg>
+        <div className="relative">
+          <span className="inline-flex items-center gap-2 rounded-full border-2 border-base-ink bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+            <Terminal className="h-3 w-3" /> API Playground
+          </span>
+          <h1 className="mt-3 text-2xl font-black sm:text-3xl">Test API langsung.</h1>
+          <p className="mt-1 text-sm font-bold text-base-ink/60">Coba chat completion dan cek kuota dengan API key Anda.</p>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Send className="h-5 w-5" /> POST /chat/completions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">cURL Example</label>
+              <Button type="button" variant="outline" size="sm" className="px-2.5 py-1 text-xs" onClick={() => void copy("playground-curl", playgroundCurl)}>
+                <Copy className="h-3.5 w-3.5" />{copied === "playground-curl" ? "Tersalin" : "Copy"}
+              </Button>
+            </div>
+            <pre className="overflow-x-auto rounded-neo border-2 border-base-ink bg-base-ink p-3 text-xs font-mono font-bold text-emerald-300">{playgroundCurl}</pre>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-[10px] font-black uppercase tracking-widest text-base-ink/50">Model</label>
+                <div className="flex gap-2">
+                  <select
+                    value={selectedModel}
+                    disabled={loadingModels || !models.length}
+                    onChange={(event) => selectModel(event.target.value)}
+                    className="w-full rounded-neo border-2 border-base-ink bg-white px-3 py-2 text-sm font-bold focus:outline-none disabled:opacity-50"
+                  >
+                    {!models.length ? <option value="">{loadingModels ? "Memuat model..." : "Model tidak tersedia"}</option> : null}
+                    {models.map((id) => (
+                      <option key={id} value={id}>{id}</option>
+                    ))}
+                  </select>
+                  <Button type="button" variant="outline" size="sm" className="shrink-0 px-2.5 py-1 text-xs" onClick={() => void loadPlaygroundModels()} disabled={loadingModels}>
+                    <RotateCcw className="h-3.5 w-3.5" />{loadingModels ? "..." : "Muat"}
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">Request Body (JSON)</label>
+                  <button type="button" onClick={() => selectModel(selectedModel)} className="text-xs font-bold text-base-ink/50 underline underline-offset-2 hover:text-base-ink">
+                    Reset
+                  </button>
+                </div>
+                <textarea
+                  value={bodyText}
+                  onChange={(event) => setBodyText(event.target.value)}
+                  spellCheck={false}
+                  rows={12}
+                  className="w-full resize-y rounded-neo border-2 border-base-ink bg-base-bg p-3 font-mono text-xs font-bold focus:outline-none"
+                />
+                {bodyError ? <p className="mt-1 rounded-neo border-2 border-base-ink bg-red-200 p-2 text-xs font-bold">{bodyError}</p> : null}
+              </div>
+              <Button type="button" variant="primary" className="w-full" disabled={sending || !!bodyError} onClick={() => void testChatCompletion()}>
+                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {sending ? "Mengirim..." : "Send Request"}
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="rounded-neo border-2 border-base-ink bg-base-ink p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400"><ArrowUpCircle className="h-3.5 w-3.5" /> Request Sent</span>
+                  {meta.lastRequest ? <span className="font-mono text-[10px] text-slate-500">{meta.statusCode} · {meta.duration}ms</span> : null}
+                </div>
+                {meta.lastRequest ? (
+                  <pre className="max-h-40 overflow-y-auto font-mono text-[10px] leading-relaxed text-slate-300">{meta.lastRequest}</pre>
+                ) : (
+                  <p className="py-3 text-center text-xs text-slate-500">Belum ada request terkirim.</p>
+                )}
+              </div>
+              <div className="rounded-neo border-2 border-base-ink bg-base-ink p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                    <ArrowDownCircle className="h-3.5 w-3.5" /> Response
+                    {response && "error" in (response.raw as Record<string, unknown>) ? <span className="rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-black text-white">Error</span> : response && meta.statusCode ? <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[9px] font-black text-white">{meta.statusCode}</span> : null}
+                  </span>
+                  {response?.usage ? <span className="font-mono text-[10px] text-slate-500">{Number(response.usage.total_tokens || 0).toLocaleString("id-ID")} tokens</span> : null}
+                </div>
+                {sending ? (
+                  <div className="py-4 text-center">
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-slate-400" />
+                    <p className="mt-2 text-xs text-slate-500">Mengirim request...</p>
+                  </div>
+                ) : !response ? (
+                  <p className="py-4 text-center text-xs text-slate-500">Response akan tampil di sini setelah mengirim.</p>
+                ) : "error" in (response.raw as Record<string, unknown>) ? (
+                  <p className="rounded border-2 border-red-500 bg-red-950 p-2 text-xs font-bold text-red-300">{String((response.raw as Record<string, unknown>).error)}</p>
+                ) : (
+                  <>
+                    <div className="rounded border border-slate-700 bg-slate-900 p-2">
+                      <p className="mb-1 text-[10px] font-bold uppercase text-slate-500">Assistant Response</p>
+                      <div className="max-h-44 overflow-y-auto whitespace-pre-wrap break-words text-xs text-slate-200">{response.content}</div>
+                    </div>
+                    <details open className="mt-2">
+                      <summary className="cursor-pointer text-xs font-bold text-slate-500">Raw JSON Response</summary>
+                      <pre className="mt-2 max-h-72 overflow-auto rounded bg-slate-900 p-2 font-mono text-[10px] leading-relaxed text-slate-300">{JSON.stringify(response.raw, null, 2)}</pre>
+                    </details>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Gauge className="h-5 w-5" /> GET /quota</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm font-semibold text-base-ink/60">
+            Cek status quota API key Anda secara programatik. Kirim API key di header <code className="rounded border-2 border-base-ink bg-base-bg px-1.5 py-0.5 font-mono text-xs font-bold">Authorization: Bearer &lt;API_KEY&gt;</code>. Cocok untuk monitoring pemakaian token dari script atau aplikasi.
+          </p>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-3">
+              <div>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">cURL Example</label>
+                  <Button type="button" variant="outline" size="sm" className="px-2.5 py-1 text-xs" onClick={() => void copy("quota-curl", quotaCurl)}>
+                    <Copy className="h-3.5 w-3.5" />{copied === "quota-curl" ? "Tersalin" : "Copy"}
+                  </Button>
+                </div>
+                <pre className="overflow-x-auto rounded-neo border-2 border-base-ink bg-base-ink p-3 text-xs font-mono font-bold text-emerald-300">{quotaCurl}</pre>
+              </div>
+              <Button type="button" variant="sun" className="w-full" disabled={quotaLoading} onClick={() => void testQuotaCheck()}>
+                {quotaLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                {quotaLoading ? "Mengecek..." : "Test Check Quota"}
+              </Button>
+            </div>
+            <div className="rounded-neo border-2 border-base-ink bg-base-ink p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                  <ArrowDownCircle className="h-3.5 w-3.5" /> Response
+                  {quotaResult && "error" in quotaResult ? <span className="rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-black text-white">Error</span> : quotaRaw ? <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[9px] font-black text-white">{quotaMeta.statusCode}</span> : null}
+                </span>
+                {quotaMeta.duration ? <span className="font-mono text-[10px] text-slate-500">{quotaMeta.statusCode} · {quotaMeta.duration}ms</span> : null}
+              </div>
+              {quotaLoading ? (
+                <div className="py-4 text-center">
+                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-slate-400" />
+                  <p className="mt-2 text-xs text-slate-500">Mengecek quota...</p>
+                </div>
+              ) : !quotaResult ? (
+                <>
+                  <p className="mb-1 text-xs text-slate-500">Contoh response:</p>
+                  <pre className="font-mono text-[10px] leading-relaxed text-slate-500">{JSON.stringify(QUOTA_SAMPLE_RESPONSE, null, 2)}</pre>
+                </>
+              ) : "error" in quotaResult ? (
+                <p className="rounded border-2 border-red-500 bg-red-950 p-2 text-xs font-bold text-red-300">{String(quotaResult.error)}</p>
+              ) : (
+                <>
+                  <div className="rounded border border-slate-700 bg-slate-900 p-2">
+                    <div className="mb-1 flex justify-between text-xs text-slate-500"><span>Status</span><span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-black uppercase", quotaRaw?.status === "active" ? "border-emerald-400 bg-emerald-950 text-emerald-300" : "border-red-400 bg-red-950 text-red-300")}>{String(quotaRaw?.status)}</span></div>
+                    <div className="mb-1 flex justify-between text-xs text-slate-500"><span>Used / Max</span><span className="font-mono text-slate-200">{formatTokens(Number((quotaRaw?.usage as Record<string, unknown>)?.total_tokens || 0))} / {quotaRaw?.maxTokens ? formatTokens(Number(quotaRaw.maxTokens)) : "Unlimited"}</span></div>
+                    <div className="mb-1 flex justify-between text-xs text-slate-500"><span>Remaining</span><span className="font-mono text-slate-200">{formatTokens(Number(quotaRaw?.remainingTokens || 0))}</span></div>
+                    <div className="flex justify-between text-xs text-slate-500"><span>Requests</span><span className="font-mono text-slate-200">{String((quotaRaw?.usage as Record<string, unknown>)?.requests || 0)}</span></div>
+                  </div>
+                  <details open className="mt-2">
+                    <summary className="cursor-pointer text-xs font-bold text-slate-500">Raw JSON Response</summary>
+                    <pre className="mt-2 max-h-72 overflow-auto rounded bg-slate-900 p-2 font-mono text-[10px] leading-relaxed text-slate-300">{JSON.stringify(quotaResult, null, 2)}</pre>
+                  </details>
+                </>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function FaqSection() {
+  return (
+    <div className="space-y-4">
+      <div className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-sun p-5 shadow-neo">
+        <motion.svg animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 text-white/30">
+          <circle cx="50" cy="50" r="36" fill="none" stroke="currentColor" strokeWidth="12" />
+        </motion.svg>
+        <div className="relative">
+          <span className="inline-flex items-center gap-2 rounded-full border-2 border-base-ink bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+            <HelpCircle className="h-3 w-3" /> Bantuan
+          </span>
+          <h1 className="mt-3 text-2xl font-black sm:text-3xl">Frequently Asked Questions</h1>
+          <p className="mt-1 text-sm font-bold text-base-ink/60">Penjelasan multiplier, grade model, dan cara perhitungan token.</p>
+        </div>
+      </div>
+
+      <CollapsibleCard title="Apa itu Model Multiplier?" defaultOpen>
+        <div className="space-y-3 text-sm font-semibold text-base-ink/70">
+          <p>
+            <span className="font-black text-base-ink">Model Multiplier</span> adalah pengali konsumsi token untuk setiap model. Secara default semua model
+            menggunakan multiplier <span className="font-black text-base-ink">1x</span>, artinya token yang terpakai dihitung 1:1 terhadap quota Anda.
+          </p>
+          <p>
+            Jika sebuah model diatur ke multiplier <span className="font-black text-base-ink">1.5x</span>, maka setiap token yang dikonsumsi akan dihitung 1.5 kali
+            lipat terhadap quota. Contoh: upstream menghitung 1.000 token, maka quota Anda berkurang <span className="font-black text-base-ink">1.500 token</span>.
+          </p>
+          <p>
+            Multiplier ditampilkan di kolom <span className="font-black text-base-ink">Multiplier</span> pada tab <span className="font-black text-base-ink">Model</span>,
+            misalnya <code className="rounded border-2 border-base-ink bg-base-bg px-1.5 py-0.5 font-mono text-xs font-bold text-base-ink">glm-5.2-debug (1.5x)</code>.
+            Model dengan nilai <span className="font-black text-base-ink">1x</span> berarti tanpa pengali tambahan.
+          </p>
+        </div>
+      </CollapsibleCard>
+
+      <CollapsibleCard title="Apa arti Grade Model?" defaultOpen={false}>
+        <div className="space-y-3 text-sm font-semibold text-base-ink/70">
+          <p>
+            Grade membantu Anda memilih model berdasarkan kualitas dan performa layanan. Grade tidak menilai kemampuan dasar model secara mutlak; pengalaman dapat
+            berubah sesuai kondisi layanan.
+          </p>
+          <div className="grid gap-2">
+            {GRADE_INFO.map((item) => (
+              <div key={item.grade} className="flex gap-3 rounded-neo border-2 border-base-ink bg-white p-3">
+                <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink text-base font-black", gradeStyle(item.grade))}>
+                  {item.grade}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-extrabold text-base-ink">{item.title}</p>
+                  <p className="mt-0.5 text-sm font-semibold text-base-ink/60">{item.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-neo border-2 border-base-ink bg-accent-skySoft p-3">
+            <p className="font-extrabold text-base-ink">Analogi paling mudah memahami Grade A &amp; B</p>
+            <p className="mt-1 text-sm font-semibold text-base-ink/70">
+              Grade A itu analoginya barangnya diambil dari toko-toko besar seperti hypermart, indomarco dan lainnya. Sedangkan Grade B analoginya diambil dari toko
+              grosir kecil. Bisa jadi Grade B kualitasnya bagus, tapi tetap diberi Grade B karena sumbernya bukan dari toko besar.
+            </p>
+          </div>
+          <p>
+            Untuk yang concern soal <span className="font-black text-base-ink">privacy dan keamanan</span>, saran kami pakai model
+            <span className="font-black text-base-ink"> Grade A</span> saja. Lebih aman dari risiko cloaking dan lainnya.
+          </p>
+          <p>
+            Untuk <span className="font-black text-base-ink">Grade B</span>, kualitas tidak bisa dijamin, tapi kami bisa memberi kompensasi kerugian berupa
+            <span className="font-black text-base-ink"> tambahan token</span> kalau kualitas Grade B-nya sangat buruk.
+          </p>
+        </div>
+      </CollapsibleCard>
+
+      <CollapsibleCard title="Bagaimana token dan quota dihitung?" defaultOpen={false}>
+        <div className="space-y-3 text-sm font-semibold text-base-ink/70">
+          <p>
+            Setelah setiap request berhasil, sistem membaca data penggunaan dari respons model: <span className="font-black text-base-ink">prompt token</span>
+            {" "}(pesan/instruksi yang dikirim) dan <span className="font-black text-base-ink">completion token</span> (jawaban model). Keduanya dijumlahkan menjadi
+            total token, lalu dicatat ke usage akun dan riwayat per model.
+          </p>
+          <p>
+            Jika upstream tidak mengirim data prompt token yang lengkap, sistem memakai estimasi minimum dari isi pesan agar pemakaian tetap tercatat. Untuk request
+            gambar, estimasi token gambar dari konfigurasi model juga ikut diperhitungkan. Cache token dicatat sebagai informasi penggunaan, tetapi quota utama tetap
+            memakai total token yang ditagihkan model.
+          </p>
+          <div className="rounded-neo border-2 border-base-ink bg-accent-sun p-3">
+            <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/60">Rumus sederhana</p>
+            <p className="mt-1 font-mono text-sm font-black text-base-ink">(prompt token + completion token) × multiplier model</p>
+          </div>
+          <p>
+            Hasilnya dibulatkan lalu dikurangi dari quota. Saat total penggunaan mencapai quota, API key menjadi
+            <span className="font-black text-base-ink"> exceeded</span> dan request berikutnya ditolak sampai quota ditambah.
+          </p>
+
+          <p className="pt-1 font-extrabold text-base-ink">Simulasi mudah</p>
+          <p>
+            Misal quota awal Anda <span className="font-black text-base-ink">1.000.000 token</span>. Anda mengirim request dengan
+            <span className="font-black text-base-ink"> 800 prompt token</span> dan model menjawab <span className="font-black text-base-ink">1.200 completion token</span>.
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="rounded-neo border-2 border-base-ink bg-white p-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">Model 1x</p>
+              <p className="mt-1 font-mono text-xs font-bold text-base-ink">(800 + 1.200) × 1 = 2.000 token</p>
+              <p className="mt-1 text-xs font-bold text-base-ink/60">Sisa quota: 1.000.000 − 2.000 = <span className="font-black text-base-ink">998.000</span></p>
+            </div>
+            <div className="rounded-neo border-2 border-base-ink bg-accent-skySoft p-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">Model 1,5x</p>
+              <p className="mt-1 font-mono text-xs font-bold text-base-ink">(800 + 1.200) × 1,5 = 3.000 token</p>
+              <p className="mt-1 text-xs font-bold text-base-ink/60">Sisa quota: 1.000.000 − 3.000 = <span className="font-black text-base-ink">997.000</span></p>
+            </div>
+          </div>
+        </div>
+      </CollapsibleCard>
+    </div>
+  );
+}
+
+function ContactCs({ resellerCs }: { resellerCs: { name: string; waNumber: string | null; telegram: string | null } | null }) {
+  const wa = resellerCs?.waNumber;
+  const tg = resellerCs?.telegram;
+  const waHref = wa ? `https://wa.me/${wa}?text=${encodeURIComponent("Halo, saya butuh bantuan soal kuota API saya.")}` : null;
+  const tgHref = tg ? `https://t.me/${tg}` : null;
+  return (
+    <Card className="relative overflow-hidden bg-accent-skySoft">
+      <motion.svg animate={{ rotate: 360 }} transition={{ duration: 24, repeat: Infinity, ease: "linear" }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 text-base-ink/10"><path d="M50 4 61 36 95 37 68 57 77 91 50 71 23 91 32 57 5 37 39 36Z" fill="currentColor" /></motion.svg>
+      <CardHeader><CardTitle>Kontak CS</CardTitle></CardHeader>
+      <CardContent>
+        {waHref || tgHref ? (
+          <>
+            <p className="mb-4 text-sm font-semibold text-base-ink/60">
+              Butuh bantuan? Hubungi reseller Anda: <span className="font-black">{resellerCs?.name}</span>
+            </p>
+            {waHref ? (
+              <a href={waHref} target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 rounded-neo border-2 border-base-ink bg-accent-mint px-4 py-3 font-extrabold shadow-neo-sm">
+                <MessageCircle className="h-5 w-5" /> WhatsApp {resellerCs?.name}
+              </a>
+            ) : null}
+            {tgHref ? (
+              <a href={tgHref} target="_blank" rel="noreferrer" className={`inline-flex w-full items-center justify-center gap-2 rounded-neo border-2 border-base-ink bg-accent-sky px-4 py-3 font-extrabold shadow-neo-sm ${waHref ? "mt-2" : ""}`}>
+                <MessageCircle className="h-5 w-5" /> Telegram {resellerCs?.name}
+              </a>
+            ) : null}
+          </>
+        ) : (
+          <p className="text-sm font-semibold text-base-ink/60">Kontak CS belum tersedia. Silakan hubungi reseller tempat Anda membeli.</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -464,11 +1213,13 @@ function BuyQuotaPopup({
   products,
   loading,
   onClose,
+  onRefreshProducts,
 }: {
   token: string;
   products: QuotaProduct[];
   loading: boolean;
   onClose: () => void;
+  onRefreshProducts?: () => Promise<void> | void;
 }) {
   const [selected, setSelected] = useState<QuotaProduct | null>(null);
   const [ordering, setOrdering] = useState(false);
@@ -478,9 +1229,21 @@ function BuyQuotaPopup({
   const [invoice, setInvoice] = useState<string | null>(null);
   const [amount, setAmount] = useState(0);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [qrFailed, setQrFailed] = useState(false);
   const [countdown, setCountdown] = useState("");
   const [paid, setPaid] = useState(false);
   const [expired, setExpired] = useState(false);
+  const [grace, setGrace] = useState(false);
+  const timersRef = useRef<{ timer?: ReturnType<typeof setInterval>; poller?: ReturnType<typeof setInterval> }>({});
+
+  function clearTimers() {
+    if (timersRef.current.timer) clearInterval(timersRef.current.timer);
+    if (timersRef.current.poller) clearInterval(timersRef.current.poller);
+    timersRef.current = {};
+  }
+
+  // Bersihkan semua interval saat popup ditutup/unmount
+  useEffect(() => clearTimers, []);
 
   async function handleOrder() {
     if (!selected) return;
@@ -502,19 +1265,23 @@ function BuyQuotaPopup({
       setAmount(data.amount);
       setPaid(false);
       setExpired(false);
+      setGrace(false);
+      setQrFailed(false);
 
       try {
         const url = await QRCode.toDataURL(data.qrisPayload, { width: 400, margin: 2 });
         setQrUrl(url);
-      } catch {}
+      } catch {
+        setQrFailed(true);
+      }
 
-      // Countdown
+      // Countdown — lewat TTL masuk masa tunggu notifikasi, bukan langsung expired
       const expires = new Date(data.expiresAt);
       const tick = () => {
         const diff = Math.max(0, expires.getTime() - Date.now());
         if (diff <= 0) {
           setCountdown("00:00");
-          setExpired(true);
+          setGrace(true);
           return true;
         }
         const m = Math.floor(diff / 60000);
@@ -527,25 +1294,26 @@ function BuyQuotaPopup({
         if (tick()) clearInterval(timer);
       }, 1000);
 
-      // Poll status
+      // Poll status — berhenti total saat paid/expired/failed final
       const poll = async () => {
         try {
           const r = await fetch(`/api/payment/status/${data.invoice}`);
           const st = await r.json();
           if (st.ok && st.status === "paid") {
             setPaid(true);
-            clearInterval(timer);
-            clearInterval(poller);
+            setGrace(false);
+            clearTimers();
           }
           if (st.ok && (st.status === "expired" || st.status === "failed")) {
             setExpired(true);
-            clearInterval(timer);
-            clearInterval(poller);
+            setGrace(false);
+            clearTimers();
           }
         } catch {}
       };
       poll();
       const poller = setInterval(poll, 3000);
+      timersRef.current = { timer, poller };
     } catch {
       setError("Gagal membuat pesanan");
     }
@@ -553,13 +1321,17 @@ function BuyQuotaPopup({
   }
 
   function reset() {
+    clearTimers();
     setSelected(null);
     setInvoice(null);
     setAmount(0);
     setQrUrl(null);
+    setQrFailed(false);
     setPaid(false);
     setExpired(false);
+    setGrace(false);
     setError(null);
+    void onRefreshProducts?.();
   }
 
   return (
@@ -672,6 +1444,11 @@ function BuyQuotaPopup({
               <div className="rounded-neo border-2 border-base-ink bg-white p-3 shadow-neo-sm">
                 {qrUrl ? (
                   <img src={qrUrl} alt="QRIS" className="h-48 w-48" />
+                ) : qrFailed ? (
+                  <div className="flex h-48 w-48 flex-col items-center justify-center gap-2 p-3 text-center">
+                    <p className="text-xs font-black uppercase text-red-500">QR gagal dibuat</p>
+                    <Button type="button" variant="outline" size="sm" onClick={reset}>Coba Lagi</Button>
+                  </div>
                 ) : (
                   <div className="flex h-48 w-48 items-center justify-center">
                     <Loader2 className="h-8 w-8 animate-spin text-base-ink/40" />
@@ -682,9 +1459,18 @@ function BuyQuotaPopup({
                 <div className="text-xs font-bold uppercase text-base-ink/50">Total Bayar</div>
                 <div className="mt-1 text-2xl font-extrabold">Rp{amount.toLocaleString("id-ID")}</div>
               </div>
-              <div className="flex items-center gap-2 text-sm font-bold text-base-ink/70">
-                <Clock className="h-4 w-4" /> Berlaku {countdown}
-              </div>
+              {grace ? (
+                <>
+                  <p className="rounded-neo border-2 border-base-ink bg-accent-sun p-3 text-center text-xs font-bold">
+                    Waktu pembayaran habis. Jika sudah bayar, tunggu konfirmasi otomatis (verifikasi bisa makan waktu beberapa menit).
+                  </p>
+                  <Button type="button" variant="outline" size="sm" onClick={reset}>Buat Pesanan Baru</Button>
+                </>
+              ) : (
+                <div className="flex items-center gap-2 text-sm font-bold text-base-ink/70">
+                  <Clock className="h-4 w-4" /> Berlaku {countdown}
+                </div>
+              )}
               <p className="text-center text-xs text-base-ink/55">Bayar tepat sesuai nominal. Kuota otomatis bertambah setelah pembayaran terverifikasi.</p>
             </div>
           )}

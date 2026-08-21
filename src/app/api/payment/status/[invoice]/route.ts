@@ -21,7 +21,9 @@ export async function GET(
     return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
   }
 
-  if (order.status === "pending" && order.expiresAt <= new Date()) {
+  // Grace period: notifikasi bank bisa telat. Jangan expire permanen terlalu cepat.
+  const EXPIRE_GRACE_MS = 10 * 60 * 1000;
+  if (order.status === "pending" && order.expiresAt.getTime() + EXPIRE_GRACE_MS <= Date.now()) {
     await prisma.paymentOrder.update({
       where: { invoice },
       data: { status: "expired" },
@@ -29,6 +31,16 @@ export async function GET(
     return NextResponse.json({
       ok: true,
       status: "expired",
+    });
+  }
+
+  if (order.status === "pending" && order.expiresAt <= new Date()) {
+    // Lewat expiresAt tapi masih dalam grace period → tampil expired ke pembeli,
+    // status DB tetap pending supaya notifikasi telat masih bisa diclaim.
+    return NextResponse.json({
+      ok: true,
+      status: "pending",
+      expiredView: true,
     });
   }
 
