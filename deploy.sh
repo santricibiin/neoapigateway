@@ -36,6 +36,76 @@ fi
 
 cd "$APP_DIR"
 
+# ===== Fungsi: Setup Nginx + SSL untuk domain VIP =====
+setup_vip_nginx() {
+  local VIP_DOMAIN="$1"
+  local SSL_EMAIL="$2"
+  local PORT="$3"
+
+  # Nginx
+  if ! command -v nginx &>/dev/null; then
+    warn "Nginx belum terinstall — skip config VIP"
+    return
+  fi
+
+  local NGINX_CONF="/etc/nginx/sites-available/$VIP_DOMAIN"
+  if [ -f "$NGINX_CONF" ]; then
+    log "Nginx config untuk $VIP_DOMAIN sudah ada — skip"
+  else
+    info "Membuat Nginx config untuk $VIP_DOMAIN ..."
+    cat > "$NGINX_CONF" <<EOF
+server {
+    listen 80;
+    server_name $VIP_DOMAIN;
+
+    client_max_body_size 50M;
+
+    location / {
+        proxy_pass http://127.0.0.1:$PORT;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_cache_bypass \$http_upgrade;
+    }
+}
+EOF
+    ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/
+    if nginx -t 2>/dev/null; then
+      systemctl reload nginx
+      log "Nginx config VIP dibuat & reload"
+    else
+      err "Nginx config test gagal — cek manual"
+      nginx -t
+    fi
+  fi
+
+  # SSL
+  if [ -d "/etc/letsencrypt/live/$VIP_DOMAIN" ]; then
+    log "SSL untuk $VIP_DOMAIN sudah ada — skip"
+    return
+  fi
+  command -v certbot &>/dev/null || {
+    warn "Certbot belum terinstall — skip SSL VIP"
+    return
+  }
+  warn "Pastikan DNS $VIP_DOMAIN sudah mengarah ke IP server ini!"
+  read -rp "Request SSL untuk $VIP_DOMAIN? (y/N): " VIP_SSL_CONFIRM
+  if [[ "$VIP_SSL_CONFIRM" =~ ^[Yy]$ ]]; then
+    certbot --nginx -d "$VIP_DOMAIN" \
+      --non-interactive --agree-tos -m "$SSL_EMAIL" \
+      --redirect || {
+      err "Certbot gagal — cek DNS / port 80"
+      warn "VIP tetap jalan di http://$VIP_DOMAIN"
+    }
+  else
+    warn "Skip SSL VIP — jalan di http://$VIP_DOMAIN"
+  fi
+}
+
 # ===== Fungsi: Deploy Awal =====
 deploy_awal() {
   echo ""
@@ -181,6 +251,29 @@ SESSION_SECRET="$SESSION_SECRET"
 PAYMENT_FORWARD_SECRET="$FORWARD_SECRET"
 EOF
     log ".env dibuat"
+  fi
+
+  # 5b. Setup upstream VIP (routing berdasarkan host)
+  echo ""
+  info "=== Setup Upstream VIP ==="
+  if grep -q '^VIP_HOST=' "$ENV_FILE" 2>/dev/null; then
+    log "VIP sudah dikonfigurasi di .env — skip"
+  else
+    read -rp "Domain untuk routing VIP (kosong = skip, contoh: bc.autoapp.biz.id): " VIP_DOMAIN
+    VIP_DOMAIN=$(echo "$VIP_DOMAIN" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+    if [ -n "$VIP_DOMAIN" ]; then
+      read -rp "Upstream VIP (default: https://vip.bandelbanget.xyz): " VIP_UPSTREAM_INPUT
+      VIP_UPSTREAM_INPUT=$(echo "$VIP_UPSTREAM_INPUT" | tr -d '[:space:]')
+      [ -z "$VIP_UPSTREAM_INPUT" ] && VIP_UPSTREAM_INPUT="https://vip.bandelbanget.xyz"
+
+      echo "VIP_HOST=\"$VIP_DOMAIN\"" >> "$ENV_FILE"
+      echo "VIP_UPSTREAM=\"$VIP_UPSTREAM_INPUT\"" >> "$ENV_FILE"
+      log ".env: VIP_HOST + VIP_UPSTREAM ditambahkan"
+
+      setup_vip_nginx "$VIP_DOMAIN" "$SSL_EMAIL" "$APP_PORT"
+    else
+      warn "Skip VIP — bisa ditambahkan nanti via menu Update"
+    fi
   fi
 
   # 6. Prisma
@@ -392,6 +485,33 @@ update() {
     APP_PORT=$(grep '^PORT=' "$ENV_FILE" 2>/dev/null | sed -n 's/.*="\(.*\)"/\1/p' || true)
     if [ -z "$APP_PORT" ]; then
       APP_PORT=3000
+    fi
+
+    # Setup VIP jika belum dikonfigurasi
+    if grep -q '^VIP_HOST=' "$ENV_FILE" 2>/dev/null; then
+      log "VIP sudah dikonfigurasi di .env — skip"
+    else
+      echo ""
+      info "=== Setup Upstream VIP ==="
+      read -rp "Domain untuk routing VIP (kosong = skip, contoh: bc.autoapp.biz.id): " VIP_DOMAIN
+      VIP_DOMAIN=$(echo "$VIP_DOMAIN" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+      if [ -n "$VIP_DOMAIN" ]; then
+        read -rp "Upstream VIP (default: https://vip.bandelbanget.xyz): " VIP_UPSTREAM_INPUT
+        VIP_UPSTREAM_INPUT=$(echo "$VIP_UPSTREAM_INPUT" | tr -d '[:space:]')
+        [ -z "$VIP_UPSTREAM_INPUT" ] && VIP_UPSTREAM_INPUT="https://vip.bandelbanget.xyz"
+
+        echo "VIP_HOST=\"$VIP_DOMAIN\"" >> "$ENV_FILE"
+        echo "VIP_UPSTREAM=\"$VIP_UPSTREAM_INPUT\"" >> "$ENV_FILE"
+        log ".env: VIP_HOST + VIP_UPSTREAM ditambahkan"
+
+        read -rp "Email untuk SSL VIP (default: admin@${VIP_DOMAIN#*.}): " VIP_SSL_EMAIL
+        VIP_SSL_EMAIL=$(echo "$VIP_SSL_EMAIL" | tr -d '[:space:]')
+        [ -z "$VIP_SSL_EMAIL" ] && VIP_SSL_EMAIL="admin@${VIP_DOMAIN#*.}"
+
+        setup_vip_nginx "$VIP_DOMAIN" "$VIP_SSL_EMAIL" "$APP_PORT"
+      else
+        warn "Skip VIP"
+      fi
     fi
   fi
 

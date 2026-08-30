@@ -58,6 +58,12 @@ model Setting {
   qrisExpiredText   String?  @db.Text
   /// Channel notif transaksi sukses (@username / -100…)
   notifyChannelId   String?  @db.VarChar(120)
+  /// JSON array ID model upstream yang dimatikan admin (blocklist)
+  disabledModels    String?  @db.Text
+  /// Master switch upstream 9router
+  routerEnabled     Boolean  @default(false)
+  /// JSON array provider 9router yang diaktifkan (allowlist, default kosong)
+  routerProviders   String?  @db.Text
   /// Wajib join channel sebelum akses bot
   forceJoinOn       Boolean  @default(false)
   forceJoinLink     String?  @db.VarChar(300)

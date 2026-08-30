@@ -14,6 +14,7 @@ import {
   Newspaper,
   FolderOpen,
   Database,
+  Server,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ const menu = [
   { href: "/dashboard/reseller", label: "Reseller", icon: Users },
   { href: "/dashboard/resweb", label: "ResWeb", icon: Users },
   { href: "/dashboard/customer-keys", label: "Keys", icon: KeyRound },
+  { href: "/dashboard/upstream", label: "Upstream", icon: Server },
   { href: "/dashboard/topup", label: "Topup", icon: WalletCards },
   { href: "/dashboard/backup", label: "Backup", icon: Database },
   { href: "/dashboard/news", label: "Berita", icon: Newspaper },

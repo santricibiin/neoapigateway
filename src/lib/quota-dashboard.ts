@@ -1,5 +1,6 @@
 import { fetchQuotaData, fetchQuotaMeta, verifyPin } from "@/lib/bandelbanget";
 import { publicV1Base } from "@/lib/bandel-upstream";
+import { disabledModelIds } from "@/lib/model-gate";
 
 export type QuotaDashboardView = {
   id: string | number;
@@ -63,17 +64,20 @@ export async function loadQuotaDashboard(secretKey: string, accessToken: string)
   };
   const maxTokens = number(raw.maxTokens ?? raw.balance);
   const rawModels = Array.isArray(raw.models) ? raw.models : [];
-  const models = rawModels.map((model) => {
-    const row = (model || {}) as Record<string, unknown>;
-    return {
-      id: text(row.id, "unknown"),
-      enabled: Boolean(row.enabled),
-      vision: Boolean(row.vision),
-      description: text(row.description),
-      multiplier: number(row.multiplier, 1),
-      grade: text(row.grade, "-") || "-",
-    };
-  });
+  const blocked = await disabledModelIds();
+  const models = rawModels
+    .map((model) => {
+      const row = (model || {}) as Record<string, unknown>;
+      return {
+        id: text(row.id, "unknown"),
+        enabled: Boolean(row.enabled),
+        vision: Boolean(row.vision),
+        description: text(row.description),
+        multiplier: number(row.multiplier, 1),
+        grade: text(row.grade, "-") || "-",
+      };
+    })
+    .filter((model) => !blocked.has(model.id));
   return {
     id: raw.id ?? "",
     name: text(raw.name, "Member"),

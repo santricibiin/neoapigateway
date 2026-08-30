@@ -1,21 +1,9 @@
 import { NextResponse } from "next/server";
-import { bandelUpstreamBase } from "@/lib/bandel-upstream";
+import { fetchAllowedModels, type UpstreamModel } from "@/lib/model-gate";
 import { fetchResellerData } from "@/lib/bandelbanget";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 300;
-
-interface UpstreamModel {
-  id: string;
-  enabled: boolean;
-  vision: boolean;
-  grade: string;
-  modalities?: {
-    input?: string[];
-    output?: string[];
-  };
-}
 
 function numeric(value: unknown, fallback = 1) {
   const parsed = Number(value);
@@ -55,13 +43,7 @@ function detectBrand(modelId: string): string | null {
 
 export async function GET() {
   try {
-    const res = await fetch(`${bandelUpstreamBase()}/v1/models`, {
-      cache: "no-store",
-      headers: { Accept: "application/json" },
-    });
-    if (!res.ok) throw new Error(`Upstream ${res.status}`);
-    const data = await res.json();
-    const models = (data.data || []) as UpstreamModel[];
+    const models: UpstreamModel[] = await fetchAllowedModels();
 
     const setting = await prisma.setting.findUnique({
       where: { id: 1 },

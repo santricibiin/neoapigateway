@@ -1,16 +1,8 @@
 import { NextResponse } from "next/server";
 import { authenticateApiKey } from "@/lib/reseller-api-auth";
-import { bandelUpstreamBase } from "@/lib/bandel-upstream";
+import { fetchAllowedModels } from "@/lib/model-gate";
 
 export const dynamic = "force-dynamic";
-
-interface UpstreamModel {
-  id: string;
-  enabled: boolean;
-  vision: boolean;
-  grade: string;
-  modalities?: { input?: string[]; output?: string[] };
-}
 
 export async function GET(req: Request) {
   const reseller = await authenticateApiKey(req);
@@ -19,14 +11,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const res = await fetch(`${bandelUpstreamBase()}/v1/models`, {
-      cache: "no-store",
-      headers: { Accept: "application/json" },
-    });
-    if (!res.ok) throw new Error(`Upstream ${res.status}`);
-
-    const data = await res.json();
-    const models = ((data.data || []) as UpstreamModel[]).map((m) => ({
+    const models = (await fetchAllowedModels()).map((m) => ({
       id: m.id,
       enabled: Boolean(m.enabled),
       vision: Boolean(m.vision),

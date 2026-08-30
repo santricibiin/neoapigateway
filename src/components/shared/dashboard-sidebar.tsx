@@ -15,6 +15,7 @@ import {
   FolderOpen,
   Database,
   Bot,
+  Server,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ const menu = [
   { href: "/dashboard/reseller", label: "Reseller", icon: Users },
   { href: "/dashboard/resweb", label: "Reseller Web", icon: Users },
   { href: "/dashboard/customer-keys", label: "Customer Keys", icon: KeyRound },
+  { href: "/dashboard/upstream", label: "Upstream", icon: Server },
   { href: "/dashboard/topup", label: "Topup", icon: WalletCards },
   { href: "/dashboard/backup", label: "Backup", icon: Database },
   { href: "/dashboard/news", label: "Berita", icon: Newspaper },
