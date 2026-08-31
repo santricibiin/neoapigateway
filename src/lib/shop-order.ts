@@ -90,7 +90,8 @@ export async function createShopOrder(opts: {
 
   if (setting.uniqueCodeEnabled) {
     for (let i = 0; i < 80; i++) {
-      const unik = Math.floor(Math.random() * 999) + 1;
+      // 500–999: range unik bot5 (bot4 pakai 001–499) — anti nominal tabrakan antar site yang share 1 QRIS
+      const unik = Math.floor(Math.random() * 500) + 500;
       const candidate = base + unik;
       const [shopClash, reswebClash] = await Promise.all([
         prisma.paymentOrder.findFirst({
@@ -237,7 +238,8 @@ export async function createBotOrder(opts: {
   let uniqueCode = 0;
   if (setting.uniqueCodeEnabled) {
     for (let i = 0; i < 80; i++) {
-      const unik = Math.floor(Math.random() * 999) + 1;
+      // 500–999: range unik bot5 (bot4 pakai 001–499) — anti nominal tabrakan antar site yang share 1 QRIS
+      const unik = Math.floor(Math.random() * 500) + 500;
       const candidate = base + unik;
       const [shopClash, reswebClash] = await Promise.all([
         prisma.paymentOrder.findFirst({

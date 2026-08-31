@@ -250,7 +250,7 @@ export async function fetchResellerActivity(
   const url = new URL(`${BASE_URL}/api/public/reseller/activity`);
   url.searchParams.set("token", secretKey);
   if (type) url.searchParams.set("type", type);
-  const res = await fetch(url.toString());
+  const res = await fetch(url.toString(), { cache: "no-store" });
   const data = await res.json();
   if (!res.ok) {
     throw new Error(data.error || "Gagal mengambil aktivitas");

@@ -51,7 +51,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "callback secret not configured" }, { status: 403 });
   }
 
-  const bodySecret = body.additionalParam1 ?? body.param1 ?? body.secret;
+  const bodySecret =
+    req.headers.get("x-forward-secret") ??
+    (req.headers.get("authorization")?.startsWith("Bearer ")
+      ? req.headers.get("authorization")!.slice(7)
+      : undefined) ??
+    body.additionalParam1 ??
+    body.param1 ??
+    body.secret;
   const authorized = secrets.some((secret) => checkSecret(bodySecret, secret));
   if (!authorized) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });

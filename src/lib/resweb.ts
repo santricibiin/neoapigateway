@@ -54,7 +54,8 @@ export async function createReswebTopup(resellerId: number, tierId: number): Pro
   let uniqueCode = 0;
   if (setting.uniqueCodeEnabled) {
     for (let i = 0; i < 80; i++) {
-      const unik = Math.floor(Math.random() * 999) + 1;
+      // 500–999: range unik bot5 (bot4 pakai 001–499) — anti nominal tabrakan antar site yang share 1 QRIS
+      const unik = Math.floor(Math.random() * 500) + 500;
       const candidate = tier.price + unik;
       const [reswebClash, shopClash] = await Promise.all([
         prisma.resellerWebOrder.findFirst({
