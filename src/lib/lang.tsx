@@ -164,6 +164,33 @@ const DICT: Record<string, string> = {
   "Gagal membuat order": "Failed to create order",
   "Gagal membuat kode QR": "Failed to generate QR code",
   "Sesi berakhir": "Session ended",
+
+  // Pay page
+  "Buka aplikasi e-wallet / m-banking, pilih menu scan QRIS.":
+    "Open your e-wallet / mobile banking app and choose Scan QRIS.",
+  "Arahkan kamera ke QR di samping, bayar": "Point your camera at the QR, pay",
+
+  // Track page
+  "Masukkan nomor invoice": "Enter the invoice number",
+  "Lacak Pesanan": "Track Order",
+  "Lacak Pesanan Anda": "Track Your Order",
+  "Real-time": "Real-time",
+  "Status pesanan diperbarui otomatis setiap beberapa detik.":
+    "Order status updates automatically every few seconds.",
+  "Aman": "Secure",
+  "Nomor invoice bersifat rahasia — hanya Anda yang bisa melihat detailnya.":
+    "Invoice numbers are private — only you can see the details.",
+  "Instan": "Instant",
+  "Produk dikirim otomatis begitu pembayaran terkonfirmasi.":
+    "Products are delivered automatically once payment is confirmed.",
+  "Cek Order Lain": "Check Another Order",
+  "Tanggal Bayar": "Payment Date",
+  "Dibuat": "Created",
+  "Dibayar": "Paid",
+  "Terkirim": "Delivered",
+  "Buat order baru jika ingin membeli.": "Create a new order if you want to buy.",
+  "Beli Produk Ini Lagi": "Buy This Product Again",
+  "Kembali ke Katalog": "Back to Catalog",
 };
 
 export function useT() {

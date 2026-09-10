@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import QRCode from "qrcode";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { FloatingShapes } from "@/components/shared/floating-shapes";
 import { createOrder } from "@/app/actions/payment";
-import { copyText } from "@/lib/copy";
 import { useT } from "@/lib/lang";
 import {
   ArrowLeft,
@@ -151,24 +150,7 @@ export function OrderClient({ product }: { product: Product }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const t = useT();
-
-  const [order, setOrder] = useState<{
-    invoice: string;
-    amount: number;
-    uniqueCode: number;
-    qrisPayload: string;
-    provider: string;
-    expiresAt: string;
-    ttlMinutes: number;
-  } | null>(null);
-
-  const [qrUrl, setQrUrl] = useState<string | null>(null);
-  const [status, setStatus] = useState<string>("pending");
-  const [delivered, setDelivered] = useState<string | null>(null);
-  const [paidAt, setPaidAt] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [countdown, setCountdown] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
+  const router = useRouter();
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<OrderHistoryItem[]>([]);
 
@@ -190,19 +172,6 @@ export function OrderClient({ product }: { product: Product }) {
     }
 
     const o = res.data;
-    setOrder({
-      invoice: o.invoice,
-      amount: o.amount,
-      uniqueCode: o.uniqueCode,
-      qrisPayload: o.qrisPayload,
-      provider: o.provider,
-      expiresAt: o.expiresAt.toISOString(),
-      ttlMinutes: o.ttlMinutes,
-    });
-    setStatus("pending");
-    setDelivered(null);
-    setPaidAt(null);
-    setModalOpen(true);
 
     saveOrderHistory({
       invoice: o.invoice,
@@ -212,66 +181,10 @@ export function OrderClient({ product }: { product: Product }) {
       status: "pending",
     });
 
-    try {
-      const url = await QRCode.toDataURL(o.qrisPayload, { width: 512, margin: 2 });
-      setQrUrl(url);
-    } catch {
-      setError(t("Gagal membuat kode QR"));
-    }
+    // Arahkan ke halaman pembayaran khusus (bukan modal).
+    router.push(`/pay/${encodeURIComponent(o.invoice)}`);
   }
 
-  useEffect(() => {
-    if (!order) return;
-
-    const expires = new Date(order.expiresAt);
-    setCountdown(formatCountdown(expires));
-
-    const timer = setInterval(() => {
-      setCountdown(formatCountdown(expires));
-    }, 1000);
-
-    const check = async () => {
-      try {
-        const r = await fetch(`/api/payment/status/${order.invoice}`);
-        const data = await r.json();
-        if (data.ok) {
-          setStatus(data.status);
-          if (data.delivered) setDelivered(data.delivered);
-          if (data.paidAt) setPaidAt(data.paidAt);
-          if (data.status === "paid") {
-            updateOrderHistory(order.invoice, "paid", data.delivered || undefined);
-          }
-        }
-      } catch (err) {
-        console.error("status poll error", err);
-      }
-    };
-
-    check();
-    const poller = setInterval(check, 4000);
-
-    return () => {
-      clearInterval(timer);
-      clearInterval(poller);
-    };
-  }, [order]);
-
-  async function copyAmount() {
-    if (!order) return;
-    await copyText(String(order.amount));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }
-
-  async function copyDelivered() {
-    if (!delivered) return;
-    await copyText(delivered);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }
-
-  const isPaid = status === "paid";
-  const isExpired = status === "expired" || status === "failed";
   const isExternal = product.stockMode === "external";
 
   function openHistory() {
@@ -371,12 +284,6 @@ export function OrderClient({ product }: { product: Product }) {
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <WalletIcon />}
                 {loading ? t("Membuat Invoice...") : t("Lanjutkan Pembayaran")}
               </Button>
-              {order && !isPaid && !modalOpen && (
-                <Button type="button" variant="outline" size="lg" onClick={() => setModalOpen(true)}>
-                  <ClockIcon />
-                  {t("Lihat Invoice")}
-                </Button>
-              )}
               <Button type="button" variant="outline" size="lg" onClick={openHistory}>
                 <ReceiptIcon />
                 {t("Riwayat")}
@@ -444,191 +351,6 @@ export function OrderClient({ product }: { product: Product }) {
           </div>
         </aside>
       </div>
-
-      <Modal
-        open={modalOpen && !!order}
-        onClose={() => setModalOpen(false)}
-        title={isPaid ? t("Pembayaran Berhasil") : isExpired ? t("Invoice Kedaluwarsa") : t("Scan QRIS untuk Bayar")}
-        className="max-w-md max-h-[90vh] overflow-y-auto"
-      >
-        {order && (
-          <div className="relative flex flex-col items-center gap-4">
-            <AnimatePresence mode="wait">
-              {!isPaid && !isExpired && (
-                <motion.div
-                  key="qr"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex w-full flex-col items-center gap-4"
-                >
-                  <div className="w-full rounded-neo border-2 border-base-ink bg-accent-sun p-3 text-center shadow-neo-sm">
-                    <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/60">{t("No. Invoice")}</div>
-                    <div className="mt-0.5 break-all font-mono text-sm font-extrabold">{order.invoice}</div>
-                    <p className="mt-1.5 text-[10px] font-bold text-base-ink/70">
-                      ⚠️ {t("Simpan nomor invoice untuk cek pesanan")}
-                    </p>
-                  </div>
-
-                  <div className="rounded-neo border-2 border-base-ink bg-white p-3 shadow-neo">
-                    {qrUrl ? (
-                      <img src={qrUrl} alt="QRIS" className="h-48 w-48 max-w-full sm:h-56 sm:w-56" />
-                    ) : (
-                      <div className="flex h-48 w-48 items-center justify-center sm:h-56 sm:w-56">
-                        <Loader2 className="h-8 w-8 animate-spin text-base-ink/40" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="w-full rounded-neo border-2 border-base-ink bg-base-bg p-4 text-center shadow-neo-sm">
-                    <div className="text-xs font-bold uppercase text-base-ink/50">{t("Total yang harus dibayar")}</div>
-                    <div className="mt-1 text-2xl font-extrabold">{formatRupiah(order.amount)}</div>
-                    <div className="mt-1 text-xs font-semibold text-base-ink/60">
-                      {t("Harga")} {formatRupiah(order.amount - order.uniqueCode)} + {t("kode unik")} {formatRupiah(order.uniqueCode)}
-                    </div>
-                    <button
-                      onClick={copyAmount}
-                      className="mt-3 inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-base-surface px-3 py-1.5 text-xs font-bold shadow-neo-sm"
-                    >
-                      <CopyIcon className="h-3.5 w-3.5" />
-                      {copied ? t("Tersalin") : t("Salin Nominal")}
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm font-bold text-base-ink/70">
-                    <ClockIcon />
-                    {t("Berlaku")} {countdown}
-                  </div>
-
-                  <div className="text-center text-xs text-base-ink/60">
-                    {t("Bayar tepat sesuai nominal. Pembayaran akan dicek otomatis.")}
-                  </div>
-                </motion.div>
-              )}
-
-              {isPaid && (
-                <motion.div
-                  key="paid"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex w-full flex-col items-center gap-3"
-                >
-                  <div className="flex w-full flex-col items-center gap-2 rounded-neo border-2 border-base-ink bg-accent-mint p-6 text-center shadow-neo">
-                    <CheckCircleIcon />
-                    <h3 className="text-xl font-extrabold">{t("Pembayaran Berhasil!")}</h3>
-                  </div>
-
-                  <div className="w-full rounded-neo border-2 border-base-ink bg-base-surface p-4 shadow-neo">
-                    <div className="mb-3 flex items-center gap-2 border-b-2 border-base-ink/10 pb-2">
-                      <ReceiptIcon className="h-4 w-4" />
-                      <span className="text-sm font-extrabold uppercase tracking-wide">{t("No. Invoice")}</span>
-                    </div>
-                    <dl className="space-y-2 text-sm">
-                      <div className="flex justify-between gap-2">
-                        <dt className="font-semibold text-base-ink/60">{t("No. Invoice")}</dt>
-                        <dd className="font-mono font-bold">{order.invoice}</dd>
-                      </div>
-                      {paidAt && (
-                        <div className="flex justify-between gap-2">
-                          <dt className="font-semibold text-base-ink/60">{t("Tanggal")}</dt>
-                          <dd className="font-bold">
-                            {new Date(paidAt).toLocaleString("id-ID", {
-                              dateStyle: "medium",
-                              timeStyle: "short",
-                            })}
-                          </dd>
-                        </div>
-                      )}
-                      <div className="flex justify-between gap-2">
-                        <dt className="font-semibold text-base-ink/60">{t("Produk")}</dt>
-                        <dd className="text-right font-bold">{product.name}</dd>
-                      </div>
-                      {product.sku && (
-                        <div className="flex justify-between gap-2">
-                          <dt className="font-semibold text-base-ink/60">SKU</dt>
-                          <dd className="font-mono font-bold">{product.sku}</dd>
-                        </div>
-                      )}
-                      {!isExternal && (
-                        <div className="flex justify-between gap-2">
-                          <dt className="font-semibold text-base-ink/60">{t("Qty")}</dt>
-                          <dd className="font-bold">{qty}</dd>
-                        </div>
-                      )}
-                      <div className="flex justify-between gap-2">
-                        <dt className="font-semibold text-base-ink/60">{t("Harga Satuan")}</dt>
-                        <dd className="font-bold">{formatRupiah(order.amount - order.uniqueCode)}</dd>
-                      </div>
-                      {order.uniqueCode > 0 && (
-                        <div className="flex justify-between gap-2">
-                          <dt className="font-semibold text-base-ink/60">{t("Kode Unik")}</dt>
-                          <dd className="font-bold">{formatRupiah(order.uniqueCode)}</dd>
-                        </div>
-                      )}
-                      <div className="mt-2 flex justify-between gap-2 border-t-2 border-base-ink/10 pt-2">
-                        <dt className="font-extrabold">{t("Total Dibayar")}</dt>
-                        <dd className="text-lg font-extrabold">{formatRupiah(order.amount)}</dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  {delivered && (
-                    <div className="w-full rounded-neo border-2 border-base-ink bg-base-bg p-4 shadow-neo-sm">
-                      <div className="mb-2 flex items-center justify-between">
-                        <span className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide">
-                          <ShoppingCartIcon />
-                          {t("Detail Produk")}
-                        </span>
-                        <button
-                          onClick={copyDelivered}
-                          className="inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-base-surface px-2 py-1 text-xs font-bold shadow-neo-sm"
-                        >
-                          <CopyIcon className="h-3 w-3" />
-                          {copied ? t("Tersalin") : t("Salin")}
-                        </button>
-                      </div>
-                      <pre className="whitespace-pre-wrap break-all font-mono text-xs leading-relaxed">{delivered}</pre>
-                    </div>
-                  )}
-
-                  <Link href="/products" className="w-full">
-                    <Button variant="primary" className="w-full">
-                      {t("Kembali Belanja")}
-                    </Button>
-                  </Link>
-                </motion.div>
-              )}
-
-              {isExpired && (
-                <motion.div
-                  key="expired"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex w-full flex-col items-center gap-3 rounded-neo border-2 border-base-ink bg-accent-sun p-6 text-center shadow-neo"
-                >
-                  <XCircleIcon />
-                  <h3 className="text-xl font-extrabold">{t("Invoice Kedaluwarsa")}</h3>
-                  <div className="rounded-neo border-2 border-base-ink bg-base-bg p-3">
-                    <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/60">{t("No. Invoice")}</div>
-                    <div className="mt-0.5 break-all font-mono text-sm font-extrabold">{order.invoice}</div>
-                  </div>
-                  <p className="text-sm text-base-ink/70">
-                    {t("Silakan buat order baru jika ingin membayar.")}
-                  </p>
-                  <Link href={`/track/${order.invoice}`} className="w-full">
-                    <Button variant="outline" className="w-full">
-                      {t("Cek Pesanan")}
-                    </Button>
-                  </Link>
-                  <Button variant="outline" onClick={() => setOrder(null)}>
-                    {t("Tutup")}
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
-      </Modal>
 
       <Modal
         open={historyOpen}
