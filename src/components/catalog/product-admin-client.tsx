@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Boxes, CircleDollarSign, PackagePlus, Pencil, Search, Trash2 } from "lucide-react";
+import { Boxes, CircleDollarSign, PackagePlus, Pencil, Search, Trash2, Archive, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +65,9 @@ export function ProductAdminClient({
   const [stockMode, setStockMode] = useState("counted");
   const [selectedPackage, setSelectedPackage] = useState("");
   const [resellerQuota, setResellerQuota] = useState<number | null>(null);
+  const [confirming, setConfirming] = useState<Product | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [notice, setNotice] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/public/reseller-quota")
@@ -104,11 +107,23 @@ export function ProductAdminClient({
     router.refresh();
   }
 
-  async function remove(item: Product) {
-    if (!window.confirm(`Hapus produk "${item.name}"?`)) return;
-    const result = await deleteProduct(item.id);
-    if (!result.ok) setError(result.error || "Gagal menghapus produk");
-    router.refresh();
+  async function remove() {
+    if (!confirming) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      const result = await deleteProduct(confirming.id);
+      if (!result.ok) {
+        setError(result.error || "Gagal menghapus produk");
+      } else {
+        setNotice({ kind: "ok", text: result.message || "Produk dihapus." });
+        setConfirming(null);
+        window.setTimeout(() => setNotice(null), 4000);
+      }
+      router.refresh();
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -224,12 +239,26 @@ export function ProductAdminClient({
                   {available ? "Tersedia" : "Stok habis"}
                 </span>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => show(item)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" className="bg-red-200 text-base-ink" onClick={() => remove(item)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <motion.button
+                    type="button"
+                    whileHover={{ y: -2 }}
+                    whileTap={{ y: 1 }}
+                    onClick={() => show(item)}
+                    className="inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-white px-3 py-1.5 text-xs font-extrabold shadow-neo-sm transition-colors hover:bg-accent-sky"
+                  >
+                    <Pencil className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    Edit
+                  </motion.button>
+                  <motion.button
+                    type="button"
+                    whileHover={{ y: -2 }}
+                    whileTap={{ y: 1 }}
+                    onClick={() => { setError(null); setConfirming(item); }}
+                    className="inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-white px-3 py-1.5 text-xs font-extrabold shadow-neo-sm transition-colors hover:bg-red-200 hover:text-red-700"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    Hapus
+                  </motion.button>
                 </div>
               </div>
             </motion.article>
@@ -244,8 +273,7 @@ export function ProductAdminClient({
         </div>
       ) : null}
 
-      <Modal open={open} onClose={() => setOpen(false)} title={editing ? "Edit Produk" : "Tambah Produk"} className="max-h-[92vh] overflow-y-auto">
-        <form action={save} className="space-y-4">
+      <Modal open={open} onClose={() => setOpen(false)} title={editing ? "Edit Produk" : "Tambah Produk"} className="max-h-[92vh] overflow-y-auto">        <form action={save} className="space-y-4">
           <label className="block text-sm font-bold">
             Kategori
             <select
@@ -346,8 +374,46 @@ export function ProductAdminClient({
           </div>
         </form>
       </Modal>
+
+      <Modal open={Boolean(confirming)} onClose={() => setConfirming(null)} title="Hapus Produk">
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 rounded-neo border-2 border-base-ink bg-red-200 p-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-white">
+              <AlertTriangle className="h-5 w-5" strokeWidth={2.5} />
+            </span>
+            <div className="min-w-0">
+              <p className="font-black">
+                Hapus <span className="font-mono">{confirming?.sku}</span> — {confirming?.name}?
+              </p>
+              <p className="mt-1 text-sm font-semibold text-base-ink/60">
+                Produk tanpa riwayat transaksi dihapus permanen. Produk dengan riwayat transaksi hanya diarsipkan (nonaktif) supaya data penjualan tetap utuh.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => setConfirming(null)} disabled={deleting}>
+              Batal
+            </Button>
+            <motion.button
+              type="button"
+              whileHover={{ y: -2 }}
+              whileTap={{ y: 1 }}
+              onClick={() => void remove()}
+              disabled={deleting}
+              className="inline-flex items-center gap-2 rounded-neo border-2 border-base-ink bg-red-500 px-4 py-2.5 text-sm font-extrabold text-white shadow-neo transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {deleting ? <LoaderIcon /> : confirming && confirming.transactionCount > 0 ? <Archive className="h-4 w-4" strokeWidth={2.5} /> : <Trash2 className="h-4 w-4" strokeWidth={2.5} />}
+              {deleting ? "Menghapus..." : confirming && confirming.transactionCount > 0 ? "Arsipkan" : "Hapus Permanen"}
+            </motion.button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
+}
+
+function LoaderIcon() {
+  return <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />;
 }
 
 function Metric({ label, value }: { label: string; value: string }) {

@@ -73,12 +73,32 @@ export async function updateProduct(id: number, formData: FormData) {
 export async function deleteProduct(id: number) {
   requireAdmin();
   if (!Number.isInteger(id) || id < 1) return { ok: false, error: "ID produk tidak valid" };
-  const transactions = await prisma.transaction.count({ where: { tokenId: id } });
-  if (transactions) return { ok: false, error: `Produk memiliki ${transactions} transaksi. Nonaktifkan produk, jangan hapus.` };
+  const [transactions, orders, product] = await Promise.all([
+    prisma.transaction.count({ where: { tokenId: id } }),
+    prisma.paymentOrder.count({ where: { tokenId: id } }),
+    prisma.token.findUnique({ where: { id }, select: { sku: true } }),
+  ]);
+  if (!product) return { ok: false, error: "Produk tidak ditemukan" };
+  if (transactions || orders) {
+    // Soft delete: produk punya riwayat penjualan yang tidak boleh hilang.
+    // Arsipkan (nonaktif + SKU di-suffix) supaya SKU aslinya bisa dipakai ulang.
+    const suffix = `-DEL-${Date.now().toString(36).toUpperCase()}`;
+    const baseSku = (product.sku || `SKU${id}`).slice(0, 50 - suffix.length);
+    try {
+      await prisma.token.update({
+        where: { id },
+        data: { active: false, sku: `${baseSku}${suffix}` },
+      });
+      revalidatePath("/dashboard/tokens");
+      return { ok: true, archived: true, message: `Produk diarsipkan (nonaktif) karena punya ${transactions + orders} riwayat transaksi. SKU lama bebas dipakai ulang.` };
+    } catch {
+      return { ok: false, error: "Gagal mengarsipkan produk" };
+    }
+  }
   try {
     await prisma.token.delete({ where: { id } });
     revalidatePath("/dashboard/tokens");
-    return { ok: true };
+    return { ok: true, archived: false, message: "Produk dihapus permanen." };
   } catch {
     return { ok: false, error: "Gagal menghapus produk" };
   }
