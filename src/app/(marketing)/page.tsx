@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { copyText } from "@/lib/copy";
 import { ModelShowcase } from "@/components/landing/model-showcase";
 import { useBrand } from "@/lib/use-brand";
+import { useT } from "@/lib/lang";
 
 const API_BASE = process.env.NEXT_PUBLIC_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -111,6 +112,7 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState(0);
   const [copied, setCopied] = useState(false);
   const brand = useBrand();
+  const t = useT();
   const siteName = brand?.siteName ?? "Neo API Gateway";
 
   async function handleCopy() {
@@ -151,7 +153,7 @@ export default function HomePage() {
             className="rounded-neo border-2 border-base-ink bg-accent-sun px-4 py-1.5 text-sm font-bold shadow-neo-sm"
           >
             <Sparkles className="mr-1.5 inline-block h-4 w-4" />
-            API Gateway · Multi Model · OpenAI Compatible
+            {t("API Gateway · Multi Model · OpenAI Compatible")}
           </motion.span>
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
@@ -159,7 +161,7 @@ export default function HomePage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl"
           >
-            Satu Token. Semua Model AI.
+            {t("Satu Token. Semua Model AI.")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 16 }}
@@ -167,8 +169,7 @@ export default function HomePage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="max-w-xl text-lg text-base-ink/70"
           >
-            {siteName} menghubungkan proyekmu ke berbagai model AI populer
-            lewat satu endpoint yang kompatibel dengan OpenAI API.
+            {siteName} {t("menghubungkan proyekmu ke berbagai model AI populer lewat satu endpoint yang kompatibel dengan OpenAI API.")}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -178,13 +179,13 @@ export default function HomePage() {
           >
             <Link href="/products">
               <Button variant="primary" size="lg">
-                Order Token
+                {t("Order Token")}
               </Button>
             </Link>
             <Link href="/track">
               <Button variant="outline" size="lg">
                 <Search className="h-5 w-5" />
-                Cek Pesanan
+                {t("Cek Pesanan")}
               </Button>
             </Link>
           </motion.div>
@@ -247,8 +248,8 @@ export default function HomePage() {
                 <span className={`mb-3 inline-flex h-10 w-10 items-center justify-center border-2 border-base-ink ${feature.accent}`}>
                   <Icon className="h-5 w-5 text-base-ink" strokeWidth={2.5} />
                 </span>
-                <h3 className="text-lg font-extrabold">{feature.title}</h3>
-                <p className="mt-1 text-sm text-base-ink/60">{feature.description}</p>
+                <h3 className="text-lg font-extrabold">{t(feature.title)}</h3>
+                <p className="mt-1 text-sm text-base-ink/60">{t(feature.description)}</p>
               </div>
             </motion.div>
           );
@@ -268,9 +269,9 @@ export default function HomePage() {
             <Terminal className="h-3.5 w-3.5" />
             Quick Start
           </span>
-          <h2 className="mt-3 text-2xl font-extrabold sm:text-3xl">Cara Menyambungkan</h2>
+          <h2 className="mt-3 text-2xl font-extrabold sm:text-3xl">{t("Cara Menyambungkan")}</h2>
           <p className="mt-2 text-base-ink/60">
-            Kompatibel dengan OpenAI SDK. Ganti <code className="rounded bg-base-ink/10 px-1 font-mono text-xs">base_url</code> & <code className="rounded bg-base-ink/10 px-1 font-mono text-xs">api_key</code> saja.
+            {t("Kompatibel dengan OpenAI SDK. Ganti")} <code className="rounded bg-base-ink/10 px-1 font-mono text-xs">base_url</code> & <code className="rounded bg-base-ink/10 px-1 font-mono text-xs">api_key</code>{t("saja.")}
           </p>
         </div>
 
@@ -295,7 +296,7 @@ export default function HomePage() {
               className="ml-auto flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white/70 transition-colors hover:text-white"
             >
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              {copied ? "Tersalin" : "Salin"}
+              {copied ? t("Tersalin") : t("Salin")}
             </button>
           </div>
           {/* Code */}
@@ -323,7 +324,7 @@ export default function HomePage() {
             className="rounded-neo border-2 border-base-ink bg-base-surface p-5 text-center shadow-neo-sm"
           >
             <div className="text-2xl font-extrabold sm:text-3xl">{stat.value}</div>
-            <div className="mt-1 text-sm font-semibold text-base-ink/60">{stat.label}</div>
+            <div className="mt-1 text-sm font-semibold text-base-ink/60">{t(stat.label)}</div>
           </motion.div>
         ))}
       </motion.section>
@@ -341,15 +342,15 @@ export default function HomePage() {
             <Zap className="h-5 w-5 text-base-ink" strokeWidth={2.5} />
           </span>
           <div className="min-w-0">
-            <h2 className="text-lg font-extrabold sm:text-xl">Siap mulai?</h2>
+            <h2 className="text-lg font-extrabold sm:text-xl">{t("Siap mulai?")}</h2>
             <p className="mt-0.5 text-sm text-base-ink/60">
-              Beli token, dapat API key, langsung integrasi.
+              {t("Beli token, dapat API key, langsung integrasi.")}
             </p>
           </div>
         </div>
         <Link href="/products" className="w-full shrink-0 sm:w-auto">
           <Button variant="primary" size="md" className="w-full sm:w-auto">
-            Order Sekarang
+            {t("Order Sekarang")}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </Link>

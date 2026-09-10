@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Eye, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useT } from "@/lib/lang";
 
 interface ModelDetail {
   id: string;
@@ -68,6 +69,7 @@ export function ModelShowcase() {
   const [data, setData] = useState<ModelsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const t = useT();
 
   useEffect(() => {
     fetch("/api/public/models")
@@ -96,14 +98,14 @@ export function ModelShowcase() {
   return (
     <div className="flex flex-col gap-5">
       <div className="text-center">
-        <h2 className="text-2xl font-extrabold sm:text-3xl">Model AI Tersedia</h2>
+        <h2 className="text-2xl font-extrabold sm:text-3xl">{t("Model AI Tersedia")}</h2>
         <p className="mt-1 text-sm text-base-ink/60">
-          {totalActive} model siap pakai · Update realtime
+          {totalActive} {t("model siap pakai")} · Update realtime
         </p>
       </div>
 
       {models.length === 0 ? (
-        <p className="py-8 text-center text-sm text-base-ink/50">Gagal memuat data model.</p>
+        <p className="py-8 text-center text-sm text-base-ink/50">{t("Gagal memuat data model.")}</p>
       ) : (
         <motion.div
           initial="hidden"
@@ -172,7 +174,7 @@ export function ModelShowcase() {
             disabled={safePage <= 1}
             className="inline-flex items-center gap-1 rounded-neo border-2 border-base-ink bg-base-surface px-3 py-1.5 text-xs font-bold shadow-neo-sm transition-shadow hover:shadow-neo disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <ChevronLeft className="h-4 w-4" strokeWidth={2.5} /> Sebelumnya
+            <ChevronLeft className="h-4 w-4" strokeWidth={2.5} /> {t("Sebelumnya")}
           </button>
           <span className="text-xs font-black text-base-ink/70">
             {safePage} / {totalPages}
@@ -182,7 +184,7 @@ export function ModelShowcase() {
             disabled={safePage >= totalPages}
             className="inline-flex items-center gap-1 rounded-neo border-2 border-base-ink bg-base-surface px-3 py-1.5 text-xs font-bold shadow-neo-sm transition-shadow hover:shadow-neo disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Berikutnya <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
+            {t("Berikutnya")} <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
           </button>
         </div>
       ) : null}

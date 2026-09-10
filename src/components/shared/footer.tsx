@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { useBrand } from "@/lib/use-brand";
+import { useT } from "@/lib/lang";
 
 const footerLinks = [
-  { href: "/", label: "Beranda" },
-  { href: "/cek-kuota", label: "Cek Kuota" },
-  { href: "/login/admin", label: "Admin" },
+  { href: "/", labelId: "Beranda" },
+  { href: "/cek-kuota", labelId: "Cek Kuota" },
+  { href: "/login/admin", labelId: "Admin" },
 ];
 
 export function Footer() {
   const brand = useBrand();
+  const t = useT();
   const siteName = brand?.siteName ?? "Neo API Gateway";
 
   return (
@@ -26,7 +28,7 @@ export function Footer() {
                 href={link.href}
                 className="text-xs font-semibold text-base-ink/50 transition-colors hover:text-base-ink"
               >
-                {link.label}
+                {t(link.labelId)}
               </Link>
             </li>
           ))}
