@@ -277,30 +277,32 @@ export default function HomePage() {
 
         <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-neo border-2 border-base-ink bg-base-ink shadow-neo">
           {/* Tabs */}
-          <div className="flex border-b-2 border-base-ink/30">
-            {codeExamples.map((ex, i) => (
-              <button
-                key={ex.label}
-                onClick={() => setActiveTab(i)}
-                className={`px-4 py-2.5 text-sm font-bold transition-colors ${
-                  activeTab === i
-                    ? "bg-base-surface text-base-ink"
-                    : "text-white/60 hover:text-white"
-                }`}
-              >
-                {ex.label}
-              </button>
-            ))}
+          <div className="flex items-stretch overflow-x-auto border-b-2 border-base-ink/30">
+            <div className="flex shrink-0">
+              {codeExamples.map((ex, i) => (
+                <button
+                  key={ex.label}
+                  onClick={() => setActiveTab(i)}
+                  className={`whitespace-nowrap px-3 py-2.5 text-xs font-bold transition-colors sm:px-4 sm:text-sm ${
+                    activeTab === i
+                      ? "bg-base-surface text-base-ink"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  {ex.label}
+                </button>
+              ))}
+            </div>
             <button
               onClick={() => void handleCopy()}
-              className="ml-auto flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white/70 transition-colors hover:text-white"
+              className="ml-auto flex shrink-0 items-center gap-1.5 px-3 py-2.5 text-xs font-bold text-white/70 transition-colors hover:text-white sm:px-4"
             >
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              {copied ? t("Tersalin") : t("Salin")}
+              <span className="hidden xs:inline sm:inline">{copied ? t("Tersalin") : t("Salin")}</span>
             </button>
           </div>
           {/* Code */}
-          <pre className="overflow-x-auto p-4 text-sm leading-relaxed">
+          <pre className="overflow-x-auto p-3 text-[11px] leading-relaxed sm:p-4 sm:text-sm">
             <code className="font-mono text-accent-mint">{codeExamples[activeTab].code}</code>
           </pre>
         </div>

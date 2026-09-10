@@ -285,19 +285,18 @@ export function ProductsClient({ products }: { products: Product[] }) {
                     return (
                       <div
                         key={product.id}
-                        className="flex flex-col gap-2 px-4 py-3 transition-colors hover:bg-base-bg/60 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                        className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1.5 px-4 py-3 transition-colors hover:bg-base-bg/60 sm:grid-cols-[1fr_auto_auto_auto] sm:items-center sm:gap-4"
                       >
                         {/* Kiri: produk + model */}
-                        <div className="min-w-0 sm:flex sm:basis-1/3 sm:flex-col">
+                        <div className="min-w-0 sm:pr-4">
                           <p className="truncate font-extrabold" title={product.name}>
                             {product.name}
                           </p>
                           <p className="truncate font-mono text-xs font-bold text-base-ink/50">{product.model}</p>
                         </div>
 
-                        {/* Tengah: stok */}
-                        <div className="flex items-center gap-2 sm:basis-1/6">
-                          <span className="w-10 shrink-0 text-[10px] font-black uppercase text-base-ink/40 sm:hidden">{t("Stok")}</span>
+                        {/* Stok — HP: bawah nama; tablet/PC: kolom sendiri */}
+                        <div className="col-start-2 row-start-1 justify-self-end sm:col-start-2 sm:row-start-1 sm:justify-self-end">
                           <span
                             className={`inline-flex items-center gap-1.5 rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase ${
                               available ? "bg-accent-mint" : "bg-red-200"
@@ -308,14 +307,14 @@ export function ProductsClient({ products }: { products: Product[] }) {
                           </span>
                         </div>
 
-                        {/* Harga */}
-                        <div className="flex items-center justify-between gap-2 sm:basis-1/6 sm:justify-end">
+                        {/* Harga — HP: baris kedua kiri; tablet/PC: kolom kanan */}
+                        <div className="col-start-1 row-start-2 items-center gap-1.5 sm:col-start-3 sm:row-start-1 sm:justify-self-end">
                           <span className="text-[10px] font-black uppercase text-base-ink/40 sm:hidden">{t("Harga")}</span>
-                          <p className="font-extrabold">{formatRupiah(product.price)}</p>
+                          <p className="text-sm font-extrabold sm:text-base">{formatRupiah(product.price)}</p>
                         </div>
 
-                        {/* Aksi */}
-                        <div className="flex items-center justify-end sm:basis-1/12">
+                        {/* Aksi — HP: baris kedua kanan; tablet/PC: kolom terakhir */}
+                        <div className="col-start-2 row-start-2 justify-self-end sm:col-start-4 sm:row-start-1">
                           {available ? (
                             <Link href={`/order/${product.id}`}>
                               <Button variant="primary" size="sm">
