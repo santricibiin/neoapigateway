@@ -9,7 +9,7 @@
  */
 import makeWASocket, {
   DisconnectReason,
-  fetchLatestBaileysVersion,
+  fetchLatestWaWebVersion,
   makeCacheableSignalKeyStore,
   useMultiFileAuthState,
   type AuthenticationCreds,
@@ -21,7 +21,7 @@ import pino from "pino";
 import fs from "fs";
 import path from "path";
 
-const logger = pino({ level: "silent" });
+const logger = pino({ level: "error" });
 const SESSION_DIR = path.join(process.cwd(), "storage", "wa-session");
 
 export interface WaBotState {
@@ -93,7 +93,16 @@ export async function startWaBot(): Promise<WaBotHandle> {
 
   if (!fs.existsSync(SESSION_DIR)) fs.mkdirSync(SESSION_DIR, { recursive: true });
   const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
-  const { version } = await fetchLatestBaileysVersion();
+  // Sama seperti Ryo Yamada: ambil versi WA Web TERBARU langsung dari
+  // web.whatsapp.com. fetchLatestBaileysVersion sering mati → fallback versi
+  // tua → WhatsApp menolak pairing ("gagal menautkan perangkat").
+  let version: [number, number, number] | undefined;
+  try {
+    const fetched = await fetchLatestWaWebVersion({});
+    version = fetched.version;
+  } catch {
+    version = undefined; // Baileys pakai default bawaan
+  }
 
   const sock = makeWASocket({
     version,
@@ -157,19 +166,32 @@ export async function startWaBot(): Promise<WaBotHandle> {
       notify();
       const code = (lastDisconnect?.error as Boom)?.output?.statusCode;
       const loggedOut = code === DisconnectReason.loggedOut;
-      console.error("[wa] terputus:", lastDisconnect?.error instanceof Error ? lastDisconnect.error.message : code, loggedOut ? "(logout)" : "");
+      console.error(
+        "[wa] terputus:",
+        lastDisconnect?.error instanceof Error ? lastDisconnect.error.message : code,
+        `(kode: ${code}${loggedOut ? ", logout" : ""})`
+      );
+
+      const wasRegistered = sock.authState.creds.registered;
+      const hadPairingCode = Boolean(handle.state.pairingCode);
       handle = null;
       try {
         sock.end(undefined);
       } catch {}
-      if (!loggedOut) {
-        // Reconnect otomatis; session file membuat pairing hanya perlu sekali.
-        setTimeout(() => void startWaBot(), 3000);
-      } else {
-        // Logout: bersihkan session agar admin bisa pairing ulang.
+
+      if (loggedOut) {
+        // Logout: bersihkan session agar admin bisa pairing ulang dari nol.
         fs.rmSync(SESSION_DIR, { recursive: true, force: true });
         setTimeout(() => void startWaBot(), 3000);
+      } else if (wasRegistered) {
+        // Sudah pernah login: reconnect otomatis aman (creds tersimpan).
+        setTimeout(() => void startWaBot(), 3000);
+      } else if (!hadPairingCode) {
+        // Belum registered & tanpa kode aktif: boleh connect ulang pelan-pelan.
+        setTimeout(() => void startWaBot(), 5000);
       }
+      // Ada pairing code aktif & belum registered: JANGAN buat socket baru —
+      // kode terikat socket yang memintanya. Admin bisa minta kode baru kapan saja.
     }
   });
 
