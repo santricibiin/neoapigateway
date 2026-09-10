@@ -2,17 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { FloatingShapes } from "@/components/shared/floating-shapes";
-import { BadgeCheck, Package, ShoppingCart, Search } from "lucide-react";
+import { BadgeCheck, Package, ShoppingCart, Search, LayoutGrid, List, Coins, Boxes, Tag } from "lucide-react";
 import { QUOTA_PACKAGES } from "@/lib/bandelbanget";
+import { useT } from "@/lib/lang";
 
 interface Product {
   id: number;
@@ -26,6 +21,8 @@ interface Product {
   category: { name: string } | null;
 }
 
+type ViewMode = "card" | "table";
+
 function formatRupiah(value: number) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -35,8 +32,11 @@ function formatRupiah(value: number) {
   }).format(value);
 }
 
-function getPrice(p: Product): number {
-  return p.price;
+function formatTokens(value: number) {
+  if (value >= 1_000_000_000) return `${value / 1_000_000_000}B`;
+  if (value >= 1_000_000) return `${value / 1_000_000}M`;
+  if (value >= 1_000) return `${value / 1_000}K`;
+  return String(value);
 }
 
 function groupByCategory(items: Product[]) {
@@ -54,8 +54,36 @@ function getProductTokens(sku: string | null, model: string): number | null {
   return pack?.tokens ?? null;
 }
 
+interface Availability {
+  available: boolean;
+  label: string;
+}
+
+function getAvailability(p: Product, resellerQuota: number | null): Availability {
+  if (p.stockMode === "external") {
+    const tokens = getProductTokens(p.sku, p.model);
+    const available = resellerQuota === null ? true : tokens !== null ? tokens <= resellerQuota : true;
+    return { available, label: available ? "Tersedia" : "Stok habis" };
+  }
+  return p.stock > 0
+    ? { available: true, label: `${p.stock} tersedia` }
+    : { available: false, label: "Habis" };
+}
+
+const grid = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.05 } },
+};
+
+const cell = {
+  hidden: { opacity: 0, y: 14 },
+  show: { opacity: 1, y: 0 },
+};
+
 export function ProductsClient({ products }: { products: Product[] }) {
   const [resellerQuota, setResellerQuota] = useState<number | null>(null);
+  const [mode, setMode] = useState<ViewMode>("card");
+  const t = useT();
 
   useEffect(() => {
     fetch("/api/public/reseller-quota")
@@ -82,6 +110,11 @@ export function ProductsClient({ products }: { products: Product[] }) {
   const grouped = groupByCategory(products);
   const categories = Object.keys(grouped).sort();
 
+  const modeTabs: Array<{ id: ViewMode; label: string; icon: typeof LayoutGrid }> = [
+    { id: "card", label: "Card", icon: LayoutGrid },
+    { id: "table", label: "Tabel", icon: List },
+  ];
+
   return (
     <div className="relative mx-auto flex max-w-6xl flex-col gap-8 overflow-hidden px-3 py-4 sm:gap-10 sm:px-4 sm:py-6 lg:gap-12">
       <FloatingShapes />
@@ -98,12 +131,33 @@ export function ProductsClient({ products }: { products: Product[] }) {
           Pilih paket sesuai kebutuhan. Stok terbatas, harga jelas, dan aktif
           langsung setelah pemesanan.
         </p>
-        <Link href="/track" className="relative">
-          <Button variant="outline" size="sm">
-            <Search className="h-4 w-4" />
-            Cek Pesanan
-          </Button>
-        </Link>
+        <div className="relative flex items-center gap-3">
+          <Link href="/track">
+            <Button variant="outline" size="sm">
+              <Search className="h-4 w-4" />
+              {t("Cek Pesanan")}
+            </Button>
+          </Link>
+          <div className="flex items-center rounded-neo border-2 border-base-ink bg-base-surface p-0.5 shadow-neo-sm">
+            {modeTabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setMode(tab.id)}
+                  aria-pressed={mode === tab.id}
+                  className={`flex items-center gap-1.5 rounded-[0.35rem] px-3 py-1.5 text-xs font-black uppercase transition-colors ${
+                    mode === tab.id ? "bg-base-ink text-white" : "text-base-ink/60 hover:text-base-ink"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </section>
 
       <section className="relative flex flex-col gap-6 sm:gap-8 lg:gap-10">
@@ -116,80 +170,134 @@ export function ProductsClient({ products }: { products: Product[] }) {
               <h2 className="text-lg font-extrabold sm:text-xl">{category}</h2>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-              {grouped[category].map((product) => {
-                const price = getPrice(product);
-                const isExternal = product.stockMode === "external";
-                const tokens = getProductTokens(product.sku, product.model);
-                const available = isExternal
-                  ? resellerQuota === null
-                    ? true
-                    : tokens !== null
-                      ? tokens <= resellerQuota
-                      : true
-                  : product.stock > 0;
-
-                return (
-                  <Card key={product.id} hover className="flex h-full flex-col justify-between p-4 sm:p-6">
-                    <CardHeader className="space-y-1.5 sm:space-y-2">
-                      <div className="text-[10px] font-bold uppercase tracking-wider text-base-ink/50 sm:text-xs">
-                        {product.model}
-                      </div>
-                      <CardTitle className="text-lg sm:text-xl">{product.name}</CardTitle>
-                      <CardDescription className="line-clamp-3 text-sm">
-                        {product.description ?? "Token API AI siap pakai."}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="mt-auto pt-3 sm:pt-4">
-                      <div className="flex flex-col gap-2.5 sm:gap-3">
-                        <div className="flex items-end justify-between">
-                          <div>
-                            <div className="text-[10px] font-semibold text-base-ink/50 sm:text-xs">Harga</div>
-                            <div className="text-lg font-extrabold text-base-ink sm:text-xl">{formatRupiah(price)}</div>
-                          </div>
-                          {product.sku && (
-                            <div className="rounded-neo border-2 border-base-ink bg-base-bg px-2 py-1 text-[10px] font-bold sm:text-xs">
-                              {product.sku}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="font-medium text-base-ink/70">Stok:</span>
-                          <span
-                            className={`rounded-neo border-2 border-base-ink px-2 py-0.5 text-[10px] font-bold sm:text-xs ${
-                              available ? "bg-accent-mint" : "bg-accent-sun"
-                            }`}
-                          >
-                            {isExternal
-                              ? available
-                                ? "Tersedia"
-                                : "Stok habis"
-                              : product.stock > 0
-                                ? `${product.stock} tersedia`
-                                : "Habis"}
+            {mode === "card" ? (
+              <motion.div
+                key={`card-${category}`}
+                variants={grid}
+                initial="hidden"
+                animate="show"
+                className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+              >
+                {grouped[category].map((product) => {
+                  const { available, label } = getAvailability(product, resellerQuota);
+                  const tokens = getProductTokens(product.sku, product.model);
+                  return (
+                    <motion.div
+                      key={product.id}
+                      variants={cell}
+                      whileHover={{ y: -3 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                      className="flex flex-col rounded-neo border-2 border-base-ink bg-base-surface p-4 shadow-neo-sm transition-shadow hover:shadow-neo"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate font-extrabold" title={product.name}>
+                            {product.name}
+                          </p>
+                          <span className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-bold text-base-ink/60">
+                            <Tag className="h-3 w-3" strokeWidth={2.5} />
+                            {product.model}
                           </span>
                         </div>
+                        <span
+                          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase ${
+                            available ? "bg-accent-mint" : "bg-red-200"
+                          }`}
+                        >
+                          <span className={`h-1.5 w-1.5 rounded-full ${available ? "bg-green-600" : "bg-red-500"}`} />
+                          {available ? "Aktif" : "Habis"}
+                        </span>
+                      </div>
 
+                      <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t-2 border-dashed border-base-ink/15 pt-3">
+                        <span className="inline-flex items-center gap-1 rounded-neo border-2 border-base-ink bg-base-bg px-1.5 py-0.5 font-mono text-[10px] font-black">
+                          <Coins className="h-3 w-3" strokeWidth={2.5} />
+                          {tokens !== null ? `${formatTokens(tokens)} tok` : product.sku ?? "-"}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-neo border-2 border-base-ink bg-base-bg px-1.5 py-0.5 text-[10px] font-black">
+                          <Boxes className="h-3 w-3" strokeWidth={2.5} />
+                          {label}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <div className="text-lg font-extrabold">{formatRupiah(product.price)}</div>
                         {available ? (
-                          <Link href={`/order/${product.id}`} className="mt-1">
-                            <Button variant="primary" size="md" className="w-full">
-                              <ShoppingCart className="h-4 w-4" />
-                              Pesan Sekarang
+                          <Link href={`/order/${product.id}`}>
+                            <Button variant="primary" size="sm">
+                              <ShoppingCart className="h-3.5 w-3.5" />
+                              Pesan
                             </Button>
                           </Link>
                         ) : (
-                          <Button variant="outline" size="md" className="w-full cursor-not-allowed opacity-50" disabled>
-                            <ShoppingCart className="h-4 w-4" />
-                            Stok Habis
+                          <Button variant="outline" size="sm" disabled className="cursor-not-allowed opacity-50">
+                            Habis
                           </Button>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            ) : (
+              <div
+                key={`table-${category}`}
+                className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm"
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[640px] text-left text-sm">
+                    <thead>
+                      <tr className="border-b-2 border-base-ink bg-base-bg text-xs font-black uppercase tracking-wider text-base-ink/70">
+                        <th className="px-4 py-3">Produk</th>
+                        <th className="px-4 py-3">Model</th>
+                        <th className="px-4 py-3 text-center">Stok</th>
+                        <th className="px-4 py-3 text-right">Harga</th>
+                        <th className="px-4 py-3 text-right">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {grouped[category].map((product, i) => {
+                        const { available, label } = getAvailability(product, resellerQuota);
+                        return (
+                          <tr key={product.id} className={`border-b border-base-ink/10 ${i % 2 === 0 ? "bg-base-surface" : "bg-base-bg/50"}`}>
+                            <td className="px-4 py-3">
+                              <p className="font-extrabold">{product.name}</p>
+                              {product.sku ? <p className="font-mono text-[10px] font-bold text-base-ink/40">{product.sku}</p> : null}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 font-mono text-xs font-bold text-base-ink/60">{product.model}</td>
+                            <td className="whitespace-nowrap px-4 py-3 text-center">
+                              <span
+                                className={`inline-flex items-center gap-1.5 rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase ${
+                                  available ? "bg-accent-mint" : "bg-red-200"
+                                }`}
+                              >
+                                <span className={`h-1.5 w-1.5 rounded-full ${available ? "bg-green-600" : "bg-red-500"}`} />
+                                {label}
+                              </span>
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-right font-extrabold">{formatRupiah(product.price)}</td>
+                            <td className="px-4 py-3 text-right">
+                              {available ? (
+                                <Link href={`/order/${product.id}`}>
+                                  <Button variant="primary" size="sm">
+                                    <ShoppingCart className="h-3.5 w-3.5" />
+                                    Pesan
+                                  </Button>
+                                </Link>
+                              ) : (
+                                <Button variant="outline" size="sm" disabled className="cursor-not-allowed opacity-50">
+                                  Habis
+                                </Button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </section>
