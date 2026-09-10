@@ -10,6 +10,7 @@ import { Modal } from "@/components/ui/modal";
 import { FloatingShapes } from "@/components/shared/floating-shapes";
 import { createOrder } from "@/app/actions/payment";
 import { useT } from "@/lib/lang";
+import { readOrderHistory, saveOrderHistory, type OrderHistoryItem } from "@/lib/order-history";
 import {
   ArrowLeft,
   Loader2,
@@ -100,51 +101,6 @@ function formatCountdown(target: Date) {
   return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
-interface OrderHistoryItem {
-  invoice: string;
-  productName: string;
-  amount: number;
-  createdAt: number;
-  status: string;
-  delivered?: string;
-  paidAt?: string;
-}
-
-const HISTORY_KEY = "neo-order-history";
-
-function readHistory(): OrderHistoryItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function writeHistory(items: OrderHistoryItem[]) {
-  try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 50)));
-  } catch {
-    // ignore quota
-  }
-}
-
-function saveOrderHistory(item: OrderHistoryItem) {
-  const items = readHistory().filter((i) => i.invoice !== item.invoice);
-  items.unshift(item);
-  writeHistory(items);
-}
-
-function updateOrderHistory(invoice: string, status: string, delivered?: string) {
-  const items = readHistory();
-  const idx = items.findIndex((i) => i.invoice === invoice);
-  if (idx === -1) return;
-  items[idx].status = status;
-  if (delivered) items[idx].delivered = delivered;
-  if (status === "paid") items[idx].paidAt = new Date().toISOString();
-  writeHistory(items);
-}
-
 export function OrderClient({ product }: { product: Product }) {
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -188,7 +144,7 @@ export function OrderClient({ product }: { product: Product }) {
   const isExternal = product.stockMode === "external";
 
   function openHistory() {
-    setHistory(readHistory());
+    setHistory(readOrderHistory());
     setHistoryOpen(true);
   }
 

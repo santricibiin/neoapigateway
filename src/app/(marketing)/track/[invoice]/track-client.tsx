@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { FloatingShapes } from "@/components/shared/floating-shapes";
 import { copyText } from "@/lib/copy";
 import { useLang, useT } from "@/lib/lang";
+import { updateOrderHistory } from "@/lib/order-history";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -78,12 +79,16 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
         const r = await fetch(`/api/payment/status/${order.invoice}`, { cache: "no-store" });
         const data = await r.json();
         if (data.ok) {
-          setOrder((prev) => ({
-            ...prev,
-            status: data.status,
-            paidAt: data.paidAt ?? prev.paidAt,
-            delivered: data.delivered ?? prev.delivered,
-          }));
+          setOrder((prev) => {
+            if (prev.status === data.status) return prev;
+            updateOrderHistory(order.invoice, data.status, data.delivered || undefined);
+            return {
+              ...prev,
+              status: data.status,
+              paidAt: data.paidAt ?? prev.paidAt,
+              delivered: data.delivered ?? prev.delivered,
+            };
+          });
         }
       } catch {}
     };
