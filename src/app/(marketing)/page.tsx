@@ -133,7 +133,7 @@ export default function HomePage() {
       </svg>
 
       {/* Hero */}
-      <section className="relative flex flex-col items-center gap-6 pt-10 text-center">
+      <section className="relative flex flex-col items-center gap-8 pt-10 text-center lg:flex-row lg:justify-center lg:gap-12 lg:text-left">
         <svg className="pointer-events-none absolute inset-0 h-full w-full text-base-ink/[0.04]" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <defs>
             <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
@@ -143,49 +143,82 @@ export default function HomePage() {
           <rect width="100%" height="100%" fill="url(#grid)" />
         </svg>
 
-        <motion.span
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-          className="relative rounded-neo border-2 border-base-ink bg-accent-sun px-4 py-1.5 text-sm font-bold shadow-neo-sm"
-        >
-          <Sparkles className="mr-1.5 inline-block h-4 w-4" />
-          API Gateway · Multi Model · OpenAI Compatible
-        </motion.span>
-        <motion.h1
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="max-w-2xl text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl"
-        >
-          Satu Token. Semua Model AI.
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="max-w-xl text-lg text-base-ink/70"
-        >
-          {siteName} menghubungkan proyekmu ke berbagai model AI populer
-          lewat satu endpoint yang kompatibel dengan OpenAI API.
-        </motion.p>
+        <div className="relative flex max-w-2xl flex-col items-center gap-6 lg:items-start">
+          <motion.span
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="rounded-neo border-2 border-base-ink bg-accent-sun px-4 py-1.5 text-sm font-bold shadow-neo-sm"
+          >
+            <Sparkles className="mr-1.5 inline-block h-4 w-4" />
+            API Gateway · Multi Model · OpenAI Compatible
+          </motion.span>
+          <motion.h1
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl"
+          >
+            Satu Token. Semua Model AI.
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="max-w-xl text-lg text-base-ink/70"
+          >
+            {siteName} menghubungkan proyekmu ke berbagai model AI populer
+            lewat satu endpoint yang kompatibel dengan OpenAI API.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-wrap items-center justify-center gap-4"
+          >
+            <Link href="/products">
+              <Button variant="primary" size="lg">
+                Order Token
+              </Button>
+            </Link>
+            <Link href="/track">
+              <Button variant="outline" size="lg">
+                <Search className="h-5 w-5" />
+                Cek Pesanan
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* Terminal mock — endpoint /v1/chat/completions */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex flex-wrap items-center justify-center gap-4"
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="relative mx-auto w-full max-w-sm"
         >
-          <Link href="/products">
-            <Button variant="primary" size="lg">
-              Order Token
-            </Button>
-          </Link>
-          <Link href="/track">
-            <Button variant="outline" size="lg">
-              <Search className="h-5 w-5" />
-              Cek Pesanan
-            </Button>
-          </Link>
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-ink shadow-neo"
+          >
+            <div className="flex items-center gap-1.5 border-b border-white/10 px-4 py-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+              <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+              <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+              <span className="ml-2 font-mono text-[10px] font-bold text-white/40">sh — api</span>
+            </div>
+            <div className="space-y-1.5 p-4 font-mono text-[11px] leading-relaxed sm:text-xs">
+              <p className="text-white/40">$ curl -X POST \</p>
+              <p className="break-all text-accent-sky">{API_BASE}/v1/chat/completions \</p>
+              <p className="break-all text-white/60">-H &quot;Authorization: Bearer sk-•••&quot; \</p>
+              <p className="break-all text-white/60">-d &quot;{'{'}&quot;model&quot;: &quot;claude-opus-5&quot;{'}'}&quot;</p>
+              <p className="text-accent-mint">200 OK · 1.2s</p>
+              <p className="flex items-center gap-1.5 text-white/40">
+                $ <span className="inline-block h-3.5 w-2 animate-pulse bg-accent-mint/70" />
+              </p>
+            </div>
+          </motion.div>
         </motion.div>
       </section>
 
