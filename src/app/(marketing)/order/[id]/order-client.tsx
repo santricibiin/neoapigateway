@@ -50,6 +50,13 @@ const CopyIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
   </svg>
 );
 
+const TagIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" className="h-3 w-3">
+    <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
+  </svg>
+);
+
 const WalletIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
     <path d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5z" stroke="currentColor" strokeWidth="2"/>
@@ -271,87 +278,170 @@ export function OrderClient({ product }: { product: Product }) {
   }
 
   return (
-    <div className="relative mx-auto flex min-h-screen max-w-xl flex-col gap-4 overflow-x-hidden px-4 py-6 sm:gap-6 sm:px-6 sm:py-8">
+    <div className="relative flex min-h-screen flex-col gap-6 overflow-x-hidden py-6 sm:gap-8 sm:py-8">
       <FloatingShapes />
-      <Link href="/products" className="relative inline-flex items-center gap-2 text-sm font-bold text-base-ink/70 hover:text-base-ink">
-        <ArrowLeft className="h-4 w-4" />
-        Kembali ke Produk
-      </Link>
-
-      <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo">
-        <div className="mb-3 text-xs font-bold uppercase tracking-wider text-base-ink/50">
-          {product.category} · {product.model}
-        </div>
-        <h1 className="text-xl font-extrabold sm:text-2xl">{product.name}</h1>
-        {product.description && (
-          <p className="mt-2 text-sm text-base-ink/70">{product.description}</p>
-        )}
-        <div className="mt-4 flex items-center justify-between">
-          <div className="text-2xl font-extrabold">{formatRupiah(product.price)}</div>
-          {product.sku && (
-            <div className="rounded-neo border-2 border-base-ink bg-base-bg px-2 py-1 text-xs font-bold">
-              {product.sku}
-            </div>
-          )}
-        </div>
+      <div className="relative">
+        <Link href="/products" className="inline-flex items-center gap-2 text-sm font-bold text-base-ink/70 hover:text-base-ink">
+          <ArrowLeft className="h-4 w-4" />
+          Kembali ke Produk
+        </Link>
       </div>
 
-      <form onSubmit={handleCreateOrder} className="flex flex-col gap-4">
-        {!isExternal && (
-          <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo">
-            <label className="mb-2 flex items-center gap-2 text-sm font-bold">
-              <ShoppingCartIcon />
-              Jumlah
-            </label>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-base-bg font-bold shadow-neo-sm"
+      <div className="relative grid gap-6 lg:grid-cols-[1fr_380px] lg:gap-8">
+        {/* Kolom kiri: produk + form */}
+        <div className="flex flex-col gap-5">
+          <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex rounded-full border-2 border-base-ink bg-base-bg px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-base-ink/60">
+                {product.category}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-base-ink bg-accent-skySoft px-2 py-0.5 text-[10px] font-black uppercase">
+                <TagIcon />
+                {product.model}
+              </span>
+              {product.sku && (
+                <span className="ml-auto rounded-neo border-2 border-base-ink bg-base-bg px-2 py-1 font-mono text-[10px] font-bold text-base-ink/60">
+                  {product.sku}
+                </span>
+              )}
+            </div>
+            <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">{product.name}</h1>
+            {product.description && (
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-base-ink/70">{product.description}</p>
+            )}
+            <div className="mt-4 flex items-end justify-between gap-3 border-t-2 border-dashed border-base-ink/15 pt-4">
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/40">Harga satuan</div>
+                <div className="text-2xl font-extrabold sm:text-3xl">{formatRupiah(product.price)}</div>
+              </div>
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border-2 border-base-ink px-2.5 py-1 text-[10px] font-black uppercase ${
+                  isExternal || product.stock > 0 ? "bg-accent-mint" : "bg-red-200"
+                }`}
               >
-                −
-              </button>
-              <input
-                type="number"
-                min={1}
-                value={qty}
-                onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
-                className="w-20 rounded-neo border-2 border-base-ink bg-base-surface py-2 text-center font-bold shadow-neo-sm"
-              />
-              <button
-                type="button"
-                onClick={() => setQty((q) => q + 1)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-base-bg font-bold shadow-neo-sm"
-              >
-                +
-              </button>
+                <span className={`h-1.5 w-1.5 rounded-full ${isExternal || product.stock > 0 ? "bg-green-600" : "bg-red-500"}`} />
+                {isExternal ? "Tersedia" : product.stock > 0 ? `${product.stock} tersedia` : "Habis"}
+              </span>
             </div>
           </div>
-        )}
 
-        {error && (
-          <div className="rounded-neo border-2 border-base-ink bg-red-100 px-4 py-3 text-sm font-semibold text-red-700">
-            {error}
+          <form onSubmit={handleCreateOrder} className="flex flex-col gap-4">
+            {!isExternal && (
+              <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
+                <label className="mb-2 flex items-center gap-2 text-sm font-bold">
+                  <ShoppingCartIcon />
+                  Jumlah
+                </label>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setQty((q) => Math.max(1, q - 1))}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-base-bg font-bold shadow-neo-sm"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    min={1}
+                    value={qty}
+                    onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
+                    className="w-20 rounded-neo border-2 border-base-ink bg-base-surface py-2 text-center font-bold shadow-neo-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setQty((q) => q + 1)}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-base-bg font-bold shadow-neo-sm"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="rounded-neo border-2 border-base-ink bg-red-100 px-4 py-3 text-sm font-semibold text-red-700">
+                {error}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button type="submit" variant="primary" size="lg" disabled={loading} className="flex-1">
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <WalletIcon />}
+                {loading ? "Membuat Invoice..." : "Lanjutkan Pembayaran"}
+              </Button>
+              {order && !isPaid && !modalOpen && (
+                <Button type="button" variant="outline" size="lg" onClick={() => setModalOpen(true)}>
+                  <ClockIcon />
+                  Lihat Invoice
+                </Button>
+              )}
+              <Button type="button" variant="outline" size="lg" onClick={openHistory}>
+                <ReceiptIcon />
+                Riwayat
+              </Button>
+            </div>
+          </form>
+        </div>
+
+        {/* Kolom kanan: ringkasan + cara bayar */}
+        <aside className="flex flex-col gap-5">
+          <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-base-ink/50">
+              <ReceiptIcon className="h-4 w-4" />
+              Ringkasan Pesanan
+            </h2>
+            <dl className="mt-3 space-y-2 text-sm">
+              <div className="flex items-center justify-between gap-2">
+                <dt className="font-semibold text-base-ink/60">Produk</dt>
+                <dd className="text-right font-bold">{product.name}</dd>
+              </div>
+              {!isExternal && (
+                <div className="flex items-center justify-between gap-2">
+                  <dt className="font-semibold text-base-ink/60">Jumlah</dt>
+                  <dd className="font-bold">{qty}x</dd>
+                </div>
+              )}
+              <div className="flex items-center justify-between gap-2">
+                <dt className="font-semibold text-base-ink/60">Harga satuan</dt>
+                <dd className="font-bold">{formatRupiah(product.price)}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-2 border-t-2 border-dashed border-base-ink/15 pt-2">
+                <dt className="font-extrabold">Total</dt>
+                <dd className="text-lg font-extrabold">{formatRupiah(product.price * (isExternal ? 1 : qty))}</dd>
+              </div>
+            </dl>
+            <p className="mt-3 text-[11px] font-semibold text-base-ink/45">
+              Total akhir ditambah kode unik untuk verifikasi otomatis.
+            </p>
           </div>
-        )}
 
-        <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
-          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <WalletIcon />}
-          {loading ? "Membuat Invoice..." : "Lanjutkan Pembayaran"}
-        </Button>
-
-        {order && !isPaid && !modalOpen && (
-          <Button type="button" variant="outline" size="lg" className="w-full" onClick={() => setModalOpen(true)}>
-            <ClockIcon />
-            Lihat Invoice
-          </Button>
-        )}
-
-        <Button type="button" variant="outline" size="lg" className="w-full" onClick={openHistory}>
-          <ReceiptIcon />
-          Riwayat Pesanan
-        </Button>
-      </form>
+          <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-base-ink/50">
+              <ClockIcon />
+              Cara Pembayaran
+            </h2>
+            <ol className="mt-3 space-y-3">
+              <li className="flex gap-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky text-xs font-black">1</span>
+                <p className="text-sm font-semibold text-base-ink/70">Klik <span className="font-extrabold text-base-ink">Lanjutkan Pembayaran</span> — invoice QRIS dibuat instan.</p>
+              </li>
+              <li className="flex gap-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky text-xs font-black">2</span>
+                <p className="text-sm font-semibold text-base-ink/70">Scan QRIS dari e-wallet/m-banking mana pun, bayar <span className="font-extrabold text-base-ink">tepat sesuai nominal</span>.</p>
+              </li>
+              <li className="flex gap-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky text-xs font-black">3</span>
+                <p className="text-sm font-semibold text-base-ink/70">Pembayaran terdeteksi otomatis — detail produk langsung tampil di halaman ini.</p>
+              </li>
+            </ol>
+            <div className="mt-4 rounded-neo border-2 border-base-ink bg-accent-sunSoft p-3">
+              <p className="text-xs font-bold text-base-ink/70">
+                Semua aktivitas pembayaran dipantau 24 jam dan invoice berlaku 10 menit.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
 
       <Modal
         open={modalOpen && !!order}
