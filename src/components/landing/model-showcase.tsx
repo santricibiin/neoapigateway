@@ -106,11 +106,11 @@ export function ModelShowcase() {
         <p className="py-8 text-center text-sm text-base-ink/50">Gagal memuat data model.</p>
       ) : (
         <motion.div
-          variants={grid}
           initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.1 }}
+          animate="show"
+          variants={grid}
           className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+          key={safePage}
         >
           {pageModels.map((model) => (
             <motion.div
