@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { FloatingShapes } from "@/components/shared/floating-shapes";
-import { createOrder } from "@/app/actions/payment";
+import { createOrder, cancelOrder } from "@/app/actions/payment";
 import { useT } from "@/lib/lang";
-import { readOrderHistory, saveOrderHistory, type OrderHistoryItem } from "@/lib/order-history";
+import { countPendingOrders, MAX_PENDING_ORDERS, readOrderHistory, removeOrderHistory, saveOrderHistory, updateOrderHistory, type OrderHistoryItem } from "@/lib/order-history";
 import {
   ArrowLeft,
   Loader2,
@@ -109,11 +109,23 @@ export function OrderClient({ product }: { product: Product }) {
   const router = useRouter();
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<OrderHistoryItem[]>([]);
+  const [cancelling, setCancelling] = useState<string | null>(null);
 
   async function handleCreateOrder(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+
+    // Rate limiting: maksimal 3 pesanan pending per user (device).
+    if (countPendingOrders() >= MAX_PENDING_ORDERS) {
+      setError(
+        `${t("Anda punya")} ${MAX_PENDING_ORDERS} ${t("pesanan belum dibayar. Lunasi atau batalkan lewat Riwayat sebelum membuat pesanan baru.")}`
+      );
+      setHistory(readOrderHistory());
+      setHistoryOpen(true);
+      return;
+    }
+
+    setLoading(true);
 
     const formData = new FormData();
     formData.set("tokenId", String(product.id));
@@ -146,6 +158,22 @@ export function OrderClient({ product }: { product: Product }) {
   function openHistory() {
     setHistory(readOrderHistory());
     setHistoryOpen(true);
+  }
+
+  async function cancelPendingOrder(invoice: string) {
+    setCancelling(invoice);
+    try {
+      const res = await cancelOrder(invoice);
+      if (res.ok) {
+        removeOrderHistory(invoice);
+      } else {
+        // Sudah diproses/tidak ketemu di server — tetap bersihkan dari riwayat lokal.
+        updateOrderHistory(invoice, "expired");
+      }
+      setHistory(readOrderHistory());
+    } finally {
+      setCancelling(null);
+    }
   }
 
   return (
@@ -321,13 +349,14 @@ export function OrderClient({ product }: { product: Product }) {
         ) : (
           <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto">
             {history.map((item) => (
-              <Link
+              <div
                 key={item.invoice}
-                href={`/track/${item.invoice}`}
-                className="block rounded-neo border-2 border-base-ink bg-base-bg p-3 shadow-neo-sm transition-shadow hover:shadow-neo"
+                className="rounded-neo border-2 border-base-ink bg-base-bg p-3 shadow-neo-sm"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="break-all font-mono text-xs font-bold">{item.invoice}</span>
+                  <Link href={`/track/${item.invoice}`} className="min-w-0 flex-1">
+                    <span className="break-all font-mono text-xs font-bold">{item.invoice}</span>
+                  </Link>
                   <span
                     className={`shrink-0 rounded-neo border-2 border-base-ink px-2 py-0.5 text-[10px] font-bold ${
                       item.status === "paid"
@@ -352,7 +381,25 @@ export function OrderClient({ product }: { product: Product }) {
                     timeStyle: "short",
                   })}
                 </div>
-              </Link>
+                {item.status === "pending" ? (
+                  <div className="mt-2 flex items-center gap-2">
+                    <Link href={`/pay/${item.invoice}`} className="flex-1">
+                      <Button variant="primary" size="sm" className="w-full">
+                        {t("Bayar")}
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 hover:bg-red-200 hover:text-red-700"
+                      disabled={cancelling === item.invoice}
+                      onClick={() => void cancelPendingOrder(item.invoice)}
+                    >
+                      {cancelling === item.invoice ? t("Membatalkan...") : t("Batalkan")}
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
             ))}
           </div>
         )}

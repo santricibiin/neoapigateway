@@ -50,3 +50,14 @@ export function updateOrderHistory(invoice: string, status: string, delivered?: 
   if (status === "paid") items[idx].paidAt = new Date().toISOString();
   writeHistory(items);
 }
+
+/** Batas pesanan pending per device (rate limiting sederhana). */
+export const MAX_PENDING_ORDERS = 3;
+
+export function countPendingOrders(): number {
+  return readOrderHistory().filter((i) => i.status === "pending").length;
+}
+
+export function removeOrderHistory(invoice: string) {
+  writeHistory(readOrderHistory().filter((i) => i.invoice !== invoice));
+}

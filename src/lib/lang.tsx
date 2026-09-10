@@ -191,6 +191,14 @@ const DICT: Record<string, string> = {
   "Buat order baru jika ingin membeli.": "Create a new order if you want to buy.",
   "Beli Produk Ini Lagi": "Buy This Product Again",
   "Kembali ke Katalog": "Back to Catalog",
+
+  // Rate limit & cancel
+  "Anda punya": "You have",
+  "pesanan belum dibayar. Lunasi atau batalkan lewat Riwayat sebelum membuat pesanan baru.":
+    "unpaid orders. Please pay or cancel them in History before creating a new order.",
+  "Bayar": "Pay",
+  "Batalkan": "Cancel",
+  "Membatalkan...": "Cancelling...",
 };
 
 export function useT() {
