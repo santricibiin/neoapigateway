@@ -23,6 +23,19 @@ interface ModelsData {
 
 const PAGE_SIZE = 10;
 
+/** Varian "-b" disembunyikan di landing. Dicocokkan sebagai akhiran agar `auto-debug` tetap tampil. */
+function isHiddenVariant(id: string) {
+  return /-b$/i.test(id.trim());
+}
+
+/** Claude lalu GPT paling awal, sisanya menyusul. */
+function brandRank(id: string) {
+  const lower = id.trim().toLowerCase();
+  if (lower.startsWith("claude")) return 0;
+  if (lower.startsWith("gpt")) return 1;
+  return 2;
+}
+
 export function ModelShowcase() {
   const [data, setData] = useState<ModelsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,10 +57,10 @@ export function ModelShowcase() {
     );
   }
 
-  const models = [...(data?.models ?? [])].sort((a, b) =>
-    a.brand.localeCompare(b.brand) || a.id.localeCompare(b.id)
-  );
-  const stats = data?.stats ?? { totalActive: 0, totalModels: 0, totalBrands: 0 };
+  const models = (data?.models ?? [])
+    .filter((model) => !isHiddenVariant(model.id))
+    .sort((a, b) => brandRank(a.id) - brandRank(b.id) || a.id.localeCompare(b.id));
+  const totalActive = models.filter((model) => model.enabled).length;
   const totalPages = Math.max(1, Math.ceil(models.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const pageModels = models.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -57,7 +70,7 @@ export function ModelShowcase() {
       <div className="text-center">
         <h2 className="text-2xl font-extrabold sm:text-3xl">Model AI Tersedia</h2>
         <p className="mt-1 text-sm text-base-ink/60">
-          {stats.totalActive} model siap pakai · Update realtime dari BandelBanget
+          {totalActive} model siap pakai · Update realtime
         </p>
       </div>
 
