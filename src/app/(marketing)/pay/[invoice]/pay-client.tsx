@@ -192,34 +192,95 @@ export function PayClient({ order: initialOrder }: { order: PayOrder }) {
             {isPaid && (
               <motion.div
                 key="paid"
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col gap-5"
               >
-                <div className="flex flex-col items-center gap-2 rounded-neo border-2 border-base-ink bg-accent-mint p-8 text-center shadow-neo">
-                  <CheckCircle2 className="h-12 w-12" strokeWidth={2.5} />
-                  <h1 className="text-2xl font-black">{t("Pembayaran Berhasil!")}</h1>
-                  <p className="text-sm font-bold text-base-ink/60">{t("Pembayaran terdeteksi otomatis — detail produk langsung tampil di halaman ini.")}</p>
+                {/* Hero sukses */}
+                <div className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-mint p-8 text-center shadow-neo">
+                  <motion.svg
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                    className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 text-white/30"
+                    viewBox="0 0 100 100"
+                    fill="currentColor"
+                    aria-hidden
+                  >
+                    <circle cx="50" cy="50" r="45" />
+                  </motion.svg>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.15 }}
+                    className="relative mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full border-2 border-base-ink bg-white shadow-neo-sm"
+                  >
+                    <CheckCircle2 className="h-10 w-10 text-green-600" strokeWidth={2.5} />
+                  </motion.div>
+                  <h1 className="relative mt-4 text-3xl font-black tracking-tight">{t("Pembayaran Berhasil!")}</h1>
+                  <p className="relative mt-1 text-sm font-bold text-base-ink/60">
+                    {t("Pembayaran terdeteksi otomatis — detail produk langsung tampil di halaman ini.")}
+                  </p>
+                  <div className="relative mt-4 inline-flex items-center gap-2 rounded-full border-2 border-base-ink bg-white px-4 py-1.5 text-xs font-black uppercase tracking-wider">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-600" strokeWidth={2.5} />
+                    {t("Lunas")} · {order.paidAt ? new Date(order.paidAt).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }) : ""}
+                  </div>
                 </div>
 
-                {order.delivered && (
+                {/* Detail produk terkirim */}
+                {order.delivered ? (
                   <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
-                    <div className="mb-3 flex items-center justify-between">
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                       <span className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide">
                         <ShoppingCart className="h-4 w-4" />
                         {t("Detail Produk")}
                       </span>
                       <button
                         onClick={() => copyValue("delivered", order.delivered || "")}
-                        className="inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-base-surface px-2 py-1 text-xs font-bold shadow-neo-sm"
+                        className="inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-base-surface px-2.5 py-1 text-xs font-bold shadow-neo-sm transition-colors hover:bg-accent-sky"
                       >
                         <Copy className="h-3 w-3" />
                         {copied === "delivered" ? t("Tersalin") : t("Salin")}
                       </button>
                     </div>
-                    <pre className="whitespace-pre-wrap break-all rounded-neo border-2 border-base-ink/10 bg-base-bg p-3 font-mono text-xs leading-relaxed">{order.delivered}</pre>
+                    <pre className="whitespace-pre-wrap break-all rounded-neo border-2 border-base-ink bg-base-ink p-4 font-mono text-xs leading-relaxed text-accent-mint shadow-neo-sm">{order.delivered}</pre>
+                    <div className="mt-3 rounded-neo border-2 border-base-ink/10 bg-base-bg p-3">
+                      <p className="text-xs font-bold text-base-ink/60">
+                        {t("Simpan data di atas — ini kunci akses produk Anda.")}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 rounded-neo border-2 border-base-ink bg-base-bg p-4 shadow-neo-sm">
+                    <Loader2 className="h-5 w-5 shrink-0 animate-spin" />
+                    <p className="text-sm font-bold text-base-ink/70">
+                      {t("Produk sedang diproses dan dikirim otomatis — halaman ini diperbarui sendiri.")}
+                    </p>
                   </div>
                 )}
+
+                {/* CTA */}
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  {order.productId ? (
+                    <Link href={`/order/${order.productId}`} className="flex-1">
+                      <Button variant="primary" size="lg" className="w-full">
+                        <ShoppingCart className="h-4 w-4" />
+                        {t("Beli Produk Ini Lagi")}
+                      </Button>
+                    </Link>
+                  ) : null}
+                  <Link href={`/track/${order.invoice}`} className="flex-1">
+                    <Button variant="outline" size="lg" className="w-full">
+                      <Receipt className="h-4 w-4" />
+                      {t("Cek Pesanan")}
+                    </Button>
+                  </Link>
+                  <Link href="/products" className="flex-1">
+                    <Button variant="outline" size="lg" className="w-full">
+                      <Zap className="h-4 w-4" />
+                      {t("Kembali ke Katalog")}
+                    </Button>
+                  </Link>
+                </div>
               </motion.div>
             )}
 

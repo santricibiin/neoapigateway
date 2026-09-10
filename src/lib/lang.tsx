@@ -199,6 +199,12 @@ const DICT: Record<string, string> = {
   "Bayar": "Pay",
   "Batalkan": "Cancel",
   "Membatalkan...": "Cancelling...",
+
+  // Pay success state
+  "Simpan data di atas — ini kunci akses produk Anda.":
+    "Save the data above — it's the access key to your product.",
+  "Produk sedang diproses dan dikirim otomatis — halaman ini diperbarui sendiri.":
+    "Your product is being processed and delivered automatically — this page updates itself.",
 };
 
 export function useT() {
