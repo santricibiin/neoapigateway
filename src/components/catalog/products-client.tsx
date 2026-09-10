@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { FloatingShapes } from "@/components/shared/floating-shapes";
-import { BadgeCheck, Package, ShoppingCart, Search, LayoutGrid, List, Coins, Boxes, Tag } from "lucide-react";
+import { BadgeCheck, Package, ShoppingCart, Search, LayoutGrid, List, Coins, Boxes, Tag, Zap } from "lucide-react";
 import { QUOTA_PACKAGES } from "@/lib/bandelbanget";
 import { useT } from "@/lib/lang";
 
@@ -109,6 +109,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
 
   const grouped = groupByCategory(products);
   const categories = Object.keys(grouped).sort();
+  const totalAvailable = products.filter((p) => getAvailability(p, resellerQuota).available).length;
 
   const modeTabs: Array<{ id: ViewMode; label: string; icon: typeof LayoutGrid }> = [
     { id: "card", label: "Card", icon: LayoutGrid },
@@ -116,22 +117,51 @@ export function ProductsClient({ products }: { products: Product[] }) {
   ];
 
   return (
-    <div className="relative mx-auto flex max-w-6xl flex-col gap-8 overflow-hidden px-3 py-4 sm:gap-10 sm:px-4 sm:py-6 lg:gap-12">
+    <div className="relative flex flex-col gap-8 overflow-hidden sm:gap-10 lg:gap-14">
       <FloatingShapes />
 
-      <section className="relative flex flex-col items-center gap-3 px-2 text-center sm:gap-4">
-        <span className="inline-flex items-center gap-2 rounded-neo border-2 border-base-ink bg-accent-sun px-3 py-1 text-xs font-bold shadow-neo-sm sm:px-4 sm:py-1.5 sm:text-sm">
-          <Package className="h-4 w-4" />
-          Pilih Produk
-        </span>
-        <h1 className="relative max-w-2xl text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl lg:text-4xl">
-          Daftar Token API AI Tersedia
-        </h1>
-        <p className="relative max-w-xl text-sm text-base-ink/70 sm:text-base">
-          Pilih paket sesuai kebutuhan. Stok terbatas, harga jelas, dan aktif
-          langsung setelah pemesanan.
-        </p>
-        <div className="relative flex items-center gap-3">
+      {/* Hero */}
+      <section className="relative flex flex-col items-center gap-4 pt-6 text-center sm:pt-10">
+        <svg className="pointer-events-none absolute inset-0 h-full w-full text-base-ink/[0.04]" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <defs>
+            <pattern id="grid-products" width="32" height="32" patternUnits="userSpaceOnUse">
+              <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid-products)" />
+        </svg>
+
+        <motion.span
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="relative rounded-neo border-2 border-base-ink bg-accent-sun px-4 py-1.5 text-sm font-bold shadow-neo-sm"
+        >
+          <Package className="mr-1.5 inline-block h-4 w-4" />
+          {totalAvailable} paket siap pakai
+        </motion.span>
+        <motion.h1
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="relative max-w-2xl text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-5xl"
+        >
+          Pilih Paket Token API
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="relative max-w-xl text-sm text-base-ink/70 sm:text-base"
+        >
+          Stok real-time, harga jelas, aktif instan setelah pembayaran.
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="relative flex flex-wrap items-center justify-center gap-3"
+        >
           <Link href="/track">
             <Button variant="outline" size="sm">
               <Search className="h-4 w-4" />
@@ -157,17 +187,21 @@ export function ProductsClient({ products }: { products: Product[] }) {
               );
             })}
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      <section className="relative flex flex-col gap-6 sm:gap-8 lg:gap-10">
+      {/* Daftar produk */}
+      <section className="relative flex flex-col gap-8 sm:gap-10">
         {categories.map((category) => (
-          <div key={category} className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
+          <div key={category} className="flex flex-col gap-3 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-3">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky shadow-neo-sm sm:h-8 sm:w-8">
-                <BadgeCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky shadow-neo-sm">
+                <BadgeCheck className="h-4 w-4" />
               </span>
               <h2 className="text-lg font-extrabold sm:text-xl">{category}</h2>
+              <span className="text-xs font-bold text-base-ink/40">
+                {grouped[category].length} paket
+              </span>
             </div>
 
             {mode === "card" ? (
@@ -176,7 +210,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
                 variants={grid}
                 initial="hidden"
                 animate="show"
-                className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+                className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               >
                 {grouped[category].map((product) => {
                   const { available, label } = getAvailability(product, resellerQuota);
@@ -300,6 +334,27 @@ export function ProductsClient({ products }: { products: Product[] }) {
             )}
           </div>
         ))}
+      </section>
+
+      {/* Info bar bawah */}
+      <section className="relative flex flex-col items-center gap-4 rounded-neo border-2 border-base-ink bg-base-surface p-5 text-center shadow-neo-sm sm:flex-row sm:justify-between sm:text-left">
+        <div className="flex items-center gap-4">
+          <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun">
+            <Zap className="h-5 w-5" strokeWidth={2.5} />
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-lg font-extrabold">{t("Siap mulai?")}</h2>
+            <p className="mt-0.5 text-sm text-base-ink/60">
+              Pembayaran QRIS, token langsung terkirim otomatis.
+            </p>
+          </div>
+        </div>
+        <Link href="/track" className="w-full shrink-0 sm:w-auto">
+          <Button variant="primary" size="md" className="w-full sm:w-auto">
+            <Search className="h-4 w-4" />
+            {t("Cek Pesanan")}
+          </Button>
+        </Link>
       </section>
     </div>
   );
