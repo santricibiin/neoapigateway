@@ -16,6 +16,7 @@ import {
   Database,
   Bot,
   Server,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ const menu = [
   { href: "/dashboard/backup", label: "Backup", icon: Database },
   { href: "/dashboard/news", label: "Berita", icon: Newspaper },
   { href: "/dashboard/bot", label: "Bot Telegram", icon: Bot },
+  { href: "/dashboard/whatsapp", label: "Bot WhatsApp", icon: MessageCircle },
   { href: "/dashboard/settings", label: "Pengaturan", icon: Settings },
 ];
 

@@ -68,6 +68,14 @@ model Setting {
   forceJoinOn       Boolean  @default(false)
   forceJoinLink     String?  @db.VarChar(300)
   forceJoinChatId   String?  @db.VarChar(120)
+  /// Bot WhatsApp pengiriman produk aktif
+  waEnabled         Boolean  @default(false)
+  /// Nomor WhatsApp bot (format 62xxxxxxxxxx) untuk pairing
+  waPhoneNumber     String?  @db.VarChar(20)
+  /// Hasil pairing code terakhir (dibuat runner, dibaca admin page)
+  waPairingCode     String?  @db.VarChar(12)
+  /// Waktu permintaan pairing terakhir dari admin (runner memproses yang > updatedAt terakhir diproses)
+  waPairingRequest  DateTime?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
@@ -193,6 +201,8 @@ model PaymentOrder {
   telegramNotifiedAt DateTime?
   qrisProvider    String        @db.VarChar(20)
   qrisPayload     String        @db.Text
+  /// Sudah dikirim ke WhatsApp buyer (poll-wa)
+  waNotifiedAt    DateTime?
   tokenId         Int
   token           Token         @relation(fields: [tokenId], references: [id], onDelete: Restrict)
   paymentEventId  String?       @unique

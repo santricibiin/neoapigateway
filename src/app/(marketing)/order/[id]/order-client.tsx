@@ -58,6 +58,12 @@ const TagIcon = () => (
   </svg>
 );
 
+const MessageCircleIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 const WalletIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
     <path d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5z" stroke="currentColor" strokeWidth="2"/>
@@ -105,6 +111,7 @@ export function OrderClient({ product }: { product: Product }) {
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [waPhone, setWaPhone] = useState("");
   const t = useT();
   const router = useRouter();
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -130,6 +137,14 @@ export function OrderClient({ product }: { product: Product }) {
     const formData = new FormData();
     formData.set("tokenId", String(product.id));
     formData.set("qty", String(qty));
+    const phone = waPhone.replace(/[^0-9]/g, "");
+    if (phone) {
+      if (!/^62[0-9]{8,13}$/.test(phone)) {
+        setError(t("Nomor WhatsApp harus format 62xxxxxxxxxx"));
+        return;
+      }
+      formData.set("phone", phone);
+    }
 
     const res = await createOrder(formData);
     setLoading(false);
@@ -257,11 +272,30 @@ export function OrderClient({ product }: { product: Product }) {
               </div>
             )}
 
-            {error && (
-              <div className="rounded-neo border-2 border-base-ink bg-red-100 px-4 py-3 text-sm font-semibold text-red-700">
-                {error}
-              </div>
-            )}
+          <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
+            <label className="mb-2 flex items-center gap-2 text-sm font-bold">
+              <MessageCircleIcon />
+              {t("No. WhatsApp")} <span className="font-semibold text-base-ink/40">({t("opsional")})</span>
+            </label>
+            <input
+              type="tel"
+              inputMode="numeric"
+              placeholder="62xxxxxxxxxx"
+              value={waPhone}
+              onChange={(e) => setWaPhone(e.target.value.replace(/[^0-9]/g, ""))}
+              maxLength={15}
+              className="h-11 w-full rounded-neo border-2 border-base-ink bg-base-surface px-4 text-sm font-bold shadow-neo-sm outline-none"
+            />
+            <p className="mt-2 text-xs font-semibold text-base-ink/50">
+              {t("Detail produk dikirim ke WhatsApp ini setelah pembayaran sukses.")}
+            </p>
+          </div>
+
+          {error && (
+            <div className="rounded-neo border-2 border-base-ink bg-red-100 px-4 py-3 text-sm font-semibold text-red-700">
+              {error}
+            </div>
+          )}
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button type="submit" variant="primary" size="lg" disabled={loading} className="flex-1">
