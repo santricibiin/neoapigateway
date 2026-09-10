@@ -278,57 +278,59 @@ export function ProductsClient({ products }: { products: Product[] }) {
                 key={`table-${category}`}
                 className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm"
               >
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[640px] text-left text-sm">
-                    <thead>
-                      <tr className="border-b-2 border-base-ink bg-base-bg text-xs font-black uppercase tracking-wider text-base-ink/70">
-                        <th className="px-4 py-3">Produk</th>
-                        <th className="px-4 py-3">Model</th>
-                        <th className="px-4 py-3 text-center">Stok</th>
-                        <th className="px-4 py-3 text-right">Harga</th>
-                        <th className="px-4 py-3 text-right">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {grouped[category].map((product, i) => {
-                        const { available, label } = getAvailability(product, resellerQuota);
-                        return (
-                          <tr key={product.id} className={`border-b border-base-ink/10 ${i % 2 === 0 ? "bg-base-surface" : "bg-base-bg/50"}`}>
-                            <td className="px-4 py-3">
-                              <p className="font-extrabold">{product.name}</p>
-                              {product.sku ? <p className="font-mono text-[10px] font-bold text-base-ink/40">{product.sku}</p> : null}
-                            </td>
-                            <td className="whitespace-nowrap px-4 py-3 font-mono text-xs font-bold text-base-ink/60">{product.model}</td>
-                            <td className="whitespace-nowrap px-4 py-3 text-center">
-                              <span
-                                className={`inline-flex items-center gap-1.5 rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase ${
-                                  available ? "bg-accent-mint" : "bg-red-200"
-                                }`}
-                              >
-                                <span className={`h-1.5 w-1.5 rounded-full ${available ? "bg-green-600" : "bg-red-500"}`} />
-                                {label}
-                              </span>
-                            </td>
-                            <td className="whitespace-nowrap px-4 py-3 text-right font-extrabold">{formatRupiah(product.price)}</td>
-                            <td className="px-4 py-3 text-right">
-                              {available ? (
-                                <Link href={`/order/${product.id}`}>
-                                  <Button variant="primary" size="sm">
-                                    <ShoppingCart className="h-3.5 w-3.5" />
-                                    Pesan
-                                  </Button>
-                                </Link>
-                              ) : (
-                                <Button variant="outline" size="sm" disabled className="cursor-not-allowed opacity-50">
-                                  Habis
-                                </Button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                <div className="divide-y-2 divide-base-ink/15">
+                  {grouped[category].map((product) => {
+                    const { available, label } = getAvailability(product, resellerQuota);
+                    return (
+                      <div
+                        key={product.id}
+                        className="flex flex-col gap-2 px-4 py-3 transition-colors hover:bg-base-bg/60 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                      >
+                        {/* Kiri: produk + model */}
+                        <div className="min-w-0 sm:flex sm:basis-1/3 sm:flex-col">
+                          <p className="truncate font-extrabold" title={product.name}>
+                            {product.name}
+                          </p>
+                          <p className="truncate font-mono text-xs font-bold text-base-ink/50">{product.model}</p>
+                        </div>
+
+                        {/* Tengah: stok */}
+                        <div className="flex items-center gap-2 sm:basis-1/6">
+                          <span className="w-10 shrink-0 text-[10px] font-black uppercase text-base-ink/40 sm:hidden">Stok</span>
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase ${
+                              available ? "bg-accent-mint" : "bg-red-200"
+                            }`}
+                          >
+                            <span className={`h-1.5 w-1.5 rounded-full ${available ? "bg-green-600" : "bg-red-500"}`} />
+                            {label}
+                          </span>
+                        </div>
+
+                        {/* Harga */}
+                        <div className="flex items-center justify-between gap-2 sm:basis-1/6 sm:justify-end">
+                          <span className="text-[10px] font-black uppercase text-base-ink/40 sm:hidden">Harga</span>
+                          <p className="font-extrabold">{formatRupiah(product.price)}</p>
+                        </div>
+
+                        {/* Aksi */}
+                        <div className="flex items-center justify-end sm:basis-1/12">
+                          {available ? (
+                            <Link href={`/order/${product.id}`}>
+                              <Button variant="primary" size="sm">
+                                <ShoppingCart className="h-3.5 w-3.5" />
+                                Pesan
+                              </Button>
+                            </Link>
+                          ) : (
+                            <Button variant="outline" size="sm" disabled className="cursor-not-allowed opacity-50">
+                              Habis
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
