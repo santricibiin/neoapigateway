@@ -84,7 +84,6 @@ const DICT: Record<string, string> = {
 
   // Footer
   "Cek Pesanan": "Track Order",
-
   // Stats
   "Token Terjual": "Tokens Sold",
   "Dukungan": "Support",
@@ -114,6 +113,57 @@ const DICT: Record<string, string> = {
   "tersedia": "available",
   "Stok": "Stock",
   "Harga": "Price",
+
+  // Order page
+  "Kembali ke Produk": "Back to Products",
+  "Harga satuan": "Unit price",
+  "Jumlah": "Quantity",
+  "Membuat Invoice...": "Creating Invoice...",
+  "Lanjutkan Pembayaran": "Continue to Payment",
+  "Lihat Invoice": "View Invoice",
+  "Riwayat": "History",
+  "Riwayat Pesanan": "Order History",
+  "Ringkasan Pesanan": "Order Summary",
+  "Total": "Total",
+  "Total akhir ditambah kode unik untuk verifikasi otomatis.":
+    "Final amount includes a unique code for automatic verification.",
+  "Cara Pembayaran": "How to Pay",
+  "Klik": "Click",
+  "— invoice QRIS dibuat instan.": "— the QRIS invoice is created instantly.",
+  "Scan QRIS dari e-wallet/m-banking mana pun, bayar": "Scan the QRIS with any e-wallet/mobile banking, pay",
+  "tepat sesuai nominal.": "the exact amount.",
+  "Pembayaran terdeteksi otomatis — detail produk langsung tampil di halaman ini.":
+    "Payment is detected automatically — product details appear right on this page.",
+  "Semua aktivitas pembayaran dipantau 24 jam dan invoice berlaku 10 menit.":
+    "All payments are monitored 24/7 and invoices are valid for 10 minutes.",
+  "No. Invoice": "Invoice No.",
+  "Simpan nomor invoice untuk cek pesanan": "Keep the invoice number to check your order",
+  "Total yang harus dibayar": "Total amount to pay",
+  "kode unik": "unique code",
+  "Salin Nominal": "Copy Amount",
+  "Berlaku": "Valid for",
+  "Bayar tepat sesuai nominal. Pembayaran akan dicek otomatis.":
+    "Pay the exact amount. Payment is verified automatically.",
+  "Pembayaran Berhasil": "Payment Successful",
+  "Pembayaran Berhasil!": "Payment Successful!",
+  "Invoice Kedaluwarsa": "Invoice Expired",
+  "Scan QRIS untuk Bayar": "Scan QRIS to Pay",
+  "Tanggal": "Date",
+  "Qty": "Qty",
+  "Harga Satuan": "Unit Price",
+  "Kode Unik": "Unique Code",
+  "Total Dibayar": "Total Paid",
+  "Detail Produk": "Product Details",
+  "Kembali Belanja": "Back to Shopping",
+  "Silakan buat order baru jika ingin membayar.": "Please create a new order if you still want to pay.",
+  "Tutup": "Close",
+  "Belum ada riwayat pesanan.": "No order history yet.",
+  "Lunas": "Paid",
+  "Kedaluwarsa": "Expired",
+  "Pending": "Pending",
+  "Gagal membuat order": "Failed to create order",
+  "Gagal membuat kode QR": "Failed to generate QR code",
+  "Sesi berakhir": "Session ended",
 };
 
 export function useT() {

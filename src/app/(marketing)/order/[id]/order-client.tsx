@@ -10,6 +10,7 @@ import { Modal } from "@/components/ui/modal";
 import { FloatingShapes } from "@/components/shared/floating-shapes";
 import { createOrder } from "@/app/actions/payment";
 import { copyText } from "@/lib/copy";
+import { useT } from "@/lib/lang";
 import {
   ArrowLeft,
   Loader2,
@@ -149,6 +150,7 @@ export function OrderClient({ product }: { product: Product }) {
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const t = useT();
 
   const [order, setOrder] = useState<{
     invoice: string;
@@ -183,7 +185,7 @@ export function OrderClient({ product }: { product: Product }) {
     setLoading(false);
 
     if (!res.ok || !res.data) {
-      setError(res.error ?? "Gagal membuat order");
+      setError(res.error ?? t("Gagal membuat order"));
       return;
     }
 
@@ -214,7 +216,7 @@ export function OrderClient({ product }: { product: Product }) {
       const url = await QRCode.toDataURL(o.qrisPayload, { width: 512, margin: 2 });
       setQrUrl(url);
     } catch {
-      setError("Gagal membuat kode QR");
+      setError(t("Gagal membuat kode QR"));
     }
   }
 
@@ -283,7 +285,7 @@ export function OrderClient({ product }: { product: Product }) {
       <div className="relative">
         <Link href="/products" className="inline-flex items-center gap-2 text-sm font-bold text-base-ink/70 hover:text-base-ink">
           <ArrowLeft className="h-4 w-4" />
-          Kembali ke Produk
+          {t("Kembali ke Produk")}
         </Link>
       </div>
 
@@ -311,7 +313,7 @@ export function OrderClient({ product }: { product: Product }) {
             )}
             <div className="mt-4 flex items-end justify-between gap-3 border-t-2 border-dashed border-base-ink/15 pt-4">
               <div>
-                <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/40">Harga satuan</div>
+                <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/40">{t("Harga satuan")}</div>
                 <div className="text-2xl font-extrabold sm:text-3xl">{formatRupiah(product.price)}</div>
               </div>
               <span
@@ -320,7 +322,7 @@ export function OrderClient({ product }: { product: Product }) {
                 }`}
               >
                 <span className={`h-1.5 w-1.5 rounded-full ${isExternal || product.stock > 0 ? "bg-green-600" : "bg-red-500"}`} />
-                {isExternal ? "Tersedia" : product.stock > 0 ? `${product.stock} tersedia` : "Habis"}
+                {isExternal ? t("Tersedia") : product.stock > 0 ? `${product.stock} ${t("tersedia")}` : t("Habis")}
               </span>
             </div>
           </div>
@@ -330,7 +332,7 @@ export function OrderClient({ product }: { product: Product }) {
               <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
                 <label className="mb-2 flex items-center gap-2 text-sm font-bold">
                   <ShoppingCartIcon />
-                  Jumlah
+                  {t("Jumlah")}
                 </label>
                 <div className="flex items-center gap-3">
                   <button
@@ -367,17 +369,17 @@ export function OrderClient({ product }: { product: Product }) {
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button type="submit" variant="primary" size="lg" disabled={loading} className="flex-1">
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <WalletIcon />}
-                {loading ? "Membuat Invoice..." : "Lanjutkan Pembayaran"}
+                {loading ? t("Membuat Invoice...") : t("Lanjutkan Pembayaran")}
               </Button>
               {order && !isPaid && !modalOpen && (
                 <Button type="button" variant="outline" size="lg" onClick={() => setModalOpen(true)}>
                   <ClockIcon />
-                  Lihat Invoice
+                  {t("Lihat Invoice")}
                 </Button>
               )}
               <Button type="button" variant="outline" size="lg" onClick={openHistory}>
                 <ReceiptIcon />
-                Riwayat
+                {t("Riwayat")}
               </Button>
             </div>
           </form>
@@ -388,55 +390,55 @@ export function OrderClient({ product }: { product: Product }) {
           <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
             <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-base-ink/50">
               <ReceiptIcon className="h-4 w-4" />
-              Ringkasan Pesanan
+              {t("Ringkasan Pesanan")}
             </h2>
             <dl className="mt-3 space-y-2 text-sm">
               <div className="flex items-center justify-between gap-2">
-                <dt className="font-semibold text-base-ink/60">Produk</dt>
+                <dt className="font-semibold text-base-ink/60">{t("Produk")}</dt>
                 <dd className="text-right font-bold">{product.name}</dd>
               </div>
               {!isExternal && (
                 <div className="flex items-center justify-between gap-2">
-                  <dt className="font-semibold text-base-ink/60">Jumlah</dt>
+                  <dt className="font-semibold text-base-ink/60">{t("Jumlah")}</dt>
                   <dd className="font-bold">{qty}x</dd>
                 </div>
               )}
               <div className="flex items-center justify-between gap-2">
-                <dt className="font-semibold text-base-ink/60">Harga satuan</dt>
+                <dt className="font-semibold text-base-ink/60">{t("Harga satuan")}</dt>
                 <dd className="font-bold">{formatRupiah(product.price)}</dd>
               </div>
               <div className="flex items-center justify-between gap-2 border-t-2 border-dashed border-base-ink/15 pt-2">
-                <dt className="font-extrabold">Total</dt>
+                <dt className="font-extrabold">{t("Total")}</dt>
                 <dd className="text-lg font-extrabold">{formatRupiah(product.price * (isExternal ? 1 : qty))}</dd>
               </div>
             </dl>
             <p className="mt-3 text-[11px] font-semibold text-base-ink/45">
-              Total akhir ditambah kode unik untuk verifikasi otomatis.
+              {t("Total akhir ditambah kode unik untuk verifikasi otomatis.")}
             </p>
           </div>
 
           <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
             <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-base-ink/50">
               <ClockIcon />
-              Cara Pembayaran
+              {t("Cara Pembayaran")}
             </h2>
             <ol className="mt-3 space-y-3">
               <li className="flex gap-3">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky text-xs font-black">1</span>
-                <p className="text-sm font-semibold text-base-ink/70">Klik <span className="font-extrabold text-base-ink">Lanjutkan Pembayaran</span> — invoice QRIS dibuat instan.</p>
+                <p className="text-sm font-semibold text-base-ink/70">{t("Klik")} <span className="font-extrabold text-base-ink">{t("Lanjutkan Pembayaran")}</span> {t("— invoice QRIS dibuat instan.")}</p>
               </li>
               <li className="flex gap-3">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky text-xs font-black">2</span>
-                <p className="text-sm font-semibold text-base-ink/70">Scan QRIS dari e-wallet/m-banking mana pun, bayar <span className="font-extrabold text-base-ink">tepat sesuai nominal</span>.</p>
+                <p className="text-sm font-semibold text-base-ink/70">{t("Scan QRIS dari e-wallet/m-banking mana pun, bayar")} <span className="font-extrabold text-base-ink">{t("tepat sesuai nominal.")}</span></p>
               </li>
               <li className="flex gap-3">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky text-xs font-black">3</span>
-                <p className="text-sm font-semibold text-base-ink/70">Pembayaran terdeteksi otomatis — detail produk langsung tampil di halaman ini.</p>
+                <p className="text-sm font-semibold text-base-ink/70">{t("Pembayaran terdeteksi otomatis — detail produk langsung tampil di halaman ini.")}</p>
               </li>
             </ol>
             <div className="mt-4 rounded-neo border-2 border-base-ink bg-accent-sunSoft p-3">
               <p className="text-xs font-bold text-base-ink/70">
-                Semua aktivitas pembayaran dipantau 24 jam dan invoice berlaku 10 menit.
+                {t("Semua aktivitas pembayaran dipantau 24 jam dan invoice berlaku 10 menit.")}
               </p>
             </div>
           </div>
@@ -446,7 +448,7 @@ export function OrderClient({ product }: { product: Product }) {
       <Modal
         open={modalOpen && !!order}
         onClose={() => setModalOpen(false)}
-        title={isPaid ? "Pembayaran Berhasil" : isExpired ? "Invoice Kedaluwarsa" : "Scan QRIS untuk Bayar"}
+        title={isPaid ? t("Pembayaran Berhasil") : isExpired ? t("Invoice Kedaluwarsa") : t("Scan QRIS untuk Bayar")}
         className="max-w-md max-h-[90vh] overflow-y-auto"
       >
         {order && (
@@ -461,10 +463,10 @@ export function OrderClient({ product }: { product: Product }) {
                   className="flex w-full flex-col items-center gap-4"
                 >
                   <div className="w-full rounded-neo border-2 border-base-ink bg-accent-sun p-3 text-center shadow-neo-sm">
-                    <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/60">No. Invoice</div>
+                    <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/60">{t("No. Invoice")}</div>
                     <div className="mt-0.5 break-all font-mono text-sm font-extrabold">{order.invoice}</div>
                     <p className="mt-1.5 text-[10px] font-bold text-base-ink/70">
-                      ⚠️ Simpan nomor invoice untuk cek pesanan
+                      ⚠️ {t("Simpan nomor invoice untuk cek pesanan")}
                     </p>
                   </div>
 
@@ -479,27 +481,27 @@ export function OrderClient({ product }: { product: Product }) {
                   </div>
 
                   <div className="w-full rounded-neo border-2 border-base-ink bg-base-bg p-4 text-center shadow-neo-sm">
-                    <div className="text-xs font-bold uppercase text-base-ink/50">Total yang harus dibayar</div>
+                    <div className="text-xs font-bold uppercase text-base-ink/50">{t("Total yang harus dibayar")}</div>
                     <div className="mt-1 text-2xl font-extrabold">{formatRupiah(order.amount)}</div>
                     <div className="mt-1 text-xs font-semibold text-base-ink/60">
-                      Harga {formatRupiah(order.amount - order.uniqueCode)} + kode unik {formatRupiah(order.uniqueCode)}
+                      {t("Harga")} {formatRupiah(order.amount - order.uniqueCode)} + {t("kode unik")} {formatRupiah(order.uniqueCode)}
                     </div>
                     <button
                       onClick={copyAmount}
                       className="mt-3 inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-base-surface px-3 py-1.5 text-xs font-bold shadow-neo-sm"
                     >
                       <CopyIcon className="h-3.5 w-3.5" />
-                      {copied ? "Tersalin" : "Salin Nominal"}
+                      {copied ? t("Tersalin") : t("Salin Nominal")}
                     </button>
                   </div>
 
                   <div className="flex items-center gap-2 text-sm font-bold text-base-ink/70">
                     <ClockIcon />
-                    Berlaku {countdown}
+                    {t("Berlaku")} {countdown}
                   </div>
 
                   <div className="text-center text-xs text-base-ink/60">
-                    Bayar tepat sesuai nominal. Pembayaran akan dicek otomatis.
+                    {t("Bayar tepat sesuai nominal. Pembayaran akan dicek otomatis.")}
                   </div>
                 </motion.div>
               )}
@@ -513,22 +515,22 @@ export function OrderClient({ product }: { product: Product }) {
                 >
                   <div className="flex w-full flex-col items-center gap-2 rounded-neo border-2 border-base-ink bg-accent-mint p-6 text-center shadow-neo">
                     <CheckCircleIcon />
-                    <h3 className="text-xl font-extrabold">Pembayaran Berhasil!</h3>
+                    <h3 className="text-xl font-extrabold">{t("Pembayaran Berhasil!")}</h3>
                   </div>
 
                   <div className="w-full rounded-neo border-2 border-base-ink bg-base-surface p-4 shadow-neo">
                     <div className="mb-3 flex items-center gap-2 border-b-2 border-base-ink/10 pb-2">
                       <ReceiptIcon className="h-4 w-4" />
-                      <span className="text-sm font-extrabold uppercase tracking-wide">Invoice</span>
+                      <span className="text-sm font-extrabold uppercase tracking-wide">{t("No. Invoice")}</span>
                     </div>
                     <dl className="space-y-2 text-sm">
                       <div className="flex justify-between gap-2">
-                        <dt className="font-semibold text-base-ink/60">No. Invoice</dt>
+                        <dt className="font-semibold text-base-ink/60">{t("No. Invoice")}</dt>
                         <dd className="font-mono font-bold">{order.invoice}</dd>
                       </div>
                       {paidAt && (
                         <div className="flex justify-between gap-2">
-                          <dt className="font-semibold text-base-ink/60">Tanggal</dt>
+                          <dt className="font-semibold text-base-ink/60">{t("Tanggal")}</dt>
                           <dd className="font-bold">
                             {new Date(paidAt).toLocaleString("id-ID", {
                               dateStyle: "medium",
@@ -538,7 +540,7 @@ export function OrderClient({ product }: { product: Product }) {
                         </div>
                       )}
                       <div className="flex justify-between gap-2">
-                        <dt className="font-semibold text-base-ink/60">Produk</dt>
+                        <dt className="font-semibold text-base-ink/60">{t("Produk")}</dt>
                         <dd className="text-right font-bold">{product.name}</dd>
                       </div>
                       {product.sku && (
@@ -549,22 +551,22 @@ export function OrderClient({ product }: { product: Product }) {
                       )}
                       {!isExternal && (
                         <div className="flex justify-between gap-2">
-                          <dt className="font-semibold text-base-ink/60">Qty</dt>
+                          <dt className="font-semibold text-base-ink/60">{t("Qty")}</dt>
                           <dd className="font-bold">{qty}</dd>
                         </div>
                       )}
                       <div className="flex justify-between gap-2">
-                        <dt className="font-semibold text-base-ink/60">Harga Satuan</dt>
+                        <dt className="font-semibold text-base-ink/60">{t("Harga Satuan")}</dt>
                         <dd className="font-bold">{formatRupiah(order.amount - order.uniqueCode)}</dd>
                       </div>
                       {order.uniqueCode > 0 && (
                         <div className="flex justify-between gap-2">
-                          <dt className="font-semibold text-base-ink/60">Kode Unik</dt>
+                          <dt className="font-semibold text-base-ink/60">{t("Kode Unik")}</dt>
                           <dd className="font-bold">{formatRupiah(order.uniqueCode)}</dd>
                         </div>
                       )}
                       <div className="mt-2 flex justify-between gap-2 border-t-2 border-base-ink/10 pt-2">
-                        <dt className="font-extrabold">Total Dibayar</dt>
+                        <dt className="font-extrabold">{t("Total Dibayar")}</dt>
                         <dd className="text-lg font-extrabold">{formatRupiah(order.amount)}</dd>
                       </div>
                     </dl>
@@ -575,14 +577,14 @@ export function OrderClient({ product }: { product: Product }) {
                       <div className="mb-2 flex items-center justify-between">
                         <span className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide">
                           <ShoppingCartIcon />
-                          Detail Produk
+                          {t("Detail Produk")}
                         </span>
                         <button
                           onClick={copyDelivered}
                           className="inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-base-surface px-2 py-1 text-xs font-bold shadow-neo-sm"
                         >
                           <CopyIcon className="h-3 w-3" />
-                          {copied ? "Tersalin" : "Salin"}
+                          {copied ? t("Tersalin") : t("Salin")}
                         </button>
                       </div>
                       <pre className="whitespace-pre-wrap break-all font-mono text-xs leading-relaxed">{delivered}</pre>
@@ -591,7 +593,7 @@ export function OrderClient({ product }: { product: Product }) {
 
                   <Link href="/products" className="w-full">
                     <Button variant="primary" className="w-full">
-                      Kembali Belanja
+                      {t("Kembali Belanja")}
                     </Button>
                   </Link>
                 </motion.div>
@@ -605,21 +607,21 @@ export function OrderClient({ product }: { product: Product }) {
                   className="flex w-full flex-col items-center gap-3 rounded-neo border-2 border-base-ink bg-accent-sun p-6 text-center shadow-neo"
                 >
                   <XCircleIcon />
-                  <h3 className="text-xl font-extrabold">Invoice Kedaluwarsa</h3>
+                  <h3 className="text-xl font-extrabold">{t("Invoice Kedaluwarsa")}</h3>
                   <div className="rounded-neo border-2 border-base-ink bg-base-bg p-3">
-                    <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/60">No. Invoice</div>
+                    <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/60">{t("No. Invoice")}</div>
                     <div className="mt-0.5 break-all font-mono text-sm font-extrabold">{order.invoice}</div>
                   </div>
                   <p className="text-sm text-base-ink/70">
-                    Silakan buat order baru jika ingin membayar.
+                    {t("Silakan buat order baru jika ingin membayar.")}
                   </p>
                   <Link href={`/track/${order.invoice}`} className="w-full">
                     <Button variant="outline" className="w-full">
-                      Cek Pesanan
+                      {t("Cek Pesanan")}
                     </Button>
                   </Link>
                   <Button variant="outline" onClick={() => setOrder(null)}>
-                    Tutup
+                    {t("Tutup")}
                   </Button>
                 </motion.div>
               )}
@@ -631,12 +633,12 @@ export function OrderClient({ product }: { product: Product }) {
       <Modal
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
-        title="Riwayat Pesanan"
+        title={t("Riwayat Pesanan")}
         className="w-[calc(100vw-2rem)] max-w-sm"
       >
         {history.length === 0 ? (
           <p className="py-6 text-center text-sm text-base-ink/60">
-            Belum ada riwayat pesanan.
+            {t("Belum ada riwayat pesanan.")}
           </p>
         ) : (
           <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto">
@@ -658,10 +660,10 @@ export function OrderClient({ product }: { product: Product }) {
                     }`}
                   >
                     {item.status === "paid"
-                      ? "Lunas"
+                      ? t("Lunas")
                       : item.status === "expired" || item.status === "failed"
-                        ? "Kedaluwarsa"
-                        : "Pending"}
+                        ? t("Kedaluwarsa")
+                        : t("Pending")}
                   </span>
                 </div>
                 <div className="mt-1 break-words text-sm font-bold">{item.productName}</div>
