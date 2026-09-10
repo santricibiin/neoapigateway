@@ -295,48 +295,29 @@ export default function HomePage() {
         ))}
       </motion.section>
 
-      {/* CTA */}
+      {/* CTA — ramping, sejajar horizontal */}
       <motion.section
-        initial={{ opacity: 0, y: 24 }}
+        initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative flex flex-col items-center gap-6 overflow-hidden rounded-neo border-2 border-base-ink bg-accent-lavender p-8 text-center shadow-neo sm:p-12"
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="flex flex-col items-center justify-between gap-4 rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo-sm sm:flex-row sm:gap-6"
       >
-        <motion.svg
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="pointer-events-none absolute -top-8 -right-8 h-32 w-32 text-base-ink/10"
-          viewBox="0 0 100 100"
-          fill="currentColor"
-          aria-hidden
-        >
-          <polygon points="50,5 95,95 5,95" />
-        </motion.svg>
-        <motion.svg
-          animate={{ y: [0, -12, 0] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          className="pointer-events-none absolute -bottom-6 -left-6 h-24 w-24 text-base-ink/10"
-          viewBox="0 0 100 100"
-          fill="currentColor"
-          aria-hidden
-        >
-          <circle cx="50" cy="50" r="45" />
-        </motion.svg>
-        <span className="relative inline-flex h-14 w-14 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun shadow-neo-sm">
-          <Zap className="h-7 w-7 text-base-ink" strokeWidth={2.5} />
-        </span>
-        <h2 className="relative text-2xl font-extrabold sm:text-3xl">
-          Siap mulai pakai AI?
-        </h2>
-        <p className="relative max-w-md text-base-ink/80">
-          Beli token API sekarang dan langsung integrasi ke proyekmu. Proses cepat,
-          harga jelas, tanpa ribet.
-        </p>
-        <Link href="/products" className="relative">
-          <Button variant="sun" size="lg">
+        <div className="flex items-center gap-4">
+          <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun">
+            <Zap className="h-5 w-5 text-base-ink" strokeWidth={2.5} />
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-lg font-extrabold sm:text-xl">Siap mulai?</h2>
+            <p className="mt-0.5 text-sm text-base-ink/60">
+              Beli token, dapat API key, langsung integrasi.
+            </p>
+          </div>
+        </div>
+        <Link href="/products" className="w-full shrink-0 sm:w-auto">
+          <Button variant="primary" size="md" className="w-full sm:w-auto">
             Order Sekarang
-            <ArrowRight className="h-5 w-5" />
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </Link>
       </motion.section>

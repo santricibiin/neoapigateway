@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
 
 export default function MarketingLayout({
   children,
@@ -9,6 +10,7 @@ export default function MarketingLayout({
     <>
       <Navbar />
       <main className="w-full px-4 py-10 sm:px-6 lg:px-10">{children}</main>
+      <Footer />
     </>
   );
 }
