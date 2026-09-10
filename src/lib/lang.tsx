@@ -88,6 +88,32 @@ const DICT: Record<string, string> = {
   // Stats
   "Token Terjual": "Tokens Sold",
   "Dukungan": "Support",
+
+  // Products page
+  "paket siap pakai": "packages ready",
+  "Pilih Paket Token API": "Choose Your API Token Plan",
+  "Stok real-time, harga jelas, aktif instan setelah pembayaran.":
+    "Real-time stock, clear pricing, activated instantly after payment.",
+  "Card": "Card",
+  "Tabel": "Table",
+  "paket": "packages",
+  "Pesan": "Order",
+  "Habis": "Sold Out",
+  "Aktif": "Active",
+  "Belum ada produk": "No products yet",
+  "Produk akan segera tersedia. Pantau terus halaman ini.":
+    "Products are coming soon. Stay tuned.",
+  "Kembali ke Beranda": "Back to Home",
+  "Pembayaran QRIS, token langsung terkirim otomatis.":
+    "QRIS payment, tokens delivered automatically.",
+  "Lainnya": "Others",
+
+  // Availability
+  "Tersedia": "Available",
+  "Stok habis": "Out of stock",
+  "tersedia": "available",
+  "Stok": "Stock",
+  "Harga": "Price",
 };
 
 export function useT() {

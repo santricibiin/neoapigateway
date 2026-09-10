@@ -41,7 +41,7 @@ function formatTokens(value: number) {
 
 function groupByCategory(items: Product[]) {
   return items.reduce<Record<string, Product[]>>((acc, item) => {
-    const key = item.category?.name ?? "Lainnya";
+    const key = item.category?.name ?? "__none__";
     if (!acc[key]) acc[key] = [];
     acc[key].push(item);
     return acc;
@@ -56,18 +56,19 @@ function getProductTokens(sku: string | null, model: string): number | null {
 
 interface Availability {
   available: boolean;
-  label: string;
+  labelId: string;
+  count?: number;
 }
 
 function getAvailability(p: Product, resellerQuota: number | null): Availability {
   if (p.stockMode === "external") {
     const tokens = getProductTokens(p.sku, p.model);
     const available = resellerQuota === null ? true : tokens !== null ? tokens <= resellerQuota : true;
-    return { available, label: available ? "Tersedia" : "Stok habis" };
+    return { available, labelId: available ? "Tersedia" : "Stok habis" };
   }
   return p.stock > 0
-    ? { available: true, label: `${p.stock} tersedia` }
-    : { available: false, label: "Habis" };
+    ? { available: true, labelId: "tersedia", count: p.stock }
+    : { available: false, labelId: "Habis" };
 }
 
 const grid = {
@@ -98,10 +99,10 @@ export function ProductsClient({ products }: { products: Product[] }) {
     return (
       <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-4 overflow-hidden px-4 py-20 text-center">
         <FloatingShapes />
-        <h1 className="relative text-2xl font-extrabold">Belum ada produk</h1>
-        <p className="relative text-base-ink/70">Produk akan segera tersedia. Pantau terus halaman ini.</p>
+        <h1 className="relative text-2xl font-extrabold">{t("Belum ada produk")}</h1>
+        <p className="relative text-base-ink/70">{t("Produk akan segera tersedia. Pantau terus halaman ini.")}</p>
         <Link href="/" className="relative">
-          <Button variant="outline">Kembali ke Beranda</Button>
+          <Button variant="outline">{t("Kembali ke Beranda")}</Button>
         </Link>
       </div>
     );
@@ -111,9 +112,9 @@ export function ProductsClient({ products }: { products: Product[] }) {
   const categories = Object.keys(grouped).sort();
   const totalAvailable = products.filter((p) => getAvailability(p, resellerQuota).available).length;
 
-  const modeTabs: Array<{ id: ViewMode; label: string; icon: typeof LayoutGrid }> = [
-    { id: "card", label: "Card", icon: LayoutGrid },
-    { id: "table", label: "Tabel", icon: List },
+  const modeTabs: Array<{ id: ViewMode; labelId: string; icon: typeof LayoutGrid }> = [
+    { id: "card", labelId: "Card", icon: LayoutGrid },
+    { id: "table", labelId: "Tabel", icon: List },
   ];
 
   return (
@@ -138,7 +139,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
           className="relative rounded-neo border-2 border-base-ink bg-accent-sun px-4 py-1.5 text-sm font-bold shadow-neo-sm"
         >
           <Package className="mr-1.5 inline-block h-4 w-4" />
-          {totalAvailable} paket siap pakai
+          {totalAvailable} {t("paket siap pakai")}
         </motion.span>
         <motion.h1
           initial={{ opacity: 0, y: 16 }}
@@ -146,7 +147,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="relative max-w-2xl text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-5xl"
         >
-          Pilih Paket Token API
+          {t("Pilih Paket Token API")}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 16 }}
@@ -154,7 +155,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="relative max-w-xl text-sm text-base-ink/70 sm:text-base"
         >
-          Stok real-time, harga jelas, aktif instan setelah pembayaran.
+          {t("Stok real-time, harga jelas, aktif instan setelah pembayaran.")}
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -182,7 +183,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" strokeWidth={2.5} />
-                  {tab.label}
+                  {t(tab.labelId)}
                 </button>
               );
             })}
@@ -198,9 +199,9 @@ export function ProductsClient({ products }: { products: Product[] }) {
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky shadow-neo-sm">
                 <BadgeCheck className="h-4 w-4" />
               </span>
-              <h2 className="text-lg font-extrabold sm:text-xl">{category}</h2>
+              <h2 className="text-lg font-extrabold sm:text-xl">{category === "__none__" ? t("Lainnya") : category}</h2>
               <span className="text-xs font-bold text-base-ink/40">
-                {grouped[category].length} paket
+                {grouped[category].length} {t("paket")}
               </span>
             </div>
 
@@ -213,7 +214,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
                 className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               >
                 {grouped[category].map((product) => {
-                  const { available, label } = getAvailability(product, resellerQuota);
+                  const { available, labelId, count } = getAvailability(product, resellerQuota);
                   const tokens = getProductTokens(product.sku, product.model);
                   return (
                     <motion.div
@@ -239,7 +240,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
                           }`}
                         >
                           <span className={`h-1.5 w-1.5 rounded-full ${available ? "bg-green-600" : "bg-red-500"}`} />
-                          {available ? "Aktif" : "Habis"}
+                          {available ? t("Aktif") : t("Habis")}
                         </span>
                       </div>
 
@@ -250,7 +251,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
                         </span>
                         <span className="inline-flex items-center gap-1 rounded-neo border-2 border-base-ink bg-base-bg px-1.5 py-0.5 text-[10px] font-black">
                           <Boxes className="h-3 w-3" strokeWidth={2.5} />
-                          {label}
+                          {count !== undefined ? `${count} ${t(labelId)}` : t(labelId)}
                         </span>
                       </div>
 
@@ -260,12 +261,12 @@ export function ProductsClient({ products }: { products: Product[] }) {
                           <Link href={`/order/${product.id}`}>
                             <Button variant="primary" size="sm">
                               <ShoppingCart className="h-3.5 w-3.5" />
-                              Pesan
+                              {t("Pesan")}
                             </Button>
                           </Link>
                         ) : (
                           <Button variant="outline" size="sm" disabled className="cursor-not-allowed opacity-50">
-                            Habis
+                            {t("Habis")}
                           </Button>
                         )}
                       </div>
@@ -280,7 +281,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
               >
                 <div className="divide-y-2 divide-base-ink/15">
                   {grouped[category].map((product) => {
-                    const { available, label } = getAvailability(product, resellerQuota);
+                    const { available, labelId, count } = getAvailability(product, resellerQuota);
                     return (
                       <div
                         key={product.id}
@@ -296,20 +297,20 @@ export function ProductsClient({ products }: { products: Product[] }) {
 
                         {/* Tengah: stok */}
                         <div className="flex items-center gap-2 sm:basis-1/6">
-                          <span className="w-10 shrink-0 text-[10px] font-black uppercase text-base-ink/40 sm:hidden">Stok</span>
+                          <span className="w-10 shrink-0 text-[10px] font-black uppercase text-base-ink/40 sm:hidden">{t("Stok")}</span>
                           <span
                             className={`inline-flex items-center gap-1.5 rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase ${
                               available ? "bg-accent-mint" : "bg-red-200"
                             }`}
                           >
                             <span className={`h-1.5 w-1.5 rounded-full ${available ? "bg-green-600" : "bg-red-500"}`} />
-                            {label}
+                            {count !== undefined ? `${count} ${t(labelId)}` : t(labelId)}
                           </span>
                         </div>
 
                         {/* Harga */}
                         <div className="flex items-center justify-between gap-2 sm:basis-1/6 sm:justify-end">
-                          <span className="text-[10px] font-black uppercase text-base-ink/40 sm:hidden">Harga</span>
+                          <span className="text-[10px] font-black uppercase text-base-ink/40 sm:hidden">{t("Harga")}</span>
                           <p className="font-extrabold">{formatRupiah(product.price)}</p>
                         </div>
 
@@ -319,12 +320,12 @@ export function ProductsClient({ products }: { products: Product[] }) {
                             <Link href={`/order/${product.id}`}>
                               <Button variant="primary" size="sm">
                                 <ShoppingCart className="h-3.5 w-3.5" />
-                                Pesan
+                                {t("Pesan")}
                               </Button>
                             </Link>
                           ) : (
                             <Button variant="outline" size="sm" disabled className="cursor-not-allowed opacity-50">
-                              Habis
+                              {t("Habis")}
                             </Button>
                           )}
                         </div>
@@ -347,7 +348,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
           <div className="min-w-0">
             <h2 className="text-lg font-extrabold">{t("Siap mulai?")}</h2>
             <p className="mt-0.5 text-sm text-base-ink/60">
-              Pembayaran QRIS, token langsung terkirim otomatis.
+              {t("Pembayaran QRIS, token langsung terkirim otomatis.")}
             </p>
           </div>
         </div>
