@@ -235,7 +235,7 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
           <Button type="button" variant="outline" size="sm" className="px-2.5 py-1.5 text-xs" onClick={logout}><LogOut className="h-3.5 w-3.5" /> Kunci lagi</Button>
         </div>
       </div>
-      <div className="mb-6 grid grid-cols-2 gap-2 rounded-neo border-2 border-base-ink bg-white p-2 shadow-neo sm:grid-cols-4 lg:grid-cols-7">
+      <div className="mb-6 grid grid-cols-2 gap-2 rounded-neo border-2 border-base-ink bg-white p-2 shadow-neo sm:grid-cols-4 md:grid-cols-7">
         {tabs.map(([id, label]) => {
           const Icon = tabIcons[id];
           return (
@@ -255,45 +255,47 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
             <Stat label="Terpakai" value={formatTokens(data.usage.total_tokens)} color="bg-accent-sun" />
             <Stat label="Maksimal" value={formatTokens(data.maxTokens)} color="bg-white" />
           </div>
-          <Card>
-            <CardHeader><CardTitle>Pemakaian</CardTitle></CardHeader>
-            <CardContent>
-              <div className="relative h-5 overflow-hidden rounded-full border-2 border-base-ink bg-base-bg">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ duration: 0.9, ease: "easeOut" }} className="relative h-full bg-accent-lavender">
-                  <motion.span animate={{ x: ["-100%", "300%"] }} transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }} className="absolute inset-y-0 w-1/3 skew-x-[-25deg] bg-white/35" />
-                </motion.div>
-              </div>
-              <p className="mt-2 text-sm font-bold">{percentage}% terpakai · {data.usage.requests.toLocaleString("id-ID")} request</p>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                <Mini label="Prompt" value={data.usage.prompt_tokens.toLocaleString("id-ID")} />
-                <Mini label="Completion" value={data.usage.completion_tokens.toLocaleString("id-ID")} />
-                <Mini label="Cached" value={data.usage.cachedTokens.toLocaleString("id-ID")} />
-                <Mini label="Valid days" value={data.validDays == null ? "-" : String(data.validDays)} />
-              </div>
-              <p className="mt-3 text-xs font-bold text-base-ink/50">Berakhir: {data.expiresAt ? new Date(data.expiresAt).toLocaleString("id-ID") : "-"}</p>
-            </CardContent>
-          </Card>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className="flex flex-col">
-              <CardHeader><CardTitle className="flex items-center gap-2"><KeyRound className="h-5 w-5" /> API Key</CardTitle></CardHeader>
-              <CardContent className="flex flex-1 flex-col">
-                <code className="block break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold">{showKey ? data.key : data.keyMasked}</code>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button type="button" variant="outline" size="sm" onClick={() => setShowKey((value) => !value)}>{showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{showKey ? "Sembunyikan" : "Tampilkan"}</Button>
-                  <Button type="button" size="sm" onClick={() => copy("key", data.key)}><Copy className="h-4 w-4" />{copied === "key" ? "Tersalin" : "Copy key"}</Button>
+          <div className="grid gap-4 xl:grid-cols-3">
+            <Card className="xl:col-span-2">
+              <CardHeader><CardTitle>Pemakaian</CardTitle></CardHeader>
+              <CardContent>
+                <div className="relative h-5 overflow-hidden rounded-full border-2 border-base-ink bg-base-bg">
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ duration: 0.9, ease: "easeOut" }} className="relative h-full bg-accent-lavender">
+                    <motion.span animate={{ x: ["-100%", "300%"] }} transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }} className="absolute inset-y-0 w-1/3 skew-x-[-25deg] bg-white/35" />
+                  </motion.div>
                 </div>
+                <p className="mt-2 text-sm font-bold">{percentage}% terpakai · {data.usage.requests.toLocaleString("id-ID")} request</p>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                  <Mini label="Prompt" value={data.usage.prompt_tokens.toLocaleString("id-ID")} />
+                  <Mini label="Completion" value={data.usage.completion_tokens.toLocaleString("id-ID")} />
+                  <Mini label="Cached" value={data.usage.cachedTokens.toLocaleString("id-ID")} />
+                  <Mini label="Valid days" value={data.validDays == null ? "-" : String(data.validDays)} />
+                </div>
+                <p className="mt-3 text-xs font-bold text-base-ink/50">Berakhir: {data.expiresAt ? new Date(data.expiresAt).toLocaleString("id-ID") : "-"}</p>
               </CardContent>
             </Card>
-            <Card className="flex flex-col">
-              <CardHeader><CardTitle className="flex items-center gap-2"><Link2 className="h-5 w-5" /> Base URL</CardTitle></CardHeader>
-              <CardContent className="flex flex-1 flex-col">
-                <code className="block break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 font-mono text-sm font-bold">{data.baseUrl}</code>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button type="button" size="sm" onClick={() => copy("base", data.baseUrl)}><Copy className="h-4 w-4" />{copied === "base" ? "Tersalin" : "Copy Base URL"}</Button>
-                </div>
-                <p className="mt-3 break-all text-xs font-bold text-base-ink/50">{data.baseUrl}/models · {data.baseUrl}/chat/completions</p>
-              </CardContent>
-            </Card>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+              <Card className="flex flex-col">
+                <CardHeader><CardTitle className="flex items-center gap-2"><KeyRound className="h-5 w-5" /> API Key</CardTitle></CardHeader>
+                <CardContent className="flex flex-1 flex-col">
+                  <code className="block break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold">{showKey ? data.key : data.keyMasked}</code>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => setShowKey((value) => !value)}>{showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{showKey ? "Sembunyikan" : "Tampilkan"}</Button>
+                    <Button type="button" size="sm" onClick={() => copy("key", data.key)}><Copy className="h-4 w-4" />{copied === "key" ? "Tersalin" : "Copy key"}</Button>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="flex flex-col">
+                <CardHeader><CardTitle className="flex items-center gap-2"><Link2 className="h-5 w-5" /> Base URL</CardTitle></CardHeader>
+                <CardContent className="flex flex-1 flex-col">
+                  <code className="block break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 font-mono text-sm font-bold">{data.baseUrl}</code>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button type="button" size="sm" onClick={() => copy("base", data.baseUrl)}><Copy className="h-4 w-4" />{copied === "base" ? "Tersalin" : "Copy Base URL"}</Button>
+                  </div>
+                  <p className="mt-3 break-all text-xs font-bold text-base-ink/50">{data.baseUrl}/models · {data.baseUrl}/chat/completions</p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </motion.div>
       ) : null}
@@ -1094,10 +1096,120 @@ function ContactCs({ resellerCs }: { resellerCs: { name: string; waNumber: strin
   );
 }
 
+type HermesOs = "linux" | "windows" | "macos";
+
+function HermesSetup({ copy, copied, data }: { copy: (label: string, value: string) => Promise<void>; copied: string | null; data: QuotaDashboardView }) {
+  const [os, setOs] = useState<HermesOs>("linux");
+  const [showKey, setShowKey] = useState(false);
+
+  const baseUrl = data.baseUrl.replace(/\/$/, "");
+  const origin = baseUrl.replace(/\/v1$/, "");
+  const apiKey = data.key || "";
+  const maskedKey = apiKey ? `${apiKey.slice(0, 6)}${"•".repeat(18)}${apiKey.slice(-4)}` : "API_KEY_KAMU";
+
+  const build = useCallback(
+    (key: string) => ({
+      linux: [
+        {
+          id: "hermes-linux",
+          label: "Terminal (bash)",
+          command: `BASE_URL="${baseUrl}" API_KEY="${key}" bash <(curl -fsSL ${origin}/docs/linux.sh)`,
+        },
+      ],
+      macos: [
+        {
+          id: "hermes-macos",
+          label: "Terminal (bash)",
+          command: `BASE_URL="${baseUrl}" API_KEY="${key}" bash <(curl -fsSL ${origin}/docs/macos.sh)`,
+        },
+      ],
+      windows: [
+        {
+          id: "hermes-win-ps",
+          label: "PowerShell",
+          command: `$env:BASE_URL="${baseUrl}"; $env:API_KEY="${key}"; iex (irm ${origin}/docs/windows.ps1)`,
+        },
+        {
+          id: "hermes-win-cmd",
+          label: "CMD",
+          command: `set "BASE_URL=${baseUrl}" && set "API_KEY=${key}" && powershell -NoProfile -ExecutionPolicy Bypass -Command "iex (irm ${origin}/docs/windows.ps1)"`,
+        },
+      ],
+    }),
+    [baseUrl, origin]
+  );
+
+  const realBlocks = build(apiKey)[os];
+  const shownBlocks = build(showKey ? apiKey : maskedKey)[os];
+
+  const osTabs: Array<[HermesOs, string]> = [
+    ["linux", "Linux / VPS"],
+    ["windows", "Windows"],
+    ["macos", "macOS"],
+  ];
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-semibold text-base-ink/60">
+        Base URL dan API key di bawah sudah terisi otomatis dari akun kamu. Tinggal salin lalu tempel di terminal.
+      </p>
+
+      <div className="grid grid-cols-3 gap-2 rounded-neo border-2 border-base-ink bg-base-bg p-2">
+        {osTabs.map(([id, label]) => (
+          <motion.button
+            key={id}
+            type="button"
+            onClick={() => setOs(id)}
+            whileHover={{ y: -2 }}
+            whileTap={{ y: 1 }}
+            className={cn(
+              "rounded-neo border-2 border-base-ink px-2 py-2 text-[11px] font-extrabold uppercase",
+              os === id ? "bg-accent-sky" : "bg-white"
+            )}
+          >
+            {label}
+          </motion.button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="outline" size="sm" onClick={() => setShowKey((value) => !value)}>
+          {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          {showKey ? "Sembunyikan API key" : "Tampilkan API key"}
+        </Button>
+      </div>
+
+      {shownBlocks.map((block, index) => (
+        <div key={block.id} className="rounded-neo border-2 border-base-ink bg-white p-3">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-base-ink/50">{block.label}</p>
+          <code className="mt-2 block whitespace-pre-wrap break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 font-mono text-xs font-bold">
+            {block.command}
+          </code>
+          <Button type="button" size="sm" className="mt-2" onClick={() => copy(block.id, realBlocks[index].command)}>
+            <Copy className="h-4 w-4" />
+            {copied === block.id ? "Tersalin" : "Salin perintah"}
+          </Button>
+        </div>
+      ))}
+
+      <div className="rounded-neo border-2 border-base-ink bg-accent-sunSoft p-3">
+        <p className="text-xs font-bold text-base-ink/70">
+          Script bersifat idempotent — aman dijalankan berulang. Hermes akan diinstall otomatis bila belum ada, lalu Base URL
+          dan API key kamu langsung dipasang. Setelah selesai, jalankan <code className="font-mono font-extrabold">hermes</code>.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function Tutorial({ copy, copied, data }: { copy: (label: string, value: string) => Promise<void>; copied: string | null; data: QuotaDashboardView }) {
   const command = "npx --yes @buatprem/autosetup@latest";
   return (
     <div className="space-y-4">
+      <CollapsibleCard title="Setup Hermes" defaultOpen={false}>
+        <HermesSetup copy={copy} copied={copied} data={data} />
+      </CollapsibleCard>
+
       <CollapsibleCard title="Setup VSCode" defaultOpen={false}>
         <div className="space-y-3">
           <p className="text-sm font-semibold text-base-ink/60">Tonton panduan setup VSCode di bawah ini:</p>
@@ -1179,11 +1291,11 @@ function CollapsibleCard({ title, defaultOpen = false, children }: { title: stri
 
 function QuotaShell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-base-bg p-4 sm:p-8">
+    <main className={cn("relative min-h-screen overflow-hidden bg-base-bg p-3 sm:p-5", wide ? "lg:p-6" : "sm:p-8")}>
       <svg aria-hidden className="pointer-events-none fixed inset-0 h-full w-full text-base-ink/[0.045]"><defs><pattern id="quota-grid" width="36" height="36" patternUnits="userSpaceOnUse"><path d="M36 0H0V36" fill="none" stroke="currentColor" strokeWidth="1" /></pattern></defs><rect width="100%" height="100%" fill="url(#quota-grid)" /></svg>
       <motion.svg animate={{ rotate: 360 }} transition={{ duration: 35, repeat: Infinity, ease: "linear" }} viewBox="0 0 200 200" aria-hidden className="pointer-events-none fixed -right-28 -top-28 h-80 w-80 text-accent-sky/35"><path d="M100 8 120 72 188 72 133 112 154 178 100 138 46 178 67 112 12 72 80 72Z" fill="currentColor" /></motion.svg>
       <motion.svg animate={{ y: [0, -18, 0], rotate: [0, 8, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} viewBox="0 0 160 160" aria-hidden className="pointer-events-none fixed -bottom-20 -left-20 h-64 w-64 text-accent-sun/40"><rect x="30" y="30" width="100" height="100" rx="18" fill="currentColor" stroke="currentColor" strokeWidth="4" /></motion.svg>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className={cn("relative mx-auto w-full", wide ? "max-w-5xl" : "max-w-lg")}>{children}</motion.div>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className={cn("relative mx-auto w-full", wide ? "max-w-none" : "max-w-lg")}>{children}</motion.div>
     </main>
   );
 }
