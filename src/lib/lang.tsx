@@ -205,13 +205,6 @@ const DICT: Record<string, string> = {
     "Save the data above — it's the access key to your product.",
   "Produk sedang diproses dan dikirim otomatis — halaman ini diperbarui sendiri.":
     "Your product is being processed and delivered automatically — this page updates itself.",
-
-  // Order WA field
-  "No. WhatsApp": "WhatsApp Number",
-  "opsional": "optional",
-  "Detail produk dikirim ke WhatsApp ini setelah pembayaran sukses.":
-    "Product details are sent to this WhatsApp after successful payment.",
-  "Nomor WhatsApp harus format 62xxxxxxxxxx": "WhatsApp number must be in 62xxxxxxxxxx format",
 };
 
 export function useT() {
