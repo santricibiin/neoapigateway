@@ -36,7 +36,7 @@ const statusStyle: Record<string, string> = {
   processing: "bg-accent-sky",
   delivering: "bg-accent-lavender",
   paid: "bg-accent-mint",
-  failed: "bg-red-200",
+  failed: "bg-accent-terraSoft",
   expired: "bg-orange-200",
 };
 
@@ -121,7 +121,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-lavender shadow-neo-sm">
+        <span className="flex h-11 w-11 items-center justify-center rounded-neo border border-base-line bg-accent-lavender shadow-neo-sm">
           <ReceiptText className="h-5 w-5" />
         </span>
         <div>
@@ -140,7 +140,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
       </div>
 
       <div className="grid gap-2 lg:grid-cols-[1fr_220px]">
-        <label className="flex h-11 items-center gap-2 rounded-neo border-2 border-base-ink bg-white px-3 shadow-neo-sm">
+        <label className="flex h-11 items-center gap-2 rounded-neo border border-base-line bg-white px-3 shadow-neo-sm">
           <Search className="h-4 w-4 text-base-ink/45" />
           <input
             value={query}
@@ -155,7 +155,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
         <select
           value={status}
           onChange={(event) => filter(event.target.value)}
-          className="rounded-neo border-2 border-base-ink bg-white px-3 text-sm font-bold shadow-neo-sm"
+          className="rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm"
         >
           {statuses.map((item) => (
             <option key={item} value={item}>
@@ -165,7 +165,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
         </select>
       </div>
 
-      <div className="overflow-hidden rounded-neo border-2 border-base-ink bg-white shadow-neo">
+      <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left">
             <thead className="bg-base-ink text-xs uppercase tracking-wide text-white">
@@ -179,7 +179,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
                 <th className="px-4 py-3">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y-2 divide-base-ink/15">
+            <tbody className="divide-y divide-base-line">
               {visible.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-sm font-bold text-base-ink/40">
@@ -212,7 +212,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex rounded-full border-2 border-base-ink px-2.5 py-1 text-[10px] font-black uppercase ${
+                        className={`inline-flex rounded-full border border-base-line px-2.5 py-1 text-[10px] font-black uppercase ${
                           statusStyle[item.status] || "bg-base-bg"
                         }`}
                       >
@@ -259,7 +259,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
             <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((v) => v - 1)}>
               <ChevronLeft className="h-4 w-4" /> Sebelum
             </Button>
-            <span className="flex items-center rounded-neo border-2 border-base-ink bg-accent-sun px-3 text-xs font-black">
+            <span className="flex items-center rounded-neo border border-base-line bg-accent-sun px-3 text-xs font-black">
               {page}/{totalPages}
             </span>
             <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => setPage((v) => v + 1)}>
@@ -284,7 +284,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
               <Detail label="Dibayar" value={new Date(detail.paidAt).toLocaleString("id-ID")} />
             ) : null}
             {detail.delivered ? (
-              <div className="rounded-neo border-2 border-base-ink bg-base-bg p-3">
+              <div className="rounded-neo border border-base-line bg-base-bg p-3">
                 <p className="mb-1 text-[10px] font-black uppercase text-base-ink/45">Detail Produk</p>
                 <pre className="whitespace-pre-wrap break-all font-mono text-xs">{detail.delivered}</pre>
               </div>
@@ -323,7 +323,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
       >
         {fulfillTarget ? (
           <div className="space-y-4">
-            <div className="rounded-neo border-2 border-base-ink bg-accent-sky p-4">
+            <div className="rounded-neo border border-base-line bg-accent-sky p-4">
               <p className="font-mono text-sm font-black">{fulfillTarget.reference}</p>
               <p className="text-sm font-bold">{fulfillTarget.buyerName}</p>
               <p className="mt-0.5 text-xs text-base-ink/70">
@@ -339,7 +339,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
                 : "Transaksi akan ditandai lunas & produk dibuat/dikirim langsung. Lanjut?"}
             </p>
             {fulfillError ? (
-              <p className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">
+              <p className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">
                 {fulfillError}
               </p>
             ) : null}
@@ -366,11 +366,11 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
       >
         {fulfillResult ? (
           <div className="space-y-3">
-            <div className="rounded-neo border-2 border-base-ink bg-accent-mint p-4 text-center">
+            <div className="rounded-neo border border-base-line bg-accent-mint p-4 text-center">
               <CheckCircle2 className="mx-auto h-10 w-10" />
               <p className="mt-2 font-extrabold">Pesanan diselesaikan</p>
             </div>
-            <div className="rounded-neo border-2 border-base-ink bg-base-bg p-3">
+            <div className="rounded-neo border border-base-line bg-base-bg p-3">
               <p className="mb-1 text-[10px] font-black uppercase text-base-ink/45">Detail Produk</p>
               <pre className="whitespace-pre-wrap break-all font-mono text-xs">{fulfillResult}</pre>
             </div>
@@ -393,7 +393,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
 
 function Summary({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <motion.div whileHover={{ y: -3 }} className={`rounded-neo border-2 border-base-ink p-4 shadow-neo-sm ${color}`}>
+    <motion.div whileHover={{ y: -3 }} className={`rounded-neo border border-base-line p-4 shadow-neo-sm ${color}`}>
       <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">{label}</p>
       <p className="mt-1 text-xl font-black">{value}</p>
     </motion.div>
@@ -413,7 +413,7 @@ function Detail({
 }) {
   return (
     <div
-      className={`flex items-start justify-between gap-3 rounded-neo border-2 border-base-ink px-3 py-2 ${
+      className={`flex items-start justify-between gap-3 rounded-neo border border-base-line px-3 py-2 ${
         accent ? "bg-accent-sun" : "bg-base-bg"
       }`}
     >

@@ -37,7 +37,7 @@ export function DashboardBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center gap-1 overflow-x-auto border-t-2 border-base-ink bg-base-surface px-1 py-1.5 lg:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center gap-1 overflow-x-auto border-t border-base-line bg-base-surface px-1 py-1.5 lg:hidden">
       {menu.map((item) => {
         const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
         const Icon = item.icon;

@@ -17,13 +17,13 @@ export function DashboardHeader({
   const logoUrl = brand?.logoUrl;
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b-2 border-base-ink bg-base-surface px-4 sm:px-6">
+    <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-base-line bg-base-surface px-4 sm:px-6">
       <div className="flex items-center gap-3">
         <motion.button
           whileHover={{ y: -2 }}
           whileTap={{ y: 2 }}
           onClick={onToggleSidebar}
-          className="hidden h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun shadow-neo-sm lg:inline-flex"
+          className="hidden h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-accent-sun shadow-neo-sm lg:inline-flex"
           aria-label="Toggle sidebar"
         >
           <Menu className="h-5 w-5 text-base-ink" strokeWidth={2.5} />
@@ -32,7 +32,7 @@ export function DashboardHeader({
           <img src={logoUrl} alt={siteName} className="h-8 max-w-[140px] object-contain" />
         ) : (
           <>
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky shadow-neo-sm">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-neo border border-base-line bg-accent-sky shadow-neo-sm">
               <Zap className="h-5 w-5 text-base-ink" strokeWidth={2.5} />
             </span>
             <span className="text-lg font-extrabold">{siteName}</span>

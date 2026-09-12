@@ -94,8 +94,8 @@ export function ResellerClient({
           <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
             <AlertCircle className="h-10 w-10 text-red-500" strokeWidth={2.5} />
             <div>
-              <p className="font-bold text-red-700">{error}</p>
-              <p className="mt-1 text-sm text-red-600/70">
+              <p className="font-bold text-accent-terraDeep">{error}</p>
+              <p className="mt-1 text-sm text-accent-terraDeep/70">
                 Pastikan Secret Key dan PIN sudah diatur di Pengaturan
               </p>
             </div>
@@ -138,7 +138,7 @@ export function ResellerClient({
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-neo border-2 border-base-ink bg-red-100 px-4 py-3 text-sm font-semibold text-red-700">
+        <div className="flex items-center gap-2 rounded-neo border border-base-line bg-accent-terraSoft px-4 py-3 text-sm font-semibold text-accent-terraDeep">
           <AlertCircle className="h-4 w-4" strokeWidth={2.5} />
           {error}
         </div>
@@ -152,7 +152,7 @@ export function ResellerClient({
       >
         <Card hover className="bg-accent-sky/30">
           <CardContent className="flex items-center gap-3 p-4 sm:p-5">
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky shadow-neo-sm">
+            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sky shadow-neo-sm">
               <Wallet className="h-4 w-4" strokeWidth={2.5} />
             </span>
             <div>
@@ -165,7 +165,7 @@ export function ResellerClient({
 
         <Card hover className="bg-accent-sun/30">
           <CardContent className="flex items-center gap-3 p-4 sm:p-5">
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun shadow-neo-sm">
+            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sun shadow-neo-sm">
               <TrendingUp className="h-4 w-4" strokeWidth={2.5} />
             </span>
             <div>
@@ -224,10 +224,10 @@ export function ResellerClient({
               </ResponsiveContainer>
             </div>
             <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">
-              <span className="rounded-neo border-2 border-base-ink bg-accent-sun px-3 py-1.5">
+              <span className="rounded-neo border border-base-line bg-accent-sun px-3 py-1.5">
                 Terpakai: {formatNumber(totalUsage)}
               </span>
-              <span className="rounded-neo border-2 border-base-ink bg-accent-mint px-3 py-1.5">
+              <span className="rounded-neo border border-base-line bg-accent-mint px-3 py-1.5">
                 Sisa: {formatNumber(balance)}
               </span>
             </div>
@@ -258,7 +258,7 @@ export function ResellerClient({
                     initial={{ opacity: 0, x: 12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + index * 0.04 }}
-                    className="rounded-neo border-2 border-base-ink bg-base-bg p-4"
+                    className="rounded-neo border border-base-line bg-base-bg p-4"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-xs font-extrabold uppercase">

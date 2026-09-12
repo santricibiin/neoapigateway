@@ -20,7 +20,7 @@ function LangToggle() {
     { value: "en", label: "EN" },
   ];
   return (
-    <div className="flex items-center rounded-neo border-2 border-base-ink bg-base-surface p-0.5 shadow-neo-sm">
+    <div className="flex items-center rounded-neo border border-base-line bg-base-surface p-0.5 shadow-neo-sm">
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -53,14 +53,14 @@ export function Navbar() {
       initial={{ opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="sticky top-0 z-40 border-b-2 border-base-ink bg-base-bg/90 backdrop-blur"
+      className="sticky top-0 z-40 border-b border-base-line bg-base-bg/90 backdrop-blur"
     >
       <nav className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="flex items-center gap-2.5">
           {logoUrl ? (
             <img src={logoUrl} alt={siteName} className="h-8 max-w-[140px] object-contain" />
           ) : (
-            <span className="flex h-9 w-9 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun text-lg font-extrabold shadow-neo-sm">
+            <span className="flex h-9 w-9 items-center justify-center rounded-neo border border-base-line bg-accent-sun text-lg font-extrabold shadow-neo-sm">
               {shortName}
             </span>
           )}
@@ -92,7 +92,7 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="flex h-9 w-9 items-center justify-center rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm sm:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-neo border border-base-line bg-base-surface shadow-neo-sm sm:hidden"
             aria-label="Menu"
           >
             {open ? <X className="h-4 w-4" strokeWidth={2.5} /> : <Menu className="h-4 w-4" strokeWidth={2.5} />}
@@ -106,7 +106,7 @@ export function Navbar() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t-2 border-base-ink/10 sm:hidden"
+            className="overflow-hidden border-t border-base-line sm:hidden"
           >
             <ul className="flex flex-col gap-1 px-4 py-3">
               {navLinks.map((link) => {

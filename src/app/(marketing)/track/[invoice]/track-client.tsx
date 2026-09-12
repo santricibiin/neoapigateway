@@ -128,7 +128,7 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`flex flex-col gap-4 rounded-neo border-2 border-base-ink p-6 shadow-neo sm:p-8 ${
+            className={`flex flex-col gap-4 rounded-neo border border-base-line p-6 shadow-neo sm:p-8 ${
               isPaid ? "bg-accent-mint" : isExpired ? "bg-accent-sun" : "bg-base-surface"
             }`}
           >
@@ -158,7 +158,7 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
                 <div key={step.key} className="flex items-center">
                   <div className="flex flex-col items-center gap-1">
                     <span
-                      className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-base-ink ${
+                      className={`flex h-8 w-8 items-center justify-center rounded-full border border-base-line ${
                         step.done ? "bg-base-ink text-white" : "bg-white text-base-ink/30"
                       }`}
                     >
@@ -181,7 +181,7 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6"
+              className="rounded-neo border border-base-line bg-base-surface p-5 shadow-neo sm:p-6"
             >
               <div className="mb-3 flex items-center justify-between">
                 <span className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide">
@@ -190,13 +190,13 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
                 </span>
                 <button
                   onClick={() => copyValue("delivered", order.delivered || "")}
-                  className="inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-base-surface px-2 py-1 text-xs font-bold shadow-neo-sm"
+                  className="inline-flex items-center gap-1.5 rounded-neo border border-base-line bg-base-surface px-2 py-1 text-xs font-bold shadow-neo-sm"
                 >
                   <Copy className="h-3 w-3" />
                   {copied === "delivered" ? t("Tersalin") : t("Salin")}
                 </button>
               </div>
-              <pre className="whitespace-pre-wrap break-all rounded-neo border-2 border-base-ink/10 bg-base-bg p-3 font-mono text-xs leading-relaxed">{order.delivered}</pre>
+              <pre className="whitespace-pre-wrap break-all rounded-neo border border-base-line/10 bg-base-bg p-3 font-mono text-xs leading-relaxed">{order.delivered}</pre>
             </motion.div>
           )}
 
@@ -219,26 +219,26 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
 
         {/* Kanan: invoice */}
         <aside className="flex flex-col gap-5">
-          <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
+          <div className="rounded-neo border border-base-line bg-base-surface p-5 shadow-neo sm:p-6">
             <div className="flex items-center justify-between gap-2">
               <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-base-ink/50">
                 <Receipt className="h-4 w-4" />
                 {t("No. Invoice")}
               </h2>
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full border-2 border-base-ink px-2.5 py-1 text-[10px] font-black uppercase ${
-                  isPaid ? "bg-accent-mint" : isExpired ? "bg-red-200" : "bg-accent-skySoft"
+                className={`inline-flex items-center gap-1.5 rounded-full border border-base-line px-2.5 py-1 text-[10px] font-black uppercase ${
+                  isPaid ? "bg-accent-mint" : isExpired ? "bg-accent-terraSoft" : "bg-accent-skySoft"
                 }`}
               >
-                <span className={`h-1.5 w-1.5 rounded-full ${isPaid ? "bg-green-600" : isExpired ? "bg-red-500" : "bg-blue-500"}`} />
+                <span className={`h-1.5 w-1.5 rounded-full ${isPaid ? "bg-accent-sageDeep" : isExpired ? "bg-[#B4522E]" : "bg-accent-sage"}`} />
                 {statusLabel}
               </span>
             </div>
-            <div className="mt-3 flex items-center justify-between gap-2 rounded-neo border-2 border-base-ink/10 bg-base-bg p-3">
+            <div className="mt-3 flex items-center justify-between gap-2 rounded-neo border border-base-line/10 bg-base-bg p-3">
               <span className="break-all font-mono text-sm font-bold">{order.invoice}</span>
               <button
                 onClick={() => copyValue("invoice", order.invoice)}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-neo border-2 border-base-ink bg-base-surface px-2 py-1 text-xs font-bold shadow-neo-sm"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-neo border border-base-line bg-base-surface px-2 py-1 text-xs font-bold shadow-neo-sm"
               >
                 <Copy className="h-3 w-3" />
                 {copied === "invoice" ? t("Tersalin") : t("Salin")}
@@ -246,7 +246,7 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
             </div>
           </div>
 
-          <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
+          <div className="rounded-neo border border-base-line bg-base-surface p-5 shadow-neo sm:p-6">
             <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-base-ink/50">
               <Receipt className="h-4 w-4" />
               {t("Ringkasan Pesanan")}
@@ -278,7 +278,7 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
                 <dt className="font-semibold text-base-ink/60">{t("Harga Satuan")}</dt>
                 <dd className="font-bold">{formatRupiah(order.unitPrice)}</dd>
               </div>
-              <div className="flex justify-between gap-2 border-t-2 border-dashed border-base-ink/15 pt-2">
+              <div className="flex justify-between gap-2 border-t border-dashed border-base-line pt-2">
                 <dt className="font-extrabold">{t("Total Dibayar")}</dt>
                 <dd className="text-xl font-extrabold">{formatRupiah(order.amount)}</dd>
               </div>

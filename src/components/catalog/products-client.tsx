@@ -136,7 +136,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
-          className="relative rounded-neo border-2 border-base-ink bg-accent-sun px-4 py-1.5 text-sm font-bold shadow-neo-sm"
+          className="relative rounded-neo border border-base-line bg-accent-sun px-4 py-1.5 text-sm font-bold shadow-neo-sm"
         >
           <Package className="mr-1.5 inline-block h-4 w-4" />
           {totalAvailable} {t("paket siap pakai")}
@@ -169,7 +169,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
               {t("Cek Pesanan")}
             </Button>
           </Link>
-          <div className="flex items-center rounded-neo border-2 border-base-ink bg-base-surface p-0.5 shadow-neo-sm">
+          <div className="flex items-center rounded-neo border border-base-line bg-base-surface p-0.5 shadow-neo-sm">
             {modeTabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -196,7 +196,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
         {categories.map((category) => (
           <div key={category} className="flex flex-col gap-3 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-3">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky shadow-neo-sm">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-neo border border-base-line bg-accent-sky shadow-neo-sm">
                 <BadgeCheck className="h-4 w-4" />
               </span>
               <h2 className="text-lg font-extrabold sm:text-xl">{category === "__none__" ? t("Lainnya") : category}</h2>
@@ -222,7 +222,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
                       variants={cell}
                       whileHover={{ y: -3 }}
                       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                      className="flex flex-col rounded-neo border-2 border-base-ink bg-base-surface p-4 shadow-neo-sm transition-shadow hover:shadow-neo"
+                      className="flex flex-col rounded-neo border border-base-line bg-base-surface p-4 shadow-neo-sm transition-shadow hover:shadow-neo"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
@@ -235,21 +235,21 @@ export function ProductsClient({ products }: { products: Product[] }) {
                           </span>
                         </div>
                         <span
-                          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase ${
-                            available ? "bg-accent-mint" : "bg-red-200"
+                          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase ${
+                            available ? "bg-accent-mint" : "bg-accent-terraSoft"
                           }`}
                         >
-                          <span className={`h-1.5 w-1.5 rounded-full ${available ? "bg-green-600" : "bg-red-500"}`} />
+                          <span className={`h-1.5 w-1.5 rounded-full ${available ? "bg-accent-sageDeep" : "bg-[#B4522E]"}`} />
                           {available ? t("Aktif") : t("Habis")}
                         </span>
                       </div>
 
-                      <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t-2 border-dashed border-base-ink/15 pt-3">
-                        <span className="inline-flex items-center gap-1 rounded-neo border-2 border-base-ink bg-base-bg px-1.5 py-0.5 font-mono text-[10px] font-black">
+                      <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-dashed border-base-line pt-3">
+                        <span className="inline-flex items-center gap-1 rounded-neo border border-base-line bg-base-bg px-1.5 py-0.5 font-mono text-[10px] font-black">
                           <Coins className="h-3 w-3" strokeWidth={2.5} />
                           {tokens !== null ? `${formatTokens(tokens)} tok` : product.sku ?? "-"}
                         </span>
-                        <span className="inline-flex items-center gap-1 rounded-neo border-2 border-base-ink bg-base-bg px-1.5 py-0.5 text-[10px] font-black">
+                        <span className="inline-flex items-center gap-1 rounded-neo border border-base-line bg-base-bg px-1.5 py-0.5 text-[10px] font-black">
                           <Boxes className="h-3 w-3" strokeWidth={2.5} />
                           {count !== undefined ? `${count} ${t(labelId)}` : t(labelId)}
                         </span>
@@ -277,9 +277,9 @@ export function ProductsClient({ products }: { products: Product[] }) {
             ) : (
               <div
                 key={`table-${category}`}
-                className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm"
+                className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm"
               >
-                <div className="divide-y-2 divide-base-ink/15">
+                <div className="divide-y divide-base-line">
                   {grouped[category].map((product) => {
                     const { available, labelId, count } = getAvailability(product, resellerQuota);
                     return (
@@ -298,11 +298,11 @@ export function ProductsClient({ products }: { products: Product[] }) {
                         {/* Stok — HP: bawah nama; tablet/PC: kolom sendiri */}
                         <div className="col-start-2 row-start-1 justify-self-end sm:col-start-2 sm:row-start-1 sm:justify-self-end">
                           <span
-                            className={`inline-flex items-center gap-1.5 rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase ${
-                              available ? "bg-accent-mint" : "bg-red-200"
+                            className={`inline-flex items-center gap-1.5 rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase ${
+                              available ? "bg-accent-mint" : "bg-accent-terraSoft"
                             }`}
                           >
-                            <span className={`h-1.5 w-1.5 rounded-full ${available ? "bg-green-600" : "bg-red-500"}`} />
+                            <span className={`h-1.5 w-1.5 rounded-full ${available ? "bg-accent-sageDeep" : "bg-[#B4522E]"}`} />
                             {count !== undefined ? `${count} ${t(labelId)}` : t(labelId)}
                           </span>
                         </div>
@@ -339,9 +339,9 @@ export function ProductsClient({ products }: { products: Product[] }) {
       </section>
 
       {/* Info bar bawah */}
-      <section className="relative flex flex-col items-center gap-4 rounded-neo border-2 border-base-ink bg-base-surface p-5 text-center shadow-neo-sm sm:flex-row sm:justify-between sm:text-left">
+      <section className="relative flex flex-col items-center gap-4 rounded-neo border border-base-line bg-base-surface p-5 text-center shadow-neo-sm sm:flex-row sm:justify-between sm:text-left">
         <div className="flex items-center gap-4">
-          <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun">
+          <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sun">
             <Zap className="h-5 w-5" strokeWidth={2.5} />
           </span>
           <div className="min-w-0">

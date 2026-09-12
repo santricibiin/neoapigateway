@@ -16,9 +16,9 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        whileHover={hover ? { y: -4 } : undefined}
+        whileHover={hover ? { y: -2 } : undefined}
         className={cn(
-          "rounded-neo border-2 border-base-ink bg-base-surface p-6 shadow-neo",
+          "rounded-neo border border-base-line bg-base-surface p-6 shadow-neo",
           className
         )}
         {...props}

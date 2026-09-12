@@ -235,11 +235,11 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
           <Button type="button" variant="outline" size="sm" className="px-2.5 py-1.5 text-xs" onClick={logout}><LogOut className="h-3.5 w-3.5" /> Kunci lagi</Button>
         </div>
       </div>
-      <div className="mb-6 grid grid-cols-2 gap-2 rounded-neo border-2 border-base-ink bg-white p-2 shadow-neo sm:grid-cols-4 md:grid-cols-7">
+      <div className="mb-6 grid grid-cols-2 gap-2 rounded-neo border border-base-line bg-white p-2 shadow-neo sm:grid-cols-4 md:grid-cols-7">
         {tabs.map(([id, label]) => {
           const Icon = tabIcons[id];
           return (
-            <motion.button key={id} type="button" onClick={() => setTab(id)} whileHover={{ y: -2 }} whileTap={{ y: 1 }} className={cn("relative flex items-center justify-center gap-2 overflow-hidden rounded-neo border-2 border-base-ink px-3 py-2.5 text-xs font-extrabold uppercase", tab === id ? "bg-accent-sky" : "bg-base-bg")}>
+            <motion.button key={id} type="button" onClick={() => setTab(id)} whileHover={{ y: -2 }} whileTap={{ y: 1 }} className={cn("relative flex items-center justify-center gap-2 overflow-hidden rounded-neo border border-base-line px-3 py-2.5 text-xs font-extrabold uppercase", tab === id ? "bg-accent-sky" : "bg-base-bg")}>
               {tab === id ? <motion.span layoutId="active-quota-tab" className="absolute inset-0 bg-accent-sky" transition={{ type: "spring", stiffness: 400, damping: 30 }} /> : null}
               <Icon className="relative h-4 w-4" />
               <span className="relative">{label}</span>
@@ -259,7 +259,7 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
             <Card className="xl:col-span-2">
               <CardHeader><CardTitle>Pemakaian</CardTitle></CardHeader>
               <CardContent>
-                <div className="relative h-5 overflow-hidden rounded-full border-2 border-base-ink bg-base-bg">
+                <div className="relative h-5 overflow-hidden rounded-full border border-base-line bg-base-bg">
                   <motion.div initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ duration: 0.9, ease: "easeOut" }} className="relative h-full bg-accent-lavender">
                     <motion.span animate={{ x: ["-100%", "300%"] }} transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }} className="absolute inset-y-0 w-1/3 skew-x-[-25deg] bg-white/35" />
                   </motion.div>
@@ -278,7 +278,7 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
               <Card className="flex flex-col">
                 <CardHeader><CardTitle className="flex items-center gap-2"><KeyRound className="h-5 w-5" /> API Key</CardTitle></CardHeader>
                 <CardContent className="flex flex-1 flex-col">
-                  <code className="block break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold">{showKey ? data.key : data.keyMasked}</code>
+                  <code className="block break-all rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold">{showKey ? data.key : data.keyMasked}</code>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button type="button" variant="outline" size="sm" onClick={() => setShowKey((value) => !value)}>{showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{showKey ? "Sembunyikan" : "Tampilkan"}</Button>
                     <Button type="button" size="sm" onClick={() => copy("key", data.key)}><Copy className="h-4 w-4" />{copied === "key" ? "Tersalin" : "Copy key"}</Button>
@@ -288,7 +288,7 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
               <Card className="flex flex-col">
                 <CardHeader><CardTitle className="flex items-center gap-2"><Link2 className="h-5 w-5" /> Base URL</CardTitle></CardHeader>
                 <CardContent className="flex flex-1 flex-col">
-                  <code className="block break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 font-mono text-sm font-bold">{data.baseUrl}</code>
+                  <code className="block break-all rounded-neo border border-base-line bg-base-bg p-3 font-mono text-sm font-bold">{data.baseUrl}</code>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button type="button" size="sm" onClick={() => copy("base", data.baseUrl)}><Copy className="h-4 w-4" />{copied === "base" ? "Tersalin" : "Copy Base URL"}</Button>
                   </div>
@@ -325,7 +325,7 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
             <div className="mb-4 grid gap-2 sm:grid-cols-4"><Mini label="Total" value={formatTokens(data.usage.total_tokens)} /><Mini label="Input" value={formatTokens(data.usage.prompt_tokens)} /><Mini label="Output" value={formatTokens(data.usage.completion_tokens)} /><Mini label="Request" value={data.usage.requests.toLocaleString("id-ID")} /></div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-left text-sm">
-                <thead className="border-b-2 border-base-ink"><tr><th className="py-2 pr-3">Model</th><th className="py-2 pr-3 text-right">Total</th><th className="py-2 pr-3 text-right">Input</th><th className="py-2 pr-3 text-right">Output</th><th className="py-2 text-right">Request</th></tr></thead>
+                <thead className="border-b border-base-line"><tr><th className="py-2 pr-3">Model</th><th className="py-2 pr-3 text-right">Total</th><th className="py-2 pr-3 text-right">Input</th><th className="py-2 pr-3 text-right">Output</th><th className="py-2 text-right">Request</th></tr></thead>
                 <tbody>{usageRows.map((row) => <tr key={row.id} className="border-b border-base-ink/15"><td className="py-2 pr-3 font-mono font-bold">{row.id}</td><td className="py-2 pr-3 text-right">{row.total.toLocaleString("id-ID")}</td><td className="py-2 pr-3 text-right">{row.prompt.toLocaleString("id-ID")}</td><td className="py-2 pr-3 text-right">{row.completion.toLocaleString("id-ID")}</td><td className="py-2 text-right">{row.requests.toLocaleString("id-ID")}</td></tr>)}</tbody>
               </table>
             </div>
@@ -439,7 +439,7 @@ function ModelsTable({
             type="button"
             onClick={() => setFilter(value)}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink px-3 py-1.5 text-[11px] font-black uppercase transition-colors",
+              "inline-flex items-center gap-1.5 rounded-neo border border-base-line px-3 py-1.5 text-[11px] font-black uppercase transition-colors",
               filter === value ? "bg-base-ink text-white shadow-neo-sm" : "bg-white hover:bg-accent-sky/25"
             )}
           >
@@ -449,11 +449,11 @@ function ModelsTable({
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo">
+      <div className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b-2 border-base-ink bg-accent-sky">
+              <tr className="border-b border-base-line bg-accent-sky">
                 <th className="px-3 py-3 text-[10px] font-black uppercase tracking-wider">Nama Model</th>
                 <th className="px-3 py-3 text-center text-[10px] font-black uppercase tracking-wider">Vision</th>
                 <th className="px-3 py-3 text-center text-[10px] font-black uppercase tracking-wider">Multiplier</th>
@@ -478,28 +478,28 @@ function ModelsTable({
                     </td>
                     <td className="px-3 py-2.5 text-center">
                       {model.vision ? (
-                        <span title="Vision (text + image)" className="inline-flex items-center gap-1 rounded-full border-2 border-base-ink bg-accent-mint px-2 py-0.5 text-[9px] font-black uppercase">
+                        <span title="Vision (text + image)" className="inline-flex items-center gap-1 rounded-full border border-base-line bg-accent-mint px-2 py-0.5 text-[9px] font-black uppercase">
                           <Eye className="h-3 w-3" /> Vision
                         </span>
                       ) : (
-                        <span title="Text only" className="inline-flex items-center gap-1 rounded-full border-2 border-base-ink/25 bg-base-bg px-2 py-0.5 text-[9px] font-black uppercase text-base-ink/45">
+                        <span title="Text only" className="inline-flex items-center gap-1 rounded-full border border-base-line/25 bg-base-bg px-2 py-0.5 text-[9px] font-black uppercase text-base-ink/45">
                           <EyeOff className="h-3 w-3" /> Text
                         </span>
                       )}
                     </td>
                     <td className="px-3 py-2.5 text-center">
-                      <span className={cn("inline-block rounded-neo border-2 border-base-ink px-2 py-0.5 font-mono text-xs font-black", multiplier > 1 ? "bg-accent-sun" : "bg-white")}>{multiplier}x</span>
+                      <span className={cn("inline-block rounded-neo border border-base-line px-2 py-0.5 font-mono text-xs font-black", multiplier > 1 ? "bg-accent-sun" : "bg-white")}>{multiplier}x</span>
                     </td>
                     <td className="px-3 py-2.5 text-center">
-                      <span className={cn("inline-flex h-7 w-7 items-center justify-center rounded-neo border-2 border-base-ink text-xs font-black", gradeStyle(model.grade))}>{model.grade || "-"}</span>
+                      <span className={cn("inline-flex h-7 w-7 items-center justify-center rounded-neo border border-base-line text-xs font-black", gradeStyle(model.grade))}>{model.grade || "-"}</span>
                     </td>
                     <td className="px-3 py-2.5 text-center">
                       {model.enabled ? (
-                        <span className="inline-flex items-center gap-1 rounded-full border-2 border-base-ink bg-accent-mint px-2 py-0.5 text-[9px] font-black uppercase">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-base-line bg-accent-mint px-2 py-0.5 text-[9px] font-black uppercase">
                           <Check className="h-3 w-3" strokeWidth={3} /> Tersedia
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border-2 border-base-ink bg-red-200 px-2 py-0.5 text-[9px] font-black uppercase">
+                        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-base-line bg-accent-terraSoft px-2 py-0.5 text-[9px] font-black uppercase">
                           <PackageX className="h-3 w-3" /> Out of Stock
                         </span>
                       )}
@@ -508,7 +508,7 @@ function ModelsTable({
                       <button
                         type="button"
                         onClick={() => void copy(`model:${model.id}`, model.id)}
-                        className="inline-flex items-center gap-1 rounded-neo border-2 border-base-ink bg-white px-2 py-1 text-[10px] font-black uppercase shadow-neo-sm transition-colors hover:bg-accent-sky/40"
+                        className="inline-flex items-center gap-1 rounded-neo border border-base-line bg-white px-2 py-1 text-[10px] font-black uppercase shadow-neo-sm transition-colors hover:bg-accent-sky/40"
                       >
                         {copied === `model:${model.id}` ? <Check className="h-3 w-3" strokeWidth={3} /> : <Copy className="h-3 w-3" />}
                         {copied === `model:${model.id}` ? "Ok" : "Copy"}
@@ -537,7 +537,7 @@ function ModelsTable({
               type="button"
               disabled={safePage <= 1}
               onClick={() => setPage(safePage - 1)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-neo border-2 border-base-ink bg-white font-black shadow-neo-sm disabled:opacity-35"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-neo border border-base-line bg-white font-black shadow-neo-sm disabled:opacity-35"
             >
               <ChevronLeft className="h-4 w-4" strokeWidth={3} />
             </button>
@@ -550,7 +550,7 @@ function ModelsTable({
                   type="button"
                   onClick={() => setPage(item as number)}
                   className={cn(
-                    "inline-flex h-8 min-w-8 items-center justify-center rounded-neo border-2 border-base-ink px-2 text-xs font-black shadow-neo-sm",
+                    "inline-flex h-8 min-w-8 items-center justify-center rounded-neo border border-base-line px-2 text-xs font-black shadow-neo-sm",
                     item === safePage ? "bg-accent-sky" : "bg-white hover:bg-accent-sky/30"
                   )}
                 >
@@ -562,7 +562,7 @@ function ModelsTable({
               type="button"
               disabled={safePage >= totalPages}
               onClick={() => setPage(safePage + 1)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-neo border-2 border-base-ink bg-white font-black shadow-neo-sm disabled:opacity-35"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-neo border border-base-line bg-white font-black shadow-neo-sm disabled:opacity-35"
             >
               <ChevronRight className="h-4 w-4" strokeWidth={3} />
             </button>
@@ -763,12 +763,12 @@ function Playground({
 
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-lavender p-5 shadow-neo">
+      <div className="relative overflow-hidden rounded-neo border border-base-line bg-accent-lavender p-5 shadow-neo">
         <motion.svg animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 text-white/35">
           <path d="M50 5 61 38 95 39 68 58 77 91 50 72 23 91 32 58 5 39 39 38Z" fill="currentColor" />
         </motion.svg>
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border-2 border-base-ink bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+          <span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
             <Terminal className="h-3 w-3" /> API Playground
           </span>
           <h1 className="mt-3 text-2xl font-black sm:text-3xl">Test API langsung.</h1>
@@ -788,7 +788,7 @@ function Playground({
                 <Copy className="h-3.5 w-3.5" />{copied === "playground-curl" ? "Tersalin" : "Copy"}
               </Button>
             </div>
-            <pre className="overflow-x-auto rounded-neo border-2 border-base-ink bg-base-ink p-3 text-xs font-mono font-bold text-emerald-300">{playgroundCurl}</pre>
+            <pre className="overflow-x-auto rounded-neo border border-base-line bg-base-ink p-3 text-xs font-mono font-bold text-emerald-300">{playgroundCurl}</pre>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
@@ -800,7 +800,7 @@ function Playground({
                     value={selectedModel}
                     disabled={loadingModels || !models.length}
                     onChange={(event) => selectModel(event.target.value)}
-                    className="w-full rounded-neo border-2 border-base-ink bg-white px-3 py-2 text-sm font-bold focus:outline-none disabled:opacity-50"
+                    className="w-full rounded-neo border border-base-line bg-white px-3 py-2 text-sm font-bold focus:outline-none disabled:opacity-50"
                   >
                     {!models.length ? <option value="">{loadingModels ? "Memuat model..." : "Model tidak tersedia"}</option> : null}
                     {models.map((id) => (
@@ -824,9 +824,9 @@ function Playground({
                   onChange={(event) => setBodyText(event.target.value)}
                   spellCheck={false}
                   rows={12}
-                  className="w-full resize-y rounded-neo border-2 border-base-ink bg-base-bg p-3 font-mono text-xs font-bold focus:outline-none"
+                  className="w-full resize-y rounded-neo border border-base-line bg-base-bg p-3 font-mono text-xs font-bold focus:outline-none"
                 />
-                {bodyError ? <p className="mt-1 rounded-neo border-2 border-base-ink bg-red-200 p-2 text-xs font-bold">{bodyError}</p> : null}
+                {bodyError ? <p className="mt-1 rounded-neo border border-base-line bg-accent-terraSoft p-2 text-xs font-bold">{bodyError}</p> : null}
               </div>
               <Button type="button" variant="primary" className="w-full" disabled={sending || !!bodyError} onClick={() => void testChatCompletion()}>
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -835,7 +835,7 @@ function Playground({
             </div>
 
             <div className="space-y-3">
-              <div className="rounded-neo border-2 border-base-ink bg-base-ink p-3">
+              <div className="rounded-neo border border-base-line bg-base-ink p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400"><ArrowUpCircle className="h-3.5 w-3.5" /> Request Sent</span>
                   {meta.lastRequest ? <span className="font-mono text-[10px] text-slate-500">{meta.statusCode} · {meta.duration}ms</span> : null}
@@ -846,11 +846,11 @@ function Playground({
                   <p className="py-3 text-center text-xs text-slate-500">Belum ada request terkirim.</p>
                 )}
               </div>
-              <div className="rounded-neo border-2 border-base-ink bg-base-ink p-3">
+              <div className="rounded-neo border border-base-line bg-base-ink p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
                     <ArrowDownCircle className="h-3.5 w-3.5" /> Response
-                    {response && "error" in (response.raw as Record<string, unknown>) ? <span className="rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-black text-white">Error</span> : response && meta.statusCode ? <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[9px] font-black text-white">{meta.statusCode}</span> : null}
+                    {response && "error" in (response.raw as Record<string, unknown>) ? <span className="rounded-full bg-[#B4522E] px-2 py-0.5 text-[9px] font-black text-white">Error</span> : response && meta.statusCode ? <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[9px] font-black text-white">{meta.statusCode}</span> : null}
                   </span>
                   {response?.usage ? <span className="font-mono text-[10px] text-slate-500">{Number(response.usage.total_tokens || 0).toLocaleString("id-ID")} tokens</span> : null}
                 </div>
@@ -887,7 +887,7 @@ function Playground({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm font-semibold text-base-ink/60">
-            Cek status quota API key Anda secara programatik. Kirim API key di header <code className="rounded border-2 border-base-ink bg-base-bg px-1.5 py-0.5 font-mono text-xs font-bold">Authorization: Bearer &lt;API_KEY&gt;</code>. Cocok untuk monitoring pemakaian token dari script atau aplikasi.
+            Cek status quota API key Anda secara programatik. Kirim API key di header <code className="rounded border border-base-line bg-base-bg px-1.5 py-0.5 font-mono text-xs font-bold">Authorization: Bearer &lt;API_KEY&gt;</code>. Cocok untuk monitoring pemakaian token dari script atau aplikasi.
           </p>
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-3">
@@ -898,18 +898,18 @@ function Playground({
                     <Copy className="h-3.5 w-3.5" />{copied === "quota-curl" ? "Tersalin" : "Copy"}
                   </Button>
                 </div>
-                <pre className="overflow-x-auto rounded-neo border-2 border-base-ink bg-base-ink p-3 text-xs font-mono font-bold text-emerald-300">{quotaCurl}</pre>
+                <pre className="overflow-x-auto rounded-neo border border-base-line bg-base-ink p-3 text-xs font-mono font-bold text-emerald-300">{quotaCurl}</pre>
               </div>
               <Button type="button" variant="sun" className="w-full" disabled={quotaLoading} onClick={() => void testQuotaCheck()}>
                 {quotaLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                 {quotaLoading ? "Mengecek..." : "Test Check Quota"}
               </Button>
             </div>
-            <div className="rounded-neo border-2 border-base-ink bg-base-ink p-3">
+            <div className="rounded-neo border border-base-line bg-base-ink p-3">
               <div className="mb-2 flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
                   <ArrowDownCircle className="h-3.5 w-3.5" /> Response
-                  {quotaResult && "error" in quotaResult ? <span className="rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-black text-white">Error</span> : quotaRaw ? <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[9px] font-black text-white">{quotaMeta.statusCode}</span> : null}
+                  {quotaResult && "error" in quotaResult ? <span className="rounded-full bg-[#B4522E] px-2 py-0.5 text-[9px] font-black text-white">Error</span> : quotaRaw ? <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[9px] font-black text-white">{quotaMeta.statusCode}</span> : null}
                 </span>
                 {quotaMeta.duration ? <span className="font-mono text-[10px] text-slate-500">{quotaMeta.statusCode} · {quotaMeta.duration}ms</span> : null}
               </div>
@@ -950,12 +950,12 @@ function Playground({
 function FaqSection() {
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-sun p-5 shadow-neo">
+      <div className="relative overflow-hidden rounded-neo border border-base-line bg-accent-sun p-5 shadow-neo">
         <motion.svg animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 text-white/30">
           <circle cx="50" cy="50" r="36" fill="none" stroke="currentColor" strokeWidth="12" />
         </motion.svg>
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border-2 border-base-ink bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+          <span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
             <HelpCircle className="h-3 w-3" /> Bantuan
           </span>
           <h1 className="mt-3 text-2xl font-black sm:text-3xl">Frequently Asked Questions</h1>
@@ -975,7 +975,7 @@ function FaqSection() {
           </p>
           <p>
             Multiplier ditampilkan di kolom <span className="font-black text-base-ink">Multiplier</span> pada tab <span className="font-black text-base-ink">Model</span>,
-            misalnya <code className="rounded border-2 border-base-ink bg-base-bg px-1.5 py-0.5 font-mono text-xs font-bold text-base-ink">glm-5.2-debug (1.5x)</code>.
+            misalnya <code className="rounded border border-base-line bg-base-bg px-1.5 py-0.5 font-mono text-xs font-bold text-base-ink">glm-5.2-debug (1.5x)</code>.
             Model dengan nilai <span className="font-black text-base-ink">1x</span> berarti tanpa pengali tambahan.
           </p>
         </div>
@@ -989,8 +989,8 @@ function FaqSection() {
           </p>
           <div className="grid gap-2">
             {GRADE_INFO.map((item) => (
-              <div key={item.grade} className="flex gap-3 rounded-neo border-2 border-base-ink bg-white p-3">
-                <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink text-base font-black", gradeStyle(item.grade))}>
+              <div key={item.grade} className="flex gap-3 rounded-neo border border-base-line bg-white p-3">
+                <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line text-base font-black", gradeStyle(item.grade))}>
                   {item.grade}
                 </span>
                 <div className="min-w-0">
@@ -1000,7 +1000,7 @@ function FaqSection() {
               </div>
             ))}
           </div>
-          <div className="rounded-neo border-2 border-base-ink bg-accent-skySoft p-3">
+          <div className="rounded-neo border border-base-line bg-accent-skySoft p-3">
             <p className="font-extrabold text-base-ink">Analogi paling mudah memahami Grade A &amp; B</p>
             <p className="mt-1 text-sm font-semibold text-base-ink/70">
               Grade A itu analoginya barangnya diambil dari toko-toko besar seperti hypermart, indomarco dan lainnya. Sedangkan Grade B analoginya diambil dari toko
@@ -1030,7 +1030,7 @@ function FaqSection() {
             gambar, estimasi token gambar dari konfigurasi model juga ikut diperhitungkan. Cache token dicatat sebagai informasi penggunaan, tetapi quota utama tetap
             memakai total token yang ditagihkan model.
           </p>
-          <div className="rounded-neo border-2 border-base-ink bg-accent-sun p-3">
+          <div className="rounded-neo border border-base-line bg-accent-sun p-3">
             <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/60">Rumus sederhana</p>
             <p className="mt-1 font-mono text-sm font-black text-base-ink">(prompt token + completion token) × multiplier model</p>
           </div>
@@ -1045,12 +1045,12 @@ function FaqSection() {
             <span className="font-black text-base-ink"> 800 prompt token</span> dan model menjawab <span className="font-black text-base-ink">1.200 completion token</span>.
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
-            <div className="rounded-neo border-2 border-base-ink bg-white p-3">
+            <div className="rounded-neo border border-base-line bg-white p-3">
               <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">Model 1x</p>
               <p className="mt-1 font-mono text-xs font-bold text-base-ink">(800 + 1.200) × 1 = 2.000 token</p>
               <p className="mt-1 text-xs font-bold text-base-ink/60">Sisa quota: 1.000.000 − 2.000 = <span className="font-black text-base-ink">998.000</span></p>
             </div>
-            <div className="rounded-neo border-2 border-base-ink bg-accent-skySoft p-3">
+            <div className="rounded-neo border border-base-line bg-accent-skySoft p-3">
               <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">Model 1,5x</p>
               <p className="mt-1 font-mono text-xs font-bold text-base-ink">(800 + 1.200) × 1,5 = 3.000 token</p>
               <p className="mt-1 text-xs font-bold text-base-ink/60">Sisa quota: 1.000.000 − 3.000 = <span className="font-black text-base-ink">997.000</span></p>
@@ -1078,12 +1078,12 @@ function ContactCs({ resellerCs }: { resellerCs: { name: string; waNumber: strin
               Butuh bantuan? Hubungi reseller Anda: <span className="font-black">{resellerCs?.name}</span>
             </p>
             {waHref ? (
-              <a href={waHref} target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 rounded-neo border-2 border-base-ink bg-accent-mint px-4 py-3 font-extrabold shadow-neo-sm">
+              <a href={waHref} target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 rounded-neo border border-base-line bg-accent-mint px-4 py-3 font-extrabold shadow-neo-sm">
                 <MessageCircle className="h-5 w-5" /> WhatsApp {resellerCs?.name}
               </a>
             ) : null}
             {tgHref ? (
-              <a href={tgHref} target="_blank" rel="noreferrer" className={`inline-flex w-full items-center justify-center gap-2 rounded-neo border-2 border-base-ink bg-accent-sky px-4 py-3 font-extrabold shadow-neo-sm ${waHref ? "mt-2" : ""}`}>
+              <a href={tgHref} target="_blank" rel="noreferrer" className={`inline-flex w-full items-center justify-center gap-2 rounded-neo border border-base-line bg-accent-sky px-4 py-3 font-extrabold shadow-neo-sm ${waHref ? "mt-2" : ""}`}>
                 <MessageCircle className="h-5 w-5" /> Telegram {resellerCs?.name}
               </a>
             ) : null}
@@ -1154,7 +1154,7 @@ function HermesSetup({ copy, copied, data }: { copy: (label: string, value: stri
         Base URL dan API key di bawah sudah terisi otomatis dari akun kamu. Tinggal salin lalu tempel di terminal.
       </p>
 
-      <div className="grid grid-cols-3 gap-2 rounded-neo border-2 border-base-ink bg-base-bg p-2">
+      <div className="grid grid-cols-3 gap-2 rounded-neo border border-base-line bg-base-bg p-2">
         {osTabs.map(([id, label]) => (
           <motion.button
             key={id}
@@ -1163,7 +1163,7 @@ function HermesSetup({ copy, copied, data }: { copy: (label: string, value: stri
             whileHover={{ y: -2 }}
             whileTap={{ y: 1 }}
             className={cn(
-              "rounded-neo border-2 border-base-ink px-2 py-2 text-[11px] font-extrabold uppercase",
+              "rounded-neo border border-base-line px-2 py-2 text-[11px] font-extrabold uppercase",
               os === id ? "bg-accent-sky" : "bg-white"
             )}
           >
@@ -1180,9 +1180,9 @@ function HermesSetup({ copy, copied, data }: { copy: (label: string, value: stri
       </div>
 
       {shownBlocks.map((block, index) => (
-        <div key={block.id} className="rounded-neo border-2 border-base-ink bg-white p-3">
+        <div key={block.id} className="rounded-neo border border-base-line bg-white p-3">
           <p className="text-[10px] font-extrabold uppercase tracking-widest text-base-ink/50">{block.label}</p>
-          <code className="mt-2 block whitespace-pre-wrap break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 font-mono text-xs font-bold">
+          <code className="mt-2 block whitespace-pre-wrap break-all rounded-neo border border-base-line bg-base-bg p-3 font-mono text-xs font-bold">
             {block.command}
           </code>
           <Button type="button" size="sm" className="mt-2" onClick={() => copy(block.id, realBlocks[index].command)}>
@@ -1192,7 +1192,7 @@ function HermesSetup({ copy, copied, data }: { copy: (label: string, value: stri
         </div>
       ))}
 
-      <div className="rounded-neo border-2 border-base-ink bg-accent-sunSoft p-3">
+      <div className="rounded-neo border border-base-line bg-accent-sunSoft p-3">
         <p className="text-xs font-bold text-base-ink/70">
           Script bersifat idempotent — aman dijalankan berulang. Hermes akan diinstall otomatis bila belum ada, lalu Base URL
           dan API key kamu langsung dipasang. Setelah selesai, jalankan <code className="font-mono font-extrabold">hermes</code>.
@@ -1213,7 +1213,7 @@ function Tutorial({ copy, copied, data }: { copy: (label: string, value: string)
       <CollapsibleCard title="Setup VSCode" defaultOpen={false}>
         <div className="space-y-3">
           <p className="text-sm font-semibold text-base-ink/60">Tonton panduan setup VSCode di bawah ini:</p>
-          <div className="overflow-hidden rounded-neo border-2 border-base-ink shadow-neo-sm">
+          <div className="overflow-hidden rounded-neo border border-base-line shadow-neo-sm">
             <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
               <iframe
                 className="absolute inset-0 h-full w-full"
@@ -1230,9 +1230,9 @@ function Tutorial({ copy, copied, data }: { copy: (label: string, value: string)
       <CollapsibleCard title="Setup OpenCode" defaultOpen={false}>
         <div className="space-y-3">
           <Step number="1" title="Buka terminal">Gunakan Terminal, PowerShell, atau CMD.</Step>
-          <Step number="2" title="Jalankan perintah"><code className="mt-2 block break-all rounded-neo border-2 border-base-ink bg-base-bg p-3 font-mono text-sm font-bold">{command}</code><Button type="button" size="sm" className="mt-2" onClick={() => copy("command", command)}>{copied === "command" ? "Tersalin" : "Salin perintah"}</Button></Step>
+          <Step number="2" title="Jalankan perintah"><code className="mt-2 block break-all rounded-neo border border-base-line bg-base-bg p-3 font-mono text-sm font-bold">{command}</code><Button type="button" size="sm" className="mt-2" onClick={() => copy("command", command)}>{copied === "command" ? "Tersalin" : "Salin perintah"}</Button></Step>
           <Step number="3" title="Isi data API">Gunakan Base URL dan API key dari tab Kuota.</Step>
-          <div className="overflow-hidden rounded-neo border-2 border-base-ink shadow-neo-sm">
+          <div className="overflow-hidden rounded-neo border border-base-line shadow-neo-sm">
             <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
               <iframe
                 className="absolute inset-0 h-full w-full"
@@ -1251,7 +1251,7 @@ function Tutorial({ copy, copied, data }: { copy: (label: string, value: string)
           <Step number="1" title="Install">Jalankan <code className="font-mono font-bold">npm install -g 9router</code>.</Step>
           <Step number="2" title="Tambah provider">Pilih OpenAI Compatible. Base URL: <code className="break-all font-mono font-bold">{data.baseUrl}</code>.</Step>
           <Step number="3" title="Tambah key">Masukkan API key dari tab Kuota, lalu import model dari <code className="font-mono font-bold">/models</code>.</Step>
-          <div className="overflow-hidden rounded-neo border-2 border-base-ink shadow-neo-sm">
+          <div className="overflow-hidden rounded-neo border border-base-line shadow-neo-sm">
             <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
               <iframe
                 className="absolute inset-0 h-full w-full"
@@ -1276,7 +1276,7 @@ function CollapsibleCard({ title, defaultOpen = false, children }: { title: stri
         <CardTitle className="flex items-center gap-2">
           {title}
         </CardTitle>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-base-bg">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-neo border border-base-line bg-base-bg">
           {open ? <ChevronUp className="h-4 w-4" strokeWidth={2.5} /> : <ChevronDown className="h-4 w-4" strokeWidth={2.5} />}
         </span>
       </button>
@@ -1301,23 +1301,23 @@ function QuotaShell({ children, wide = false }: { children: React.ReactNode; wid
 }
 
 function Header({ brandName, name, status }: { brandName: string; name: string; status: string }) {
-  return <header className="relative mb-5 overflow-hidden rounded-neo border-2 border-base-ink bg-accent-lavender p-5 shadow-neo sm:p-6"><svg viewBox="0 0 200 100" aria-hidden className="pointer-events-none absolute inset-y-0 right-0 h-full w-1/2 text-white/25"><path d="M35 5 75 95 115 5 155 95 195 5" fill="none" stroke="currentColor" strokeWidth="12" strokeLinejoin="round" /></svg><div className="relative"><p className="text-xs font-extrabold uppercase tracking-[0.22em]">{brandName} · Dashboard</p><h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">{name}</h1><span className="mt-3 inline-flex items-center gap-2 rounded-full border-2 border-base-ink bg-white px-3 py-1 text-xs font-extrabold capitalize"><motion.span animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 2, repeat: Infinity }} className={cn("h-2 w-2 rounded-full", status === "active" ? "bg-green-500" : "bg-red-400")} />{status}</span></div></header>;
+  return <header className="relative mb-5 overflow-hidden rounded-neo border border-base-line bg-accent-lavender p-5 shadow-neo sm:p-6"><svg viewBox="0 0 200 100" aria-hidden className="pointer-events-none absolute inset-y-0 right-0 h-full w-1/2 text-white/25"><path d="M35 5 75 95 115 5 155 95 195 5" fill="none" stroke="currentColor" strokeWidth="12" strokeLinejoin="round" /></svg><div className="relative"><p className="text-xs font-extrabold uppercase tracking-[0.22em]">{brandName} · Dashboard</p><h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">{name}</h1><span className="mt-3 inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-xs font-extrabold capitalize"><motion.span animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 2, repeat: Infinity }} className={cn("h-2 w-2 rounded-full", status === "active" ? "bg-accent-sage" : "bg-[#C96A4A]")} />{status}</span></div></header>;
 }
 
 function Stat({ label, value, color }: { label: string; value: string; color: string }) {
-  return <motion.div whileHover={{ y: -4, rotate: 0.5 }} className={cn("relative overflow-hidden rounded-neo border-2 border-base-ink p-4 shadow-neo-sm", color)}><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-5 -top-5 h-20 w-20 text-base-ink/10"><circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="10" /></svg><p className="relative text-[10px] font-extrabold uppercase tracking-widest text-base-ink/50">{label}</p><p className="relative mt-1 text-2xl font-black">{value}</p></motion.div>;
+  return <motion.div whileHover={{ y: -4, rotate: 0.5 }} className={cn("relative overflow-hidden rounded-neo border border-base-line p-4 shadow-neo-sm", color)}><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-5 -top-5 h-20 w-20 text-base-ink/10"><circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="10" /></svg><p className="relative text-[10px] font-extrabold uppercase tracking-widest text-base-ink/50">{label}</p><p className="relative mt-1 text-2xl font-black">{value}</p></motion.div>;
 }
 
 function Mini({ label, value }: { label: string; value: string }) {
-  return <div className="flex items-center justify-between gap-2 rounded-neo border-2 border-base-ink bg-base-bg px-3 py-2"><span className="text-[10px] font-extrabold uppercase text-base-ink/50">{label}</span><span className="break-all text-right font-mono text-sm font-bold">{value}</span></div>;
+  return <div className="flex items-center justify-between gap-2 rounded-neo border border-base-line bg-base-bg px-3 py-2"><span className="text-[10px] font-extrabold uppercase text-base-ink/50">{label}</span><span className="break-all text-right font-mono text-sm font-bold">{value}</span></div>;
 }
 
 function Alert({ children }: { children: React.ReactNode }) {
-  return <p className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{children}</p>;
+  return <p className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{children}</p>;
 }
 
 function Step({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
-  return <div className="flex gap-3 rounded-neo border-2 border-base-ink bg-white p-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky font-extrabold">{number}</span><div className="min-w-0"><p className="font-extrabold">{title}</p><div className="mt-1 text-sm font-semibold text-base-ink/60">{children}</div></div></div>;
+  return <div className="flex gap-3 rounded-neo border border-base-line bg-white p-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sky font-extrabold">{number}</span><div className="min-w-0"><p className="font-extrabold">{title}</p><div className="mt-1 text-sm font-semibold text-base-ink/60">{children}</div></div></div>;
 }
 
 function BuyQuotaPopup({
@@ -1452,17 +1452,17 @@ function BuyQuotaPopup({
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative z-10 flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo"
+        className="relative z-10 flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header dengan SVG */}
-        <div className="relative flex items-center justify-between border-b-2 border-base-ink bg-accent-sky p-4">
+        <div className="relative flex items-center justify-between border-b border-base-line bg-accent-sky p-4">
           <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 text-base-ink/10">
             <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="10" />
             <path d="M50 20 L60 45 L85 45 L65 60 L72 85 L50 70 L28 85 L35 60 L15 45 L40 45 Z" fill="currentColor" />
           </svg>
           <div className="relative flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-white shadow-neo-sm">
+            <span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm">
               <PlusCircle className="h-5 w-5" strokeWidth={2.5} />
             </span>
             <div>
@@ -1474,7 +1474,7 @@ function BuyQuotaPopup({
               </p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="relative flex h-9 w-9 items-center justify-center rounded-neo border-2 border-base-ink bg-white shadow-neo-sm">
+          <button type="button" onClick={onClose} className="relative flex h-9 w-9 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm">
             <X className="h-4 w-4" strokeWidth={2.5} />
           </button>
         </div>
@@ -1515,7 +1515,7 @@ function BuyQuotaPopup({
                           <polygon points="50,10 90,90 10,90" fill="currentColor" />
                         </svg>
                         <div className="relative flex items-center gap-3">
-                          <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink text-xs font-black", i % 3 === 0 ? "bg-accent-sun" : i % 3 === 1 ? "bg-accent-lavender" : "bg-accent-mint")}>
+                          <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border border-base-line text-xs font-black", i % 3 === 0 ? "bg-accent-sun" : i % 3 === 1 ? "bg-accent-lavender" : "bg-accent-mint")}>
                             {product.sku}
                           </span>
                           <div className="min-w-0">
@@ -1531,7 +1531,7 @@ function BuyQuotaPopup({
                               <Lock className="h-3 w-3" /> Stok habis
                             </span>
                           ) : isSelected ? (
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-base-ink bg-accent-mint">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full border border-base-line bg-accent-mint">
                               <Check className="h-3.5 w-3.5" strokeWidth={3} />
                             </span>
                           ) : null}
@@ -1542,18 +1542,18 @@ function BuyQuotaPopup({
                   })}
                 </div>
               )}
-              {error && <p className="mt-3 rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{error}</p>}
+              {error && <p className="mt-3 rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</p>}
             </>
           )}
 
           {/* Phase 2: QRIS Payment */}
           {invoice && !paid && !expired && (
             <div className="flex flex-col items-center gap-3">
-              <div className="w-full rounded-neo border-2 border-base-ink bg-accent-sun p-3 text-center">
+              <div className="w-full rounded-neo border border-base-line bg-accent-sun p-3 text-center">
                 <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/60">No. Invoice</div>
                 <div className="mt-0.5 break-all font-mono text-sm font-extrabold">{invoice}</div>
               </div>
-              <div className="rounded-neo border-2 border-base-ink bg-white p-3 shadow-neo-sm">
+              <div className="rounded-neo border border-base-line bg-white p-3 shadow-neo-sm">
                 {qrUrl ? (
                   <img src={qrUrl} alt="QRIS" className="h-48 w-48" />
                 ) : qrFailed ? (
@@ -1567,13 +1567,13 @@ function BuyQuotaPopup({
                   </div>
                 )}
               </div>
-              <div className="w-full rounded-neo border-2 border-base-ink bg-base-bg p-4 text-center">
+              <div className="w-full rounded-neo border border-base-line bg-base-bg p-4 text-center">
                 <div className="text-xs font-bold uppercase text-base-ink/50">Total Bayar</div>
                 <div className="mt-1 text-2xl font-extrabold">Rp{amount.toLocaleString("id-ID")}</div>
               </div>
               {grace ? (
                 <>
-                  <p className="rounded-neo border-2 border-base-ink bg-accent-sun p-3 text-center text-xs font-bold">
+                  <p className="rounded-neo border border-base-line bg-accent-sun p-3 text-center text-xs font-bold">
                     Waktu pembayaran habis. Jika sudah bayar, tunggu konfirmasi otomatis (verifikasi bisa makan waktu beberapa menit).
                   </p>
                   <Button type="button" variant="outline" size="sm" onClick={reset}>Buat Pesanan Baru</Button>
@@ -1618,7 +1618,7 @@ function BuyQuotaPopup({
 
         {/* Footer — Order button */}
         {!invoice && !paid && products.length > 0 && (
-          <div className="border-t-2 border-base-ink p-4">
+          <div className="border-t border-base-line p-4">
             <Button type="button" variant="primary" size="lg" className="w-full" disabled={!selected || ordering} onClick={handleOrder}>
               {ordering ? "Memproses..." : selected ? `Order — Rp${selected.price.toLocaleString("id-ID")}` : "Pilih paket dulu"}
             </Button>

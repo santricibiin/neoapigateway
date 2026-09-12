@@ -28,7 +28,7 @@ export function Modal({ open, onClose, title, children, className, hideClose }: 
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             className={cn(
-              "relative z-10 w-full max-w-lg rounded-neo border-2 border-base-ink bg-base-surface p-6 shadow-neo-lg",
+              "relative z-10 w-full max-w-lg rounded-neo border border-base-line bg-base-surface p-6 shadow-neo-lg",
               className
             )}
           >
@@ -39,7 +39,7 @@ export function Modal({ open, onClose, title, children, className, hideClose }: 
               {!hideClose && (
                 <button
                   onClick={onClose}
-                  className="ml-auto rounded-neo border-2 border-base-ink p-1.5 shadow-neo-sm transition-shadow hover:shadow-neo"
+                  className="ml-auto rounded-neo border border-base-line p-1.5 text-base-muted transition-colors hover:border-stone-400 hover:text-base-ink"
                   aria-label="Close"
                 >
                   <X size={16} />

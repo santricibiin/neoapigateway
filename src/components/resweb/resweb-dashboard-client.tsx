@@ -114,11 +114,11 @@ export function ReswebDashboardClient({
 
   return (
     <div className="space-y-6">
-      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-sky p-5 shadow-neo sm:p-7">
+      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border border-base-line bg-accent-sky p-5 shadow-neo sm:p-7">
         <motion.svg animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} viewBox="0 0 120 120" className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 text-white/30" aria-hidden><path d="M60 5 72 43 112 43 80 67 92 105 60 82 28 105 40 67 8 43 48 43Z" fill="currentColor" /></motion.svg>
         <div className="relative flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-base-ink bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Zap className="h-3 w-3" /> Reseller Center</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Zap className="h-3 w-3" /> Reseller Center</span>
             <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Kelola member, lebih cepat.</h1>
             <p className="mt-1 text-sm font-bold text-base-ink/60">{reseller?.email}</p>
           </div>
@@ -128,7 +128,7 @@ export function ReswebDashboardClient({
         </div>
       </motion.section>
 
-      {error && <div className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{error}</div>}
+      {error && <div className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</div>}
 
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Saldo Token" value={formatTokens(reseller?.balance ?? 0)} icon={<Wallet className="h-5 w-5" />} color="bg-accent-mint" />
@@ -147,13 +147,13 @@ export function ReswebDashboardClient({
           ) : null}
         </div>
         {members.length === 0 ? (
-          <div className="rounded-neo border-2 border-dashed border-base-ink bg-white py-12 text-center">
+          <div className="rounded-neo border border-dashed border-base-line bg-white py-12 text-center">
             <Users className="mx-auto h-10 w-10 text-base-ink/20" />
             <p className="mt-3 font-bold text-base-ink/50">Belum ada member</p>
           </div>
         ) : (
           <>
-            <div className="overflow-hidden rounded-neo border-2 border-base-ink bg-white shadow-neo-sm">
+            <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[840px] text-left">
                 <thead className="bg-base-ink text-xs uppercase text-white">
@@ -166,7 +166,7 @@ export function ReswebDashboardClient({
                     <th className="px-4 py-3">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y-2 divide-base-ink/15">
+                <tbody className="divide-y divide-base-line">
                   {members.map((m) => (
                     <tr key={m.id} className="hover:bg-accent-sky/10">
                       <td className="px-4 py-3">
@@ -202,7 +202,7 @@ export function ReswebDashboardClient({
           </div>
 
             {totalPages > 1 ? (
-              <div className="flex items-center justify-between gap-2 rounded-neo border-2 border-base-ink bg-white p-3 shadow-neo-sm">
+              <div className="flex items-center justify-between gap-2 rounded-neo border border-base-line bg-white p-3 shadow-neo-sm">
                 <Button
                   type="button"
                   variant="outline"
@@ -224,7 +224,7 @@ export function ReswebDashboardClient({
                           type="button"
                           onClick={() => router.push(`/res?page=${p}`)}
                           className={cn(
-                            "h-8 w-8 rounded-neo border-2 border-base-ink text-xs font-black transition-colors",
+                            "h-8 w-8 rounded-neo border border-base-line text-xs font-black transition-colors",
                             p === page ? "bg-base-ink text-white" : "bg-white hover:bg-accent-sky/40"
                           )}
                         >
@@ -270,10 +270,10 @@ export function ReswebDashboardClient({
               ))}
             </div>
           </div>
-          <div className="rounded-neo border-2 border-base-ink bg-base-bg p-3 text-xs font-bold">
+          <div className="rounded-neo border border-base-line bg-base-bg p-3 text-xs font-bold">
             Saldo Anda: <span className="font-mono">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</span> · Akan dipakai: <span className="font-mono">{selectedPackage.tokens.toLocaleString("id-ID")}</span> · Masa berlaku: {selectedPackage.validDays} hari
             {reseller && reseller.balance < selectedPackage.tokens && (
-              <p className="mt-1 text-red-600">Saldo tidak cukup. Silakan topup dulu.</p>
+              <p className="mt-1 text-accent-terraDeep">Saldo tidak cukup. Silakan topup dulu.</p>
             )}
           </div>
           <Button variant="primary" className="w-full" disabled={creating || !reseller || reseller.balance < selectedPackage.tokens} onClick={() => void handleAdd()}>
@@ -284,9 +284,9 @@ export function ReswebDashboardClient({
 
       <Modal open={Boolean(quotaTarget)} onClose={() => { if (!addingQuota) setQuotaTarget(null); }} title="Tambah Kuota Member" className="max-h-[92vh] overflow-y-auto">
         {quotaTarget ? <div className="space-y-4">
-          <div className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-sky p-4 shadow-neo-sm"><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 text-white/35"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg><div className="relative"><p className="text-lg font-black">{quotaTarget.name || "Tanpa nama"}</p><p className="font-mono text-xs font-bold">Member #{quotaTarget.id}</p></div></div>
-          <div><label className="text-sm font-bold">Pilih paket token</label><div className="mt-2 grid grid-cols-3 gap-2">{QUOTA_PRESETS.map((pack) => <button key={pack.code} type="button" onClick={() => setQuotaPackageCode(pack.code)} className={cn("rounded-neo border-2 border-base-ink p-2 text-xs font-black", quotaPackageCode === pack.code ? "bg-accent-mint shadow-neo-sm" : "bg-white")} >{pack.code}<span className="block text-[9px] font-normal text-base-ink/60">{pack.validDays} hari</span></button>)}</div></div>
-          <div className="rounded-neo border-2 border-base-ink bg-base-bg p-3 text-xs font-bold">Saldo Anda: <span className="font-mono">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</span> · Dipakai: <span className="font-mono">{selectedQuotaPackage.tokens.toLocaleString("id-ID")}</span> · Masa aktif: {selectedQuotaPackage.validDays} hari{reseller && reseller.balance < selectedQuotaPackage.tokens ? <p className="mt-1 text-red-600">Saldo tidak cukup. Silakan topup dulu.</p> : null}</div>
+          <div className="relative overflow-hidden rounded-neo border border-base-line bg-accent-sky p-4 shadow-neo-sm"><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 text-white/35"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg><div className="relative"><p className="text-lg font-black">{quotaTarget.name || "Tanpa nama"}</p><p className="font-mono text-xs font-bold">Member #{quotaTarget.id}</p></div></div>
+          <div><label className="text-sm font-bold">Pilih paket token</label><div className="mt-2 grid grid-cols-3 gap-2">{QUOTA_PRESETS.map((pack) => <button key={pack.code} type="button" onClick={() => setQuotaPackageCode(pack.code)} className={cn("rounded-neo border border-base-line p-2 text-xs font-black", quotaPackageCode === pack.code ? "bg-accent-mint shadow-neo-sm" : "bg-white")} >{pack.code}<span className="block text-[9px] font-normal text-base-ink/60">{pack.validDays} hari</span></button>)}</div></div>
+          <div className="rounded-neo border border-base-line bg-base-bg p-3 text-xs font-bold">Saldo Anda: <span className="font-mono">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</span> · Dipakai: <span className="font-mono">{selectedQuotaPackage.tokens.toLocaleString("id-ID")}</span> · Masa aktif: {selectedQuotaPackage.validDays} hari{reseller && reseller.balance < selectedQuotaPackage.tokens ? <p className="mt-1 text-accent-terraDeep">Saldo tidak cukup. Silakan topup dulu.</p> : null}</div>
           <Button type="button" className="w-full" disabled={addingQuota || !reseller || reseller.balance < selectedQuotaPackage.tokens} onClick={() => void handleAddQuota()}>{addingQuota ? <Loader2 className="h-4 w-4 animate-spin" /> : <CirclePlus className="h-4 w-4" />}{addingQuota ? "Menambahkan..." : "Konfirmasi Add Quota"}</Button>
         </div> : null}
       </Modal>
@@ -295,20 +295,20 @@ export function ReswebDashboardClient({
       <Modal open={Boolean(result)} onClose={() => setResult(null)} title="Member Berhasil Dibuat">
         {result && (
           <div className="space-y-3">
-            <div className="rounded-neo border-2 border-base-ink bg-accent-mint p-4 text-center">
+            <div className="rounded-neo border border-base-line bg-accent-mint p-4 text-center">
               <KeyRound className="mx-auto h-8 w-8" />
               <p className="mt-1 font-extrabold">Token member siap</p>
             </div>
             {result.name && <p className="text-sm font-bold">Nama: {result.name}</p>}
-            <div className="rounded-neo border-2 border-base-ink bg-base-bg p-3">
+            <div className="rounded-neo border border-base-line bg-base-bg p-3">
               <p className="mb-1 text-[10px] font-black uppercase text-base-ink/45">API Key</p>
               <p className="break-all font-mono text-xs font-bold">{result.apiKey || result.keyMasked || "-"}</p>
             </div>
-            <div className="rounded-neo border-2 border-base-ink bg-base-bg p-3">
+            <div className="rounded-neo border border-base-line bg-base-bg p-3">
               <p className="mb-1 text-[10px] font-black uppercase text-base-ink/45">Dashboard Member</p>
               <p className="break-all font-mono text-xs font-bold">{result.dashboardUrl}</p>
             </div>
-            <div className="rounded-neo border-2 border-base-ink bg-accent-sun p-3">
+            <div className="rounded-neo border border-base-line bg-accent-sun p-3">
               <p className="mb-1 flex items-center gap-1 text-[10px] font-black uppercase text-base-ink/55"><ShieldCheck className="h-3.5 w-3.5" /> PIN Dashboard</p>
               <div className="flex items-center justify-between gap-3"><p className="font-mono text-2xl font-black tracking-[0.25em]">{result.pin}</p><Button type="button" size="sm" variant="outline" onClick={() => copy("pin", result.pin)}>{copied === "pin" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} {copied === "pin" ? "Tersalin" : "Salin"}</Button></div>
             </div>
@@ -327,7 +327,7 @@ export function ReswebDashboardClient({
 
 function Stat({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: string }) {
   return (
-    <motion.div whileHover={{ y: -3 }} className={cn("rounded-neo border-2 border-base-ink p-4 shadow-neo-sm", color)}>
+    <motion.div whileHover={{ y: -3 }} className={cn("rounded-neo border border-base-line p-4 shadow-neo-sm", color)}>
       <div className="flex items-center justify-between">
         <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">{label}</p>
         {icon}

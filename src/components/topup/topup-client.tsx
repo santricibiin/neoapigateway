@@ -26,7 +26,7 @@ function finalStatus(status?: string) {
 
 function statusStyle(status: string) {
   if (["settlement", "capture"].includes(status)) return "bg-accent-mint";
-  if (["cancel", "expire", "deny", "failure"].includes(status)) return "bg-red-200";
+  if (["cancel", "expire", "deny", "failure"].includes(status)) return "bg-accent-terraSoft";
   return "bg-accent-sun";
 }
 
@@ -144,7 +144,7 @@ export function TopupClient({ tiers, initialTransactions, error: initialError }:
       <Modal open={Boolean(payment)} onClose={() => setPayment(null)} title="Pembayaran QRIS" className="max-h-[95vh] max-w-xl overflow-y-auto">
         {payment && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-neo border-2 border-base-ink bg-accent-sun/30 p-3">
+            <div className="flex items-center justify-between rounded-neo border border-base-line bg-accent-sun/30 p-3">
               <div>
                 <p className="text-[10px] font-extrabold uppercase text-base-ink/50">Selesaikan sebelum</p>
                 <p className="font-mono text-2xl font-black">{countdown(Math.max(0, (payment.expiryAt ?? now) - now))}</p>
@@ -153,14 +153,14 @@ export function TopupClient({ tiers, initialTransactions, error: initialError }:
             </div>
             <p className="break-all text-center font-mono text-[10px] font-bold text-base-ink/45">{payment.orderId}</p>
             {payment.snapToken ? (
-              <div className="min-h-[440px] overflow-hidden rounded-neo border-2 border-base-ink bg-white">
+              <div className="min-h-[440px] overflow-hidden rounded-neo border border-base-line bg-white">
                 {!snapReady && <div className="flex min-h-[440px] items-center justify-center gap-2 text-sm font-bold"><Loader2 className="h-5 w-5 animate-spin" /> Memuat QRIS...</div>}
                 <div id="midtrans-snap-container" />
               </div>
             ) : payment.redirectUrl ? (
-              <div className="rounded-neo border-2 border-base-ink bg-base-bg p-5 text-center">
+              <div className="rounded-neo border border-base-line bg-base-bg p-5 text-center">
                 <p className="text-sm font-bold">QRIS tersedia di halaman pembayaran.</p>
-                <a href={payment.redirectUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 rounded-neo border-2 border-base-ink bg-accent-sky px-4 py-2 text-sm font-extrabold shadow-neo-sm">Buka QRIS <ExternalLink className="h-4 w-4" /></a>
+                <a href={payment.redirectUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 rounded-neo border border-base-line bg-accent-sky px-4 py-2 text-sm font-extrabold shadow-neo-sm">Buka QRIS <ExternalLink className="h-4 w-4" /></a>
               </div>
             ) : null}
             <div className="flex items-center justify-center gap-2 text-xs font-bold text-base-ink/50">
@@ -172,13 +172,13 @@ export function TopupClient({ tiers, initialTransactions, error: initialError }:
       </Modal>
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-mint shadow-neo-sm"><WalletCards className="h-5 w-5" /></span>
+          <span className="flex h-11 w-11 items-center justify-center rounded-neo border border-base-line bg-accent-mint shadow-neo-sm"><WalletCards className="h-5 w-5" /></span>
           <div><h1 className="text-2xl font-extrabold">Topup Token</h1><p className="text-xs font-semibold text-base-ink/55">Pembayaran aman via QRIS / Midtrans</p></div>
         </div>
         <Button variant="outline" size="sm" onClick={() => void loadHistory()}><RefreshCw className="h-4 w-4" /> Refresh</Button>
       </div>
 
-      {error && <div className="rounded-neo border-2 border-base-ink bg-red-100 p-3 text-sm font-bold text-red-700">{error}</div>}
+      {error && <div className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold text-accent-terraDeep">{error}</div>}
 
       {(payment || pending) && (
         <Card className="bg-accent-sun/25">
@@ -188,7 +188,7 @@ export function TopupClient({ tiers, initialTransactions, error: initialError }:
               <div><p className="font-extrabold">Menunggu Pembayaran</p><p className="font-mono text-xs text-base-ink/55">{payment?.orderId || pending?.orderId}</p><p className="mt-1 text-[11px] font-bold text-base-ink/45">Status dicek otomatis setiap 5 detik</p></div>
             </div>
             <div className="flex gap-2">
-              {payment?.redirectUrl && <a href={payment.redirectUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-neo border-2 border-base-ink bg-accent-sky px-3 py-2 text-xs font-extrabold shadow-neo-sm">Bayar Sekarang <ExternalLink className="h-3.5 w-3.5" /></a>}
+              {payment?.redirectUrl && <a href={payment.redirectUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-neo border border-base-line bg-accent-sky px-3 py-2 text-xs font-extrabold shadow-neo-sm">Bayar Sekarang <ExternalLink className="h-3.5 w-3.5" /></a>}
               <Button variant="outline" size="sm" disabled={checking} onClick={() => void checkOrder((payment?.orderId || pending?.orderId)!)}>{checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Cek</Button>
             </div>
           </CardContent>
@@ -200,7 +200,7 @@ export function TopupClient({ tiers, initialTransactions, error: initialError }:
           const discount = (tier.flashSaleDiscount ?? 0) > 0;
           const price = discount ? tier.flashSalePrice ?? tier.resellerPrice : tier.resellerPrice;
           return <Card key={tier.id} hover className={cn("relative overflow-hidden", discount && "bg-accent-sun/20")}>
-            {discount && <span className="absolute right-0 top-0 rounded-bl-neo border-b-2 border-l-2 border-base-ink bg-red-400 px-3 py-1 text-[10px] font-extrabold text-white">HEMAT {tier.flashSaleDiscount}%</span>}
+            {discount && <span className="absolute right-0 top-0 rounded-bl-neo border-b-2 border-l-2 border-base-ink bg-[#C96A4A] px-3 py-1 text-[10px] font-extrabold text-white">HEMAT {tier.flashSaleDiscount}%</span>}
             <CardContent className="p-5">
               <div className="flex items-start justify-between"><div><p className="text-3xl font-black">{tier.label}</p><p className="text-xs font-bold text-base-ink/45">{number(tier.tokens)} token</p></div><Sparkles className="h-5 w-5 text-amber-500" /></div>
               <div className="my-4 border-y-2 border-dashed border-base-ink/20 py-3"><p className="text-2xl font-black">{money(price)}</p>{discount && <p className="text-xs font-bold text-base-ink/40 line-through">{money(tier.resellerPrice)}</p>}</div>
@@ -213,7 +213,7 @@ export function TopupClient({ tiers, initialTransactions, error: initialError }:
 
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2 text-base"><ReceiptText className="h-4 w-4" /> Riwayat Topup</CardTitle></CardHeader>
-        <CardContent className="p-0"><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="border-y-2 border-base-ink bg-base-ink text-xs uppercase text-white"><tr><th className="px-4 py-3">Order</th><th className="px-4 py-3">Paket</th><th className="px-4 py-3">Pembayaran</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Tanggal</th></tr></thead><tbody className="divide-y-2 divide-base-ink/15">{transactions.slice(0, 10).map((item) => <tr key={item.orderId} className="hover:bg-accent-sky/10"><td className="px-4 py-3"><p className="font-mono text-xs font-bold">{item.orderId}</p></td><td className="px-4 py-3"><p className="font-extrabold">{number(item.tokens)} token</p><p className="text-xs text-base-ink/45">{item.tierId}</p></td><td className="px-4 py-3 font-extrabold">{money(item.grossAmount ?? item.amount)}</td><td className="px-4 py-3"><span className={cn("inline-flex items-center gap-1 rounded-full border-2 border-base-ink px-2.5 py-1 text-[10px] font-extrabold uppercase", statusStyle(item.status))}>{["settlement", "capture"].includes(item.status) ? <CheckCircle2 className="h-3.5 w-3.5" /> : finalStatus(item.status) ? <XCircle className="h-3.5 w-3.5" /> : <Clock3 className="h-3.5 w-3.5" />}{item.status}</span></td><td className="px-4 py-3 text-xs font-semibold">{date(item.createdAt)}</td></tr>)}</tbody></table></div>{transactions.length === 0 && <p className="py-10 text-center text-sm font-bold text-base-ink/45">Belum ada transaksi topup.</p>}</CardContent>
+        <CardContent className="p-0"><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="border-y-2 border-base-ink bg-base-ink text-xs uppercase text-white"><tr><th className="px-4 py-3">Order</th><th className="px-4 py-3">Paket</th><th className="px-4 py-3">Pembayaran</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Tanggal</th></tr></thead><tbody className="divide-y divide-base-line">{transactions.slice(0, 10).map((item) => <tr key={item.orderId} className="hover:bg-accent-sky/10"><td className="px-4 py-3"><p className="font-mono text-xs font-bold">{item.orderId}</p></td><td className="px-4 py-3"><p className="font-extrabold">{number(item.tokens)} token</p><p className="text-xs text-base-ink/45">{item.tierId}</p></td><td className="px-4 py-3 font-extrabold">{money(item.grossAmount ?? item.amount)}</td><td className="px-4 py-3"><span className={cn("inline-flex items-center gap-1 rounded-full border border-base-line px-2.5 py-1 text-[10px] font-extrabold uppercase", statusStyle(item.status))}>{["settlement", "capture"].includes(item.status) ? <CheckCircle2 className="h-3.5 w-3.5" /> : finalStatus(item.status) ? <XCircle className="h-3.5 w-3.5" /> : <Clock3 className="h-3.5 w-3.5" />}{item.status}</span></td><td className="px-4 py-3 text-xs font-semibold">{date(item.createdAt)}</td></tr>)}</tbody></table></div>{transactions.length === 0 && <p className="py-10 text-center text-sm font-bold text-base-ink/45">Belum ada transaksi topup.</p>}</CardContent>
       </Card>
     </div>
   );

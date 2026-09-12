@@ -20,11 +20,11 @@ import {
 
 type Tab = "bandel" | "router";
 
-const badge = "rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-extrabold uppercase";
+const badge = "rounded-full border border-base-line px-2 py-0.5 text-[10px] font-extrabold uppercase";
 
 function Stat({ label, value, bg }: { label: string; value: number | string; bg: string }) {
   return (
-    <div className={`rounded-neo border-2 border-base-ink p-4 shadow-neo-sm ${bg}`}>
+    <div className={`rounded-neo border border-base-line p-4 shadow-neo-sm ${bg}`}>
       <p className="text-[10px] font-extrabold uppercase tracking-wide text-base-ink/50">{label}</p>
       <p className="text-2xl font-black">{value}</p>
     </div>
@@ -33,7 +33,7 @@ function Stat({ label, value, bg }: { label: string; value: number | string; bg:
 
 function Alert({ children }: { children: React.ReactNode }) {
   return (
-    <p className="flex items-start gap-2 rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">
+    <p className="flex items-start gap-2 rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
       <span>{children}</span>
     </p>
@@ -184,7 +184,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
     <div className="space-y-5">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky shadow-neo-sm">
+          <span className="flex h-11 w-11 items-center justify-center rounded-neo border border-base-line bg-accent-sky shadow-neo-sm">
             <Server className="h-5 w-5" />
           </span>
           <div>
@@ -213,7 +213,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
               setTab(item.key);
               setQuery("");
             }}
-            className={`rounded-neo border-2 border-base-ink px-4 py-2 text-sm font-black shadow-neo-sm transition-colors ${tab === item.key ? "bg-base-ink text-white" : "bg-white"}`}
+            className={`rounded-neo border border-base-line px-4 py-2 text-sm font-black shadow-neo-sm transition-colors ${tab === item.key ? "bg-base-ink text-white" : "bg-white"}`}
           >
             {item.label} <span className="opacity-60">({item.count})</span>
           </button>
@@ -250,14 +250,14 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
             {filteredBandel.map((model) => (
               <div
                 key={model.id}
-                className={`flex items-center justify-between gap-3 rounded-neo border-2 border-base-ink p-4 shadow-neo-sm ${model.allowed ? "bg-white" : "bg-base-bg"}`}
+                className={`flex items-center justify-between gap-3 rounded-neo border border-base-line p-4 shadow-neo-sm ${model.allowed ? "bg-white" : "bg-base-bg"}`}
               >
                 <div className="min-w-0">
                   <p className={`truncate font-mono text-sm font-bold ${model.allowed ? "" : "line-through opacity-55"}`}>{model.id}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     <span className={badge}>Grade {model.grade}</span>
                     {model.vision ? <span className={`${badge} bg-accent-lavender`}>Vision</span> : null}
-                    {!model.upstreamEnabled ? <span className={`${badge} bg-red-200`}>Off di upstream</span> : null}
+                    {!model.upstreamEnabled ? <span className={`${badge} bg-accent-terraSoft`}>Off di upstream</span> : null}
                   </div>
                 </div>
                 <Button
@@ -278,7 +278,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
           </div>
 
           {!filteredBandel.length ? (
-            <div className="rounded-neo border-2 border-dashed border-base-ink bg-white py-16 text-center">
+            <div className="rounded-neo border border-dashed border-base-line bg-white py-16 text-center">
               <Server className="mx-auto h-10 w-10 text-base-ink/25" />
               <p className="mt-3 font-black">{bandel.length ? "Tidak ada model cocok" : "Model tidak termuat"}</p>
             </div>
@@ -294,7 +294,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
           ) : null}
 
           <div
-            className={`flex flex-col justify-between gap-3 rounded-neo border-2 border-base-ink p-4 shadow-neo-sm sm:flex-row sm:items-center ${routerOn ? "bg-accent-mint" : "bg-base-bg"}`}
+            className={`flex flex-col justify-between gap-3 rounded-neo border border-base-line p-4 shadow-neo-sm sm:flex-row sm:items-center ${routerOn ? "bg-accent-mint" : "bg-base-bg"}`}
           >
             <div className="flex items-center gap-3">
               <Network className="h-5 w-5 shrink-0" />
@@ -347,7 +347,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(index * 0.02, 0.25) }}
-                className={`rounded-neo border-2 border-base-ink p-4 shadow-neo-sm ${row.enabled ? "bg-white" : "bg-base-bg"}`}
+                className={`rounded-neo border border-base-line p-4 shadow-neo-sm ${row.enabled ? "bg-white" : "bg-base-bg"}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
@@ -358,7 +358,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
                   </div>
                   <span className={`${badge} shrink-0 ${row.enabled ? "bg-accent-mint" : ""}`}>{row.enabled ? "On" : "Off"}</span>
                 </div>
-                <div className="mt-4 flex gap-2 border-t-2 border-base-ink/15 pt-3">
+                <div className="mt-4 flex gap-2 border-t border-base-line pt-3">
                   <Button type="button" size="sm" variant="outline" className="flex-1" onClick={() => setOpenProvider(row.provider)}>
                     Lihat model
                   </Button>
@@ -379,7 +379,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
           </div>
 
           {!filteredProviders.length ? (
-            <div className="rounded-neo border-2 border-dashed border-base-ink bg-white py-16 text-center">
+            <div className="rounded-neo border border-dashed border-base-line bg-white py-16 text-center">
               <Network className="mx-auto h-10 w-10 text-base-ink/25" />
               <p className="mt-3 font-black">{providers.length ? "Tidak ada provider cocok" : "Provider tidak termuat"}</p>
               <p className="text-sm font-semibold text-base-ink/45">
@@ -399,7 +399,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
         {detail ? (
           <div className="space-y-3">
             {!detail.enabled ? (
-              <p className="rounded-neo border-2 border-base-ink bg-accent-sun p-3 text-sm font-bold">
+              <p className="rounded-neo border border-base-line bg-accent-sun p-3 text-sm font-bold">
                 Provider ini nonaktif. Model di bawah tidak tersaji sampai provider diaktifkan.
               </p>
             ) : null}
@@ -415,7 +415,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
               {detail.models.map((model) => (
                 <li
                   key={model.id}
-                  className={`flex items-center justify-between gap-3 rounded-neo border-2 border-base-ink p-3 ${model.allowed ? "bg-white" : "bg-base-bg"}`}
+                  className={`flex items-center justify-between gap-3 rounded-neo border border-base-line p-3 ${model.allowed ? "bg-white" : "bg-base-bg"}`}
                 >
                   <div className="min-w-0">
                     <p className={`truncate font-mono text-xs font-bold ${model.allowed ? "" : "line-through opacity-55"}`}>

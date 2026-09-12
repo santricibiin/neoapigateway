@@ -179,10 +179,10 @@ export function ReswebAdminClient({
 
   return (
     <div className="space-y-6">
-      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-lavender p-5 shadow-neo sm:p-7">
+      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border border-base-line bg-accent-lavender p-5 shadow-neo sm:p-7">
         <motion.svg animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 text-white/35"><path d="M50 5 61 38 95 39 68 58 77 91 50 72 23 91 32 58 5 39 39 38Z" fill="currentColor" /></motion.svg>
         <div className="relative flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-          <div><span className="inline-flex items-center gap-2 rounded-full border-2 border-base-ink bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Sparkles className="h-3 w-3" /> ResWeb Control</span><h1 className="mt-3 text-3xl font-black sm:text-4xl">Kelola jaringan reseller.</h1><p className="mt-1 text-sm font-bold text-base-ink/60">Paket, saldo, reseller, dan member dalam satu panel.</p></div>
+          <div><span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Sparkles className="h-3 w-3" /> ResWeb Control</span><h1 className="mt-3 text-3xl font-black sm:text-4xl">Kelola jaringan reseller.</h1><p className="mt-1 text-sm font-bold text-base-ink/60">Paket, saldo, reseller, dan member dalam satu panel.</p></div>
           <div className="flex flex-wrap gap-2">
             <Button variant="sky" onClick={() => setTierModal({ open: true, editing: null })}><PackagePlus className="h-4 w-4" /> Paket</Button>
             <Button variant="primary" onClick={() => { setApiKeyInput(""); setApiKeyCopied(false); setResellerModal({ open: true, editing: null }); }}><Users className="h-4 w-4" /> Reseller</Button>
@@ -190,7 +190,7 @@ export function ReswebAdminClient({
         </div>
       </motion.section>
 
-      {error && <p className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{error}</p>}
+      {error && <p className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</p>}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryCard label="Total Saldo Reseller" value={formatTokens(totalResellerBalance)} detail={`${initialResellers.length} akun reseller`} icon={<Wallet className="h-5 w-5" />} color="bg-accent-mint" />
@@ -205,7 +205,7 @@ export function ReswebAdminClient({
             key={t}
             onClick={() => setTab(t)}
             className={cn(
-              "rounded-neo border-2 border-base-ink px-4 py-2 text-sm font-extrabold capitalize transition-colors",
+              "rounded-neo border border-base-line px-4 py-2 text-sm font-extrabold capitalize transition-colors",
               tab === t ? "bg-base-ink text-white" : "bg-base-surface hover:bg-accent-sky/30"
             )}
           >
@@ -222,11 +222,11 @@ export function ReswebAdminClient({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03 }}
-              className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-white p-5 shadow-neo-sm"
+              className="relative overflow-hidden rounded-neo border border-base-line bg-white p-5 shadow-neo-sm"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <span className={cn("inline-flex rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase", t.active ? "bg-accent-mint" : "bg-base-bg")}>
+                  <span className={cn("inline-flex rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase", t.active ? "bg-accent-mint" : "bg-base-bg")}>
                     {t.active ? "Aktif" : "Nonaktif"}
                   </span>
                   <p className="mt-2 font-mono text-[10px] font-bold text-base-ink/45">{t.code}</p>
@@ -236,27 +236,27 @@ export function ReswebAdminClient({
                   <div className="text-right"><span className="text-2xl font-black">{formatRupiah(t.price)}</span><p className="text-[10px] font-bold text-base-ink/45">Modal {formatRupiah(t.costPrice)}</p></div>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <div className="rounded-neo border-2 border-base-ink bg-base-bg p-2">
+                <div className="rounded-neo border border-base-line bg-base-bg p-2">
                   <p className="text-[9px] font-black uppercase text-base-ink/40">Urutan</p>
                   <p className="text-xs font-black">{t.sortOrder}</p>
                 </div>
-                <div className="rounded-neo border-2 border-base-ink bg-base-bg p-2">
+                <div className="rounded-neo border border-base-line bg-base-bg p-2">
                   <p className="text-[9px] font-black uppercase text-base-ink/40">Terjual</p>
                   <p className="text-xs font-black">{t.orderCount}x</p>
                 </div>
               </div>
-              <div className="mt-4 flex justify-end gap-2 border-t-2 border-base-ink/15 pt-4">
+              <div className="mt-4 flex justify-end gap-2 border-t border-base-line pt-4">
                 <Button size="sm" variant="outline" onClick={() => setTierModal({ open: true, editing: t })}>
                   <Pencil className="h-4 w-4" />
                 </Button>
-                <Button size="sm" className="bg-red-200 text-base-ink" onClick={() => removeTier(t)}>
+                <Button size="sm" className="bg-accent-terraSoft text-base-ink" onClick={() => removeTier(t)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </motion.article>
           ))}
           {!initialTiers.length && (
-            <div className="col-span-full rounded-neo border-2 border-dashed border-base-ink bg-white py-16 text-center">
+            <div className="col-span-full rounded-neo border border-dashed border-base-line bg-white py-16 text-center">
               <Boxes className="mx-auto h-10 w-10 text-base-ink/20" />
               <p className="mt-3 font-black">Belum ada paket topup</p>
             </div>
@@ -265,7 +265,7 @@ export function ReswebAdminClient({
       )}
 
       {tab === "resellers" && (
-        <div className="overflow-hidden rounded-neo border-2 border-base-ink bg-white shadow-neo-sm">
+        <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left">
               <thead className="bg-base-ink text-xs uppercase tracking-wide text-white">
@@ -278,7 +278,7 @@ export function ReswebAdminClient({
                   <th className="px-4 py-3">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y-2 divide-base-ink/15">
+              <tbody className="divide-y divide-base-line">
                 {paginatedResellers.map((r) => (
                   <tr key={r.id} className="hover:bg-accent-sky/10">
                     <td className="px-4 py-3">
@@ -291,7 +291,7 @@ export function ReswebAdminClient({
                     <td className="px-4 py-3 text-sm font-bold">{r.memberCount}</td>
                     <td className="px-4 py-3 text-sm font-bold">{r.orderCount}</td>
                     <td className="px-4 py-3">
-                      <span className={cn("inline-flex rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase", r.active ? "bg-accent-mint" : "bg-red-200")}>
+                      <span className={cn("inline-flex rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase", r.active ? "bg-accent-mint" : "bg-accent-terraSoft")}>
                         {r.active ? "Aktif" : "Nonaktif"}
                       </span>
                     </td>
@@ -326,8 +326,8 @@ export function ReswebAdminClient({
       )}
 
       {tab === "members" && (
-        <div className="overflow-hidden rounded-neo border-2 border-base-ink bg-white shadow-neo-sm">
-          <div className="flex flex-col gap-2 border-b-2 border-base-ink bg-accent-sky/20 p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-black">Filter Member</p><p className="text-xs font-bold text-base-ink/45">{filteredMembers.length} member ditemukan</p></div><select value={memberReseller} onChange={(event) => { setMemberReseller(event.target.value); setMemberPage(1); }} className="h-10 rounded-neo border-2 border-base-ink bg-white px-3 text-sm font-bold shadow-neo-sm"><option value="all">Semua reseller</option>{initialResellers.map((reseller) => <option key={reseller.id} value={reseller.id}>{reseller.name} ({reseller.email})</option>)}</select></div>
+        <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm">
+          <div className="flex flex-col gap-2 border-b border-base-line bg-accent-sky/20 p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-black">Filter Member</p><p className="text-xs font-bold text-base-ink/45">{filteredMembers.length} member ditemukan</p></div><select value={memberReseller} onChange={(event) => { setMemberReseller(event.target.value); setMemberPage(1); }} className="h-10 rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm"><option value="all">Semua reseller</option>{initialResellers.map((reseller) => <option key={reseller.id} value={reseller.id}>{reseller.name} ({reseller.email})</option>)}</select></div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-left">
               <thead className="bg-base-ink text-xs uppercase tracking-wide text-white">
@@ -340,7 +340,7 @@ export function ReswebAdminClient({
                   <th className="px-4 py-3">Dibuat</th>
                 </tr>
               </thead>
-              <tbody className="divide-y-2 divide-base-ink/15">
+              <tbody className="divide-y divide-base-line">
                 {paginatedMembers.map((m) => (
                   <tr key={m.id} className="hover:bg-accent-sky/10">
                     <td className="px-4 py-3">
@@ -390,7 +390,7 @@ export function ReswebAdminClient({
             <select
               name="code"
               defaultValue={tierModal.editing?.code || ""}
-              className="mt-1.5 h-11 w-full rounded-neo border-2 border-base-ink bg-white px-3 shadow-neo-sm"
+              className="mt-1.5 h-11 w-full rounded-neo border border-base-line bg-white px-3 shadow-neo-sm"
               required
             >
               <option value="" disabled>Pilih paket...</option>
@@ -405,7 +405,7 @@ export function ReswebAdminClient({
           <Input name="price" label="Harga (Rupiah)" type="number" min={0} step={1} defaultValue={tierModal.editing?.price ?? 0} required />
           <Input name="costPrice" label="Harga modal (internal)" type="number" min={0} step={1} defaultValue={tierModal.editing?.costPrice ?? 0} required />
           <Input name="sortOrder" label="Urutan (0=terbawah)" type="number" step={1} defaultValue={tierModal.editing?.sortOrder ?? 0} />
-          <label className="flex items-center gap-3 rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold">
+          <label className="flex items-center gap-3 rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold">
             <input name="active" type="checkbox" defaultChecked={tierModal.editing?.active ?? true} className="h-5 w-5 accent-black" />
             Paket aktif
           </label>
@@ -418,10 +418,10 @@ export function ReswebAdminClient({
 
       <Modal open={Boolean(balanceTarget)} onClose={() => { if (!saving) setBalanceTarget(null); }} title="Atur Saldo Reseller">
         {balanceTarget ? <div className="space-y-4">
-          <div className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-mint p-4 shadow-neo-sm"><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 text-white/35"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg><div className="relative"><p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">Saldo saat ini</p><p className="mt-1 text-3xl font-black">{formatTokens(balanceTarget.balance)}</p><p className="mt-1 text-xs font-bold text-base-ink/55">{balanceTarget.name} · {balanceTarget.email}</p></div></div>
+          <div className="relative overflow-hidden rounded-neo border border-base-line bg-accent-mint p-4 shadow-neo-sm"><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 text-white/35"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg><div className="relative"><p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">Saldo saat ini</p><p className="mt-1 text-3xl font-black">{formatTokens(balanceTarget.balance)}</p><p className="mt-1 text-xs font-bold text-base-ink/55">{balanceTarget.name} · {balanceTarget.email}</p></div></div>
           <Input label="Perubahan saldo" type="number" step={1} value={balanceDelta} onChange={(event) => setBalanceDelta(event.target.value)} placeholder="Contoh: 1000000 atau -1000000" />
-          <p className="rounded-neo border-2 border-base-ink bg-base-bg p-3 text-xs font-bold">Gunakan angka positif untuk menambah, angka negatif untuk mengurangi. Saldo akhir: <span className={cn("font-mono text-sm font-black", balanceTarget.balance + Number(balanceDelta || 0) < 0 && "text-red-600")}>{formatTokens(balanceTarget.balance + Number(balanceDelta || 0))}</span></p>
-          {balanceTarget.balance + Number(balanceDelta || 0) < 0 ? <p className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-xs font-bold">Saldo tidak boleh negatif.</p> : null}
+          <p className="rounded-neo border border-base-line bg-base-bg p-3 text-xs font-bold">Gunakan angka positif untuk menambah, angka negatif untuk mengurangi. Saldo akhir: <span className={cn("font-mono text-sm font-black", balanceTarget.balance + Number(balanceDelta || 0) < 0 && "text-accent-terraDeep")}>{formatTokens(balanceTarget.balance + Number(balanceDelta || 0))}</span></p>
+          {balanceTarget.balance + Number(balanceDelta || 0) < 0 ? <p className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-xs font-bold">Saldo tidak boleh negatif.</p> : null}
           <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setBalanceTarget(null)}>Batal</Button><Button type="button" disabled={saving || !balanceDelta || !Number.isInteger(Number(balanceDelta)) || balanceTarget.balance + Number(balanceDelta) < 0} onClick={() => void adjustBalance()}>{saving ? "Menyimpan..." : "Simpan Saldo"}</Button></div>
         </div> : null}
       </Modal>
@@ -433,7 +433,7 @@ export function ReswebAdminClient({
           <Input name="email" label="Email" type="email" defaultValue={resellerModal.editing?.email || ""} required />
           <Input name="wa" label="No. WhatsApp CS (opsional)" type="tel" defaultValue={resellerModal.editing?.waNumber || ""} placeholder="08xxxxxxxxxx atau 62xxxxxxxxxx" maxLength={20} />
           <Input name="telegram" label="Telegram CS (opsional)" defaultValue={resellerModal.editing?.telegram || ""} placeholder="@username atau t.me/username" maxLength={64} />
-          {!resellerModal.editing?.waNumber && !resellerModal.editing?.telegram ? <p className="rounded-neo border-2 border-base-ink bg-accent-sun/40 p-2.5 text-xs font-bold">Minimal isi salah satu: No. WhatsApp atau Telegram (ditampilkan ke member sebagai kontak CS).</p> : null}
+          {!resellerModal.editing?.waNumber && !resellerModal.editing?.telegram ? <p className="rounded-neo border border-base-line bg-accent-sun/40 p-2.5 text-xs font-bold">Minimal isi salah satu: No. WhatsApp atau Telegram (ditampilkan ke member sebagai kontak CS).</p> : null}
           <Input name="password" label={resellerModal.editing ? "Password baru (opsional)" : "Password (min 6 karakter)"} type="password" required={!resellerModal.editing} minLength={6} />
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-base-ink">API Key</label>
@@ -444,7 +444,7 @@ export function ReswebAdminClient({
                 onChange={(e) => { setApiKeyInput(e.target.value); setApiKeyCopied(false); }}
                 placeholder="Klik generate untuk membuat API key"
                 maxLength={128}
-                className="h-[42px] flex-1 rounded-neo border-2 border-base-ink bg-base-surface px-4 font-mono text-sm text-base-ink shadow-neo-sm outline-none transition-shadow focus:shadow-neo"
+                className="h-[42px] flex-1 rounded-neo border border-base-line bg-base-surface px-4 font-mono text-sm text-base-ink shadow-neo-sm outline-none transition-shadow focus:shadow-neo"
               />
               <Button
                 type="button"
@@ -468,7 +468,7 @@ export function ReswebAdminClient({
               )}
             </div>
           </div>
-          {resellerModal.editing ? <label className="flex items-center gap-3 rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold"><input name="active" type="checkbox" defaultChecked={resellerModal.editing.active} className="h-5 w-5 accent-black" /> Akun aktif</label> : null}
+          {resellerModal.editing ? <label className="flex items-center gap-3 rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold"><input name="active" type="checkbox" defaultChecked={resellerModal.editing.active} className="h-5 w-5 accent-black" /> Akun aktif</label> : null}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setResellerModal({ open: false, editing: null })}>Batal</Button>
             <Button type="submit" variant="primary" disabled={saving}>{saving ? "Menyimpan..." : resellerModal.editing ? "Simpan Perubahan" : "Buat"}</Button>
@@ -480,11 +480,11 @@ export function ReswebAdminClient({
 }
 
 function SummaryCard({ label, value, detail, icon, color }: { label: string; value: string; detail: string; icon: React.ReactNode; color: string }) {
-  return <motion.div whileHover={{ y: -4 }} className={cn("relative overflow-hidden rounded-neo border-2 border-base-ink p-5 shadow-neo-sm", color)}><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -bottom-10 -right-8 h-28 w-28 text-white/30"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg><div className="relative flex items-start justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-base-ink/50">{label}</p><p className="mt-1 text-3xl font-black">{value}</p><p className="mt-1 text-xs font-bold text-base-ink/50">{detail}</p></div><span className="flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-white shadow-neo-sm">{icon}</span></div></motion.div>;
+  return <motion.div whileHover={{ y: -4 }} className={cn("relative overflow-hidden rounded-neo border border-base-line p-5 shadow-neo-sm", color)}><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -bottom-10 -right-8 h-28 w-28 text-white/30"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg><div className="relative flex items-start justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-base-ink/50">{label}</p><p className="mt-1 text-3xl font-black">{value}</p><p className="mt-1 text-xs font-bold text-base-ink/50">{detail}</p></div><span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm">{icon}</span></div></motion.div>;
 }
 
 function Pagination({ page, totalPages, total, onPage, label }: { page: number; totalPages: number; total: number; onPage: (page: number) => void; label: string }) {
   const start = total ? (page - 1) * 10 + 1 : 0;
   const end = Math.min(page * 10, total);
-  return <div className="flex items-center justify-between gap-3 border-t-2 border-base-ink bg-base-bg px-4 py-3"><p className="text-xs font-bold text-base-ink/55">{start}-{end} dari {total} {label}</p><div className="flex items-center gap-2"><Button type="button" size="sm" variant="outline" disabled={page <= 1} onClick={() => onPage(page - 1)} aria-label="Halaman sebelumnya"><ChevronLeft className="h-4 w-4" /></Button><span className="min-w-16 text-center text-xs font-black">{page} / {totalPages}</span><Button type="button" size="sm" variant="outline" disabled={page >= totalPages} onClick={() => onPage(page + 1)} aria-label="Halaman berikutnya"><ChevronRight className="h-4 w-4" /></Button></div></div>;
+  return <div className="flex items-center justify-between gap-3 border-t border-base-line bg-base-bg px-4 py-3"><p className="text-xs font-bold text-base-ink/55">{start}-{end} dari {total} {label}</p><div className="flex items-center gap-2"><Button type="button" size="sm" variant="outline" disabled={page <= 1} onClick={() => onPage(page - 1)} aria-label="Halaman sebelumnya"><ChevronLeft className="h-4 w-4" /></Button><span className="min-w-16 text-center text-xs font-black">{page} / {totalPages}</span><Button type="button" size="sm" variant="outline" disabled={page >= totalPages} onClick={() => onPage(page + 1)} aria-label="Halaman berikutnya"><ChevronRight className="h-4 w-4" /></Button></div></div>;
 }

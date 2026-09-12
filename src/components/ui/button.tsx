@@ -11,12 +11,12 @@ interface ButtonProps extends HTMLMotionProps<"button"> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-base-ink text-white",
-  sky: "bg-accent-sky text-base-ink",
-  sun: "bg-accent-sun text-base-ink",
-  mint: "bg-accent-mint text-base-ink",
-  lavender: "bg-accent-lavender text-base-ink",
-  outline: "bg-base-surface text-base-ink",
+  primary: "bg-base-ink text-white hover:bg-stone-700",
+  sky: "bg-accent-sage text-white hover:bg-accent-sageDeep",
+  sun: "bg-accent-sandSoft text-base-ink hover:bg-accent-sand",
+  mint: "bg-accent-sageSoft text-accent-sageDeep hover:bg-accent-sage/30",
+  lavender: "bg-accent-terraSoft text-accent-terraDeep hover:bg-accent-terra/25",
+  outline: "bg-base-surface text-base-ink border-stone-300 hover:border-stone-400",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -30,11 +30,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <motion.button
         ref={ref}
-        whileHover={{ y: -2 }}
-        whileTap={{ y: 2, boxShadow: "2px 2px 0px 0px #0F172A" }}
+        whileHover={{ y: -1 }}
+        whileTap={{ y: 0 }}
         transition={{ type: "spring", stiffness: 400, damping: 20 }}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-neo border-2 border-base-ink font-semibold shadow-neo transition-colors",
+          "inline-flex items-center justify-center gap-2 rounded-neo border font-semibold shadow-neo-sm transition-colors",
           variantClasses[variant],
           sizeClasses[size],
           className

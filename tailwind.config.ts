@@ -10,27 +10,45 @@ const config: Config = {
     extend: {
       colors: {
         base: {
-          bg: "#F8F9FA",
+          bg: "#FAFAF8",
           surface: "#FFFFFF",
-          ink: "#0F172A",
+          ink: "#1C1917",
+          // Neutrals hangat (stone) untuk teks/border sekunder
+          muted: "#78716C",
+          line: "#E7E5E4",
+          lineSoft: "#F0EFED",
         },
         accent: {
-          sky: "#7DD3FC",
-          skySoft: "#A5F3FC",
-          sun: "#FDE047",
-          sunSoft: "#FEF08A",
-          mint: "#86EFAC",
-          lavender: "#C4B5FD",
+          // Terracotta — aksen utama
+          terra: "#C2703D",
+          terraSoft: "#F5E7DC",
+          terraDeep: "#A85A2E",
+          // Sage — aksen sekunder (sukses/tersedia)
+          sage: "#7C9070",
+          sageSoft: "#E9EFE4",
+          sageDeep: "#5F7354",
+          // Sand — highlight/info lembut
+          sand: "#D9C7A7",
+          sandSoft: "#F3EBDD",
+          // ===== Alias token lama (sky/sun/mint/lavender) → palet warm =====
+          // Dipertahankan supaya komponen lama otomatis ikut tanpa diedit.
+          sky: "#7C9070", // biru → sage
+          skySoft: "#E9EFE4",
+          sun: "#D9C7A7", // kuning neon → sand
+          sunSoft: "#F3EBDD",
+          mint: "#7C9070", // hijau mint → sage (badge sukses)
+          lavender: "#C2703D", // ungu → terracotta
         },
       },
       borderRadius: {
-        neo: "0.5rem",
+        neo: "0.625rem",
       },
       boxShadow: {
-        neo: "4px 4px 0px 0px #0F172A",
-        "neo-sm": "2px 2px 0px 0px #0F172A",
-        "neo-lg": "6px 6px 0px 0px #0F172A",
-        "neo-xl": "8px 8px 0px 0px #0F172A",
+        // Soft & layered — bukan offset blok neobrutalism
+        neo: "0 1px 2px rgba(28,25,23,0.05), 0 4px 12px rgba(28,25,23,0.07)",
+        "neo-sm": "0 1px 2px rgba(28,25,23,0.06)",
+        "neo-lg": "0 2px 4px rgba(28,25,23,0.06), 0 8px 24px rgba(28,25,23,0.10)",
+        "neo-xl": "0 4px 8px rgba(28,25,23,0.07), 0 16px 40px rgba(28,25,23,0.12)",
       },
       keyframes: {
         "fade-in": {

@@ -150,7 +150,7 @@ export default function HomePage() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
-            className="rounded-neo border-2 border-base-ink bg-accent-sun px-4 py-1.5 text-sm font-bold shadow-neo-sm"
+            className="rounded-neo border border-base-line bg-accent-sun px-4 py-1.5 text-sm font-bold shadow-neo-sm"
           >
             <Sparkles className="mr-1.5 inline-block h-4 w-4" />
             {t("API Gateway · Multi Model · OpenAI Compatible")}
@@ -201,11 +201,11 @@ export default function HomePage() {
           <motion.div
             animate={{ y: [0, -6, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-ink shadow-neo"
+            className="overflow-hidden rounded-neo border border-base-line bg-base-ink shadow-neo"
           >
             <div className="flex items-center gap-1.5 border-b border-white/10 px-4 py-2.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-              <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#C96A4A]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-accent-sand" />
               <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
               <span className="ml-2 font-mono text-[10px] font-bold text-white/40">sh — api</span>
             </div>
@@ -244,8 +244,8 @@ export default function HomePage() {
           const Icon = feature.icon;
           return (
             <motion.div key={feature.title} variants={item} className="h-full">
-              <div className="flex h-full flex-col rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo-sm transition-shadow hover:shadow-neo">
-                <span className={`mb-3 inline-flex h-10 w-10 items-center justify-center border-2 border-base-ink ${feature.accent}`}>
+              <div className="flex h-full flex-col rounded-neo border border-base-line bg-base-surface p-5 shadow-neo-sm transition-shadow hover:shadow-neo">
+                <span className={`mb-3 inline-flex h-10 w-10 items-center justify-center border border-base-line ${feature.accent}`}>
                   <Icon className="h-5 w-5 text-base-ink" strokeWidth={2.5} />
                 </span>
                 <h3 className="text-lg font-extrabold">{t(feature.title)}</h3>
@@ -265,7 +265,7 @@ export default function HomePage() {
         className="flex flex-col gap-6"
       >
         <div className="text-center">
-          <span className="inline-flex items-center gap-2 rounded-neo border-2 border-base-ink bg-accent-mint px-3 py-1 text-xs font-bold shadow-neo-sm">
+          <span className="inline-flex items-center gap-2 rounded-neo border border-base-line bg-accent-mint px-3 py-1 text-xs font-bold shadow-neo-sm">
             <Terminal className="h-3.5 w-3.5" />
             Quick Start
           </span>
@@ -275,9 +275,9 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-neo border-2 border-base-ink bg-base-ink shadow-neo">
+        <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-neo border border-base-line bg-base-ink shadow-neo">
           {/* Tabs */}
-          <div className="flex items-stretch overflow-x-auto border-b-2 border-base-ink/30">
+          <div className="flex items-stretch overflow-x-auto border-b border-base-line/30">
             <div className="flex shrink-0">
               {codeExamples.map((ex, i) => (
                 <button
@@ -323,7 +323,7 @@ export default function HomePage() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: i * 0.08 }}
-            className="rounded-neo border-2 border-base-ink bg-base-surface p-5 text-center shadow-neo-sm"
+            className="rounded-neo border border-base-line bg-base-surface p-5 text-center shadow-neo-sm"
           >
             <div className="text-2xl font-extrabold sm:text-3xl">{stat.value}</div>
             <div className="mt-1 text-sm font-semibold text-base-ink/60">{t(stat.label)}</div>
@@ -337,10 +337,10 @@ export default function HomePage() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="flex flex-col items-center justify-between gap-4 rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo-sm sm:flex-row sm:gap-6"
+        className="flex flex-col items-center justify-between gap-4 rounded-neo border border-base-line bg-base-surface p-5 shadow-neo-sm sm:flex-row sm:gap-6"
       >
         <div className="flex items-center gap-4">
-          <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun">
+          <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sun">
             <Zap className="h-5 w-5 text-base-ink" strokeWidth={2.5} />
           </span>
           <div className="min-w-0">

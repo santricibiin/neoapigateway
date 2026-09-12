@@ -110,7 +110,7 @@ export function BackupClient({
   return (
     <div className="mx-auto w-full max-w-4xl space-y-5">
       <div className="flex items-center gap-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky shadow-neo-sm">
+        <span className="flex h-11 w-11 items-center justify-center rounded-neo border border-base-line bg-accent-sky shadow-neo-sm">
           <Database className="h-5 w-5" />
         </span>
         <div>
@@ -120,8 +120,8 @@ export function BackupClient({
       </div>
 
       <form action={handleSubmit} className="space-y-4">
-        <section className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm">
-          <div className="flex items-center gap-3 border-b-2 border-base-ink bg-accent-lavender px-4 py-3 sm:px-5">
+        <section className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
+          <div className="flex items-center gap-3 border-b border-base-line bg-accent-lavender px-4 py-3 sm:px-5">
             <Send className="h-5 w-5" strokeWidth={2.5} />
             <div>
               <h2 className="font-extrabold">Telegram Config</h2>
@@ -134,8 +134,8 @@ export function BackupClient({
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm">
-          <div className="flex items-center gap-3 border-b-2 border-base-ink bg-accent-sun px-4 py-3 sm:px-5">
+        <section className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
+          <div className="flex items-center gap-3 border-b border-base-line bg-accent-sun px-4 py-3 sm:px-5">
             <RefreshCw className="h-5 w-5" strokeWidth={2.5} />
             <div>
               <h2 className="font-extrabold">Jadwal Backup Otomatis</h2>
@@ -146,14 +146,14 @@ export function BackupClient({
             <Input name="backupInterval" label="Interval" type="number" min={1} max={100000} defaultValue={initialInterval} />
             <div>
               <label className="mb-1.5 block text-sm font-bold">Satuan</label>
-              <select name="backupUnit" defaultValue={initialUnit} className="w-full rounded-neo border-2 border-base-ink bg-base-surface px-4 py-2.5 text-base shadow-neo-sm outline-none focus:shadow-neo">
+              <select name="backupUnit" defaultValue={initialUnit} className="w-full rounded-neo border border-base-line bg-base-surface px-4 py-2.5 text-base shadow-neo-sm outline-none focus:shadow-neo">
                 <option value="minutes">Menit</option>
                 <option value="hours">Jam</option>
                 <option value="days">Hari</option>
               </select>
             </div>
             <div className="flex items-end">
-              <label className="flex cursor-pointer items-center gap-3 rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold">
+              <label className="flex cursor-pointer items-center gap-3 rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold">
                 <input name="backupEnabled" type="checkbox" defaultChecked={initialEnabled} className="h-5 w-5 accent-black" />
                 Aktif
               </label>
@@ -161,9 +161,9 @@ export function BackupClient({
           </div>
         </section>
 
-        {error && <div className="rounded-neo border-2 border-base-ink bg-red-100 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
+        {error && <div className="rounded-neo border border-base-line bg-accent-terraSoft px-4 py-3 text-sm font-semibold text-accent-terraDeep">{error}</div>}
         {success && (
-          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 rounded-neo border-2 border-base-ink bg-accent-mint px-4 py-3 text-sm font-semibold">
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 rounded-neo border border-base-line bg-accent-mint px-4 py-3 text-sm font-semibold">
             <CheckCircle2 className="h-4 w-4 shrink-0" strokeWidth={2.5} /> Pengaturan backup disimpan.
           </motion.div>
         )}
@@ -180,13 +180,13 @@ export function BackupClient({
       </form>
 
       {backupResult && (
-        <div className={`rounded-neo border-2 border-base-ink px-4 py-3 text-sm font-semibold ${backupResult.startsWith("Gagal") ? "bg-red-100 text-red-700" : "bg-accent-mint"}`}>
+        <div className={`rounded-neo border border-base-line px-4 py-3 text-sm font-semibold ${backupResult.startsWith("Gagal") ? "bg-accent-terraSoft text-accent-terraDeep" : "bg-accent-mint"}`}>
           {backupResult}
         </div>
       )}
 
-      <section className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm">
-        <div className="flex items-center justify-between border-b-2 border-base-ink bg-accent-mint px-4 py-3 sm:px-5">
+      <section className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
+        <div className="flex items-center justify-between border-b border-base-line bg-accent-mint px-4 py-3 sm:px-5">
           <div className="flex items-center gap-3">
             <HardDriveDownload className="h-5 w-5" strokeWidth={2.5} />
             <div>
@@ -210,7 +210,7 @@ export function BackupClient({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b-2 border-base-ink bg-base-bg text-xs font-black uppercase tracking-wider text-base-ink/70">
+                  <tr className="border-b border-base-line bg-base-bg text-xs font-black uppercase tracking-wider text-base-ink/70">
                     <th className="px-3 py-2">File</th>
                     <th className="px-3 py-2 text-right">Ukuran</th>
                     <th className="px-3 py-2">Tanggal</th>

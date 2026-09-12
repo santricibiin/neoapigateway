@@ -189,17 +189,17 @@ export function OrderClient({ product }: { product: Product }) {
       <div className="relative grid gap-6 lg:grid-cols-[1fr_380px] lg:gap-8">
         {/* Kolom kiri: produk + form */}
         <div className="flex flex-col gap-5">
-          <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
+          <div className="rounded-neo border border-base-line bg-base-surface p-5 shadow-neo sm:p-6">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex rounded-full border-2 border-base-ink bg-base-bg px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-base-ink/60">
+              <span className="inline-flex rounded-full border border-base-line bg-base-bg px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-base-ink/60">
                 {product.category}
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-base-ink bg-accent-skySoft px-2 py-0.5 text-[10px] font-black uppercase">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-base-line bg-accent-skySoft px-2 py-0.5 text-[10px] font-black uppercase">
                 <TagIcon />
                 {product.model}
               </span>
               {product.sku && (
-                <span className="ml-auto rounded-neo border-2 border-base-ink bg-base-bg px-2 py-1 font-mono text-[10px] font-bold text-base-ink/60">
+                <span className="ml-auto rounded-neo border border-base-line bg-base-bg px-2 py-1 font-mono text-[10px] font-bold text-base-ink/60">
                   {product.sku}
                 </span>
               )}
@@ -208,17 +208,17 @@ export function OrderClient({ product }: { product: Product }) {
             {product.description && (
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-base-ink/70">{product.description}</p>
             )}
-            <div className="mt-4 flex items-end justify-between gap-3 border-t-2 border-dashed border-base-ink/15 pt-4">
+            <div className="mt-4 flex items-end justify-between gap-3 border-t border-dashed border-base-line pt-4">
               <div>
                 <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/40">{t("Harga satuan")}</div>
                 <div className="text-2xl font-extrabold sm:text-3xl">{formatRupiah(product.price)}</div>
               </div>
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full border-2 border-base-ink px-2.5 py-1 text-[10px] font-black uppercase ${
-                  isExternal || product.stock > 0 ? "bg-accent-mint" : "bg-red-200"
+                className={`inline-flex items-center gap-1.5 rounded-full border border-base-line px-2.5 py-1 text-[10px] font-black uppercase ${
+                  isExternal || product.stock > 0 ? "bg-accent-mint" : "bg-accent-terraSoft"
                 }`}
               >
-                <span className={`h-1.5 w-1.5 rounded-full ${isExternal || product.stock > 0 ? "bg-green-600" : "bg-red-500"}`} />
+                <span className={`h-1.5 w-1.5 rounded-full ${isExternal || product.stock > 0 ? "bg-accent-sageDeep" : "bg-[#B4522E]"}`} />
                 {isExternal ? t("Tersedia") : product.stock > 0 ? `${product.stock} ${t("tersedia")}` : t("Habis")}
               </span>
             </div>
@@ -226,7 +226,7 @@ export function OrderClient({ product }: { product: Product }) {
 
           <form onSubmit={handleCreateOrder} className="flex flex-col gap-4">
             {!isExternal && (
-              <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
+              <div className="rounded-neo border border-base-line bg-base-surface p-5 shadow-neo sm:p-6">
                 <label className="mb-2 flex items-center gap-2 text-sm font-bold">
                   <ShoppingCartIcon />
                   {t("Jumlah")}
@@ -235,7 +235,7 @@ export function OrderClient({ product }: { product: Product }) {
                   <button
                     type="button"
                     onClick={() => setQty((q) => Math.max(1, q - 1))}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-base-bg font-bold shadow-neo-sm"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-base-bg font-bold shadow-neo-sm"
                   >
                     −
                   </button>
@@ -244,12 +244,12 @@ export function OrderClient({ product }: { product: Product }) {
                     min={1}
                     value={qty}
                     onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
-                    className="w-20 rounded-neo border-2 border-base-ink bg-base-surface py-2 text-center font-bold shadow-neo-sm"
+                    className="w-20 rounded-neo border border-base-line bg-base-surface py-2 text-center font-bold shadow-neo-sm"
                   />
                   <button
                     type="button"
                     onClick={() => setQty((q) => q + 1)}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-base-bg font-bold shadow-neo-sm"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-base-bg font-bold shadow-neo-sm"
                   >
                     +
                   </button>
@@ -258,7 +258,7 @@ export function OrderClient({ product }: { product: Product }) {
             )}
 
             {error && (
-              <div className="rounded-neo border-2 border-base-ink bg-red-100 px-4 py-3 text-sm font-semibold text-red-700">
+              <div className="rounded-neo border border-base-line bg-accent-terraSoft px-4 py-3 text-sm font-semibold text-accent-terraDeep">
                 {error}
               </div>
             )}
@@ -278,7 +278,7 @@ export function OrderClient({ product }: { product: Product }) {
 
         {/* Kolom kanan: ringkasan + cara bayar */}
         <aside className="flex flex-col gap-5">
-          <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
+          <div className="rounded-neo border border-base-line bg-base-surface p-5 shadow-neo sm:p-6">
             <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-base-ink/50">
               <ReceiptIcon className="h-4 w-4" />
               {t("Ringkasan Pesanan")}
@@ -298,7 +298,7 @@ export function OrderClient({ product }: { product: Product }) {
                 <dt className="font-semibold text-base-ink/60">{t("Harga satuan")}</dt>
                 <dd className="font-bold">{formatRupiah(product.price)}</dd>
               </div>
-              <div className="flex items-center justify-between gap-2 border-t-2 border-dashed border-base-ink/15 pt-2">
+              <div className="flex items-center justify-between gap-2 border-t border-dashed border-base-line pt-2">
                 <dt className="font-extrabold">{t("Total")}</dt>
                 <dd className="text-lg font-extrabold">{formatRupiah(product.price * (isExternal ? 1 : qty))}</dd>
               </div>
@@ -308,26 +308,26 @@ export function OrderClient({ product }: { product: Product }) {
             </p>
           </div>
 
-          <div className="rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6">
+          <div className="rounded-neo border border-base-line bg-base-surface p-5 shadow-neo sm:p-6">
             <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-base-ink/50">
               <ClockIcon />
               {t("Cara Pembayaran")}
             </h2>
             <ol className="mt-3 space-y-3">
               <li className="flex gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky text-xs font-black">1</span>
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sky text-xs font-black">1</span>
                 <p className="text-sm font-semibold text-base-ink/70">{t("Klik")} <span className="font-extrabold text-base-ink">{t("Lanjutkan Pembayaran")}</span> {t("— invoice QRIS dibuat instan.")}</p>
               </li>
               <li className="flex gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky text-xs font-black">2</span>
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sky text-xs font-black">2</span>
                 <p className="text-sm font-semibold text-base-ink/70">{t("Scan QRIS dari e-wallet/m-banking mana pun, bayar")} <span className="font-extrabold text-base-ink">{t("tepat sesuai nominal.")}</span></p>
               </li>
               <li className="flex gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky text-xs font-black">3</span>
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sky text-xs font-black">3</span>
                 <p className="text-sm font-semibold text-base-ink/70">{t("Pembayaran terdeteksi otomatis — detail produk langsung tampil di halaman ini.")}</p>
               </li>
             </ol>
-            <div className="mt-4 rounded-neo border-2 border-base-ink bg-accent-sunSoft p-3">
+            <div className="mt-4 rounded-neo border border-base-line bg-accent-sunSoft p-3">
               <p className="text-xs font-bold text-base-ink/70">
                 {t("Semua aktivitas pembayaran dipantau 24 jam dan invoice berlaku 10 menit.")}
               </p>
@@ -351,14 +351,14 @@ export function OrderClient({ product }: { product: Product }) {
             {history.map((item) => (
               <div
                 key={item.invoice}
-                className="rounded-neo border-2 border-base-ink bg-base-bg p-3 shadow-neo-sm"
+                className="rounded-neo border border-base-line bg-base-bg p-3 shadow-neo-sm"
               >
                 <div className="flex items-center justify-between gap-2">
                   <Link href={`/track/${item.invoice}`} className="min-w-0 flex-1">
                     <span className="break-all font-mono text-xs font-bold">{item.invoice}</span>
                   </Link>
                   <span
-                    className={`shrink-0 rounded-neo border-2 border-base-ink px-2 py-0.5 text-[10px] font-bold ${
+                    className={`shrink-0 rounded-neo border border-base-line px-2 py-0.5 text-[10px] font-bold ${
                       item.status === "paid"
                         ? "bg-accent-mint"
                         : item.status === "expired" || item.status === "failed"
@@ -391,7 +391,7 @@ export function OrderClient({ product }: { product: Product }) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 hover:bg-red-200 hover:text-red-700"
+                      className="flex-1 hover:bg-accent-terraSoft hover:text-accent-terraDeep"
                       disabled={cancelling === item.invoice}
                       onClick={() => void cancelPendingOrder(item.invoice)}
                     >

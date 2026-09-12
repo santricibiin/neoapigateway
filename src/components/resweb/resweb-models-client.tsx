@@ -54,9 +54,9 @@ export function ReswebModelsClient() {
 
   return (
     <div className="space-y-6">
-      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-mint p-5 shadow-neo sm:p-7">
+      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border border-base-line bg-accent-mint p-5 shadow-neo sm:p-7">
         <motion.svg animate={{ rotate: 360 }} transition={{ duration: 28, repeat: Infinity, ease: "linear" }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 text-white/35"><path d="M50 5 61 38 95 39 68 58 77 91 50 72 23 91 32 58 5 39 39 38Z" fill="currentColor" /></motion.svg>
-        <div className="relative"><span className="inline-flex items-center gap-2 rounded-full border-2 border-base-ink bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Sparkles className="h-3 w-3" /> Realtime Catalog</span><h1 className="mt-3 text-3xl font-black sm:text-4xl">Katalog model.</h1><p className="mt-1 text-sm font-bold text-base-ink/60">{stats.active} aktif · {stats.inactive} nonaktif · {stats.total} total</p></div>
+        <div className="relative"><span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Sparkles className="h-3 w-3" /> Realtime Catalog</span><h1 className="mt-3 text-3xl font-black sm:text-4xl">Katalog model.</h1><p className="mt-1 text-sm font-bold text-base-ink/60">{stats.active} aktif · {stats.inactive} nonaktif · {stats.total} total</p></div>
       </motion.section>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -66,7 +66,7 @@ export function ReswebModelsClient() {
               key={f}
               onClick={() => setFilter(f)}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink px-3 py-2 text-xs font-black uppercase transition-colors",
+                "inline-flex items-center gap-1.5 rounded-neo border border-base-line px-3 py-2 text-xs font-black uppercase transition-colors",
                 filter === f ? "bg-base-ink text-white shadow-neo-sm" : "bg-white hover:bg-accent-sky/20"
               )}
             >
@@ -79,8 +79,8 @@ export function ReswebModelsClient() {
         <div className="relative max-w-md flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-base-ink/45" /><Input className="pl-10" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari nama atau brand model..." /></div>
       </div>
 
-      {loading ? <div className="flex items-center gap-2 rounded-neo border-2 border-base-ink bg-white p-4 font-bold"><Loader2 className="h-4 w-4 animate-spin" /> Memuat model...</div> : null}
-      {error ? <p className="rounded-neo border-2 border-base-ink bg-red-200 p-4 text-sm font-bold">{error}</p> : null}
+      {loading ? <div className="flex items-center gap-2 rounded-neo border border-base-line bg-white p-4 font-bold"><Loader2 className="h-4 w-4 animate-spin" /> Memuat model...</div> : null}
+      {error ? <p className="rounded-neo border border-base-line bg-accent-terraSoft p-4 text-sm font-bold">{error}</p> : null}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {filtered.map((model, index) => (
           <motion.button
@@ -92,14 +92,14 @@ export function ReswebModelsClient() {
             transition={{ delay: Math.min(index, 12) * 0.035 }}
             whileHover={{ y: -5, rotate: index % 2 ? 0.35 : -0.35 }}
             className={cn(
-              "relative min-h-40 overflow-hidden rounded-neo border-2 border-base-ink p-4 text-left shadow-neo-sm",
+              "relative min-h-40 overflow-hidden rounded-neo border border-base-line p-4 text-left shadow-neo-sm",
               !model.enabled && "opacity-60",
               model.enabled ? (index % 3 === 0 ? "bg-accent-sky" : index % 3 === 1 ? "bg-accent-sun" : "bg-white") : "bg-base-bg"
             )}
           >
             <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -bottom-9 -right-9 h-28 w-28 text-base-ink/10"><circle cx="50" cy="50" r="36" fill="none" stroke="currentColor" strokeWidth="12" /></svg>
             <div className="relative flex items-start justify-between gap-3">
-              <span className={cn("inline-flex items-center gap-1 rounded-full border-2 border-base-ink px-2 py-0.5 text-[9px] font-black uppercase", model.enabled ? "bg-accent-mint" : "bg-red-200")}>
+              <span className={cn("inline-flex items-center gap-1 rounded-full border border-base-line px-2 py-0.5 text-[9px] font-black uppercase", model.enabled ? "bg-accent-mint" : "bg-accent-terraSoft")}>
                 {model.enabled ? <Zap className="h-2.5 w-2.5" /> : <ZapOff className="h-2.5 w-2.5" />}
                 {model.enabled ? "Aktif" : "Nonaktif"}
               </span>
@@ -113,7 +113,7 @@ export function ReswebModelsClient() {
           </motion.button>
         ))}
       </div>
-      {!loading && !error && !filtered.length ? <div className="rounded-neo border-2 border-dashed border-base-ink bg-white py-14 text-center font-bold text-base-ink/45">Model tidak ditemukan.</div> : null}
+      {!loading && !error && !filtered.length ? <div className="rounded-neo border border-dashed border-base-line bg-white py-14 text-center font-bold text-base-ink/45">Model tidak ditemukan.</div> : null}
     </div>
   );
 }

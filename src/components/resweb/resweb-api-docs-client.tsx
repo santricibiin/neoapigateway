@@ -135,17 +135,17 @@ export function ReswebApiDocsClient({ reseller, baseUrl }: { reseller: { name: s
 
   return (
     <div className="space-y-6">
-      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-sky p-5 shadow-neo sm:p-7">
+      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border border-base-line bg-accent-sky p-5 shadow-neo sm:p-7">
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border-2 border-base-ink bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Code className="h-3 w-3" /> API Reference</span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Code className="h-3 w-3" /> API Reference</span>
           <h1 className="mt-3 text-3xl font-black sm:text-4xl">Dokumentasi API</h1>
           <p className="mt-1 text-sm font-bold text-base-ink/60">Integrasikan reseller Anda dengan REST API</p>
         </div>
       </motion.section>
 
-      <section className="rounded-neo border-2 border-base-ink bg-white p-5 shadow-neo-sm sm:p-6">
-        <div className="flex items-center gap-3 border-b-2 border-base-ink/15 pb-4">
-          <span className="flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun shadow-neo-sm"><KeyRound className="h-5 w-5" /></span>
+      <section className="rounded-neo border border-base-line bg-white p-5 shadow-neo-sm sm:p-6">
+        <div className="flex items-center gap-3 border-b border-base-line pb-4">
+          <span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-accent-sun shadow-neo-sm"><KeyRound className="h-5 w-5" /></span>
           <div>
             <h2 className="text-lg font-black">Autentikasi</h2>
             <p className="text-xs font-bold text-base-ink/50">API key reseller Anda</p>
@@ -157,43 +157,43 @@ export function ReswebApiDocsClient({ reseller, baseUrl }: { reseller: { name: s
             <div className="space-y-2">
               <label className="text-sm font-semibold text-base-ink">API Key</label>
               <div className="flex gap-2">
-                <code className="h-[42px] flex-1 overflow-x-auto whitespace-nowrap rounded-neo border-2 border-base-ink bg-base-bg px-4 py-2.5 font-mono text-sm font-bold shadow-neo-sm">
+                <code className="h-[42px] flex-1 overflow-x-auto whitespace-nowrap rounded-neo border border-base-line bg-base-bg px-4 py-2.5 font-mono text-sm font-bold shadow-neo-sm">
                   {showKey ? reseller.apiKey : "res_" + "•".repeat(20) + reseller.apiKey.slice(-6)}
                 </code>
-                <button onClick={() => setShowKey((s) => !s)} className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm transition-shadow hover:shadow-neo" title={showKey ? "Sembunyikan" : "Tampilkan"}>
+                <button onClick={() => setShowKey((s) => !s)} className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-neo border border-base-line bg-base-surface shadow-neo-sm transition-shadow hover:shadow-neo" title={showKey ? "Sembunyikan" : "Tampilkan"}>
                   {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
-                <button onClick={() => copy("key", reseller.apiKey!)} className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-mint shadow-neo-sm transition-shadow hover:shadow-neo" title="Salin">
+                <button onClick={() => copy("key", reseller.apiKey!)} className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-mint shadow-neo-sm transition-shadow hover:shadow-neo" title="Salin">
                   {copied === "key" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </button>
               </div>
             </div>
           ) : (
-            <div className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">
+            <div className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">
               API key belum diatur. Silakan atur di halaman Setting.
             </div>
           )}
 
-          <div className="rounded-neo border-2 border-base-ink bg-base-bg p-4">
+          <div className="rounded-neo border border-base-line bg-base-bg p-4">
             <p className="mb-2 text-xs font-black uppercase tracking-widest text-base-ink/45">Cara Penggunaan</p>
             <p className="text-sm font-bold">Semua request harus menyertakan API key pada salah satu header berikut:</p>
             <div className="mt-2 space-y-2">
-              <div className="rounded-neo border-2 border-base-ink bg-base-surface p-2">
+              <div className="rounded-neo border border-base-line bg-base-surface p-2">
                 <p className="text-[10px] font-black uppercase text-base-ink/45">Opsi 1 — Bearer Token</p>
                 <code className="block font-mono text-xs font-bold">Authorization: Bearer &lt;api_key&gt;</code>
               </div>
-              <div className="rounded-neo border-2 border-base-ink bg-base-surface p-2">
+              <div className="rounded-neo border border-base-line bg-base-surface p-2">
                 <p className="text-[10px] font-black uppercase text-base-ink/45">Opsi 2 — X-API-Key Header</p>
                 <code className="block font-mono text-xs font-bold">X-API-Key: &lt;api_key&gt;</code>
               </div>
             </div>
           </div>
 
-          <div className="rounded-neo border-2 border-base-ink bg-base-bg p-4">
+          <div className="rounded-neo border border-base-line bg-base-bg p-4">
             <p className="mb-2 text-xs font-black uppercase tracking-widest text-base-ink/45">Base URL</p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 overflow-x-auto whitespace-nowrap rounded-neo border-2 border-base-ink bg-base-surface px-3 py-2 font-mono text-xs font-bold">{baseUrl}</code>
-              <button onClick={() => copy("base", baseUrl)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm" title="Salin">
+              <code className="flex-1 overflow-x-auto whitespace-nowrap rounded-neo border border-base-line bg-base-surface px-3 py-2 font-mono text-xs font-bold">{baseUrl}</code>
+              <button onClick={() => copy("base", baseUrl)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-base-surface shadow-neo-sm" title="Salin">
                 {copied === "base" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
               </button>
             </div>
@@ -209,10 +209,10 @@ export function ReswebApiDocsClient({ reseller, baseUrl }: { reseller: { name: s
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="overflow-hidden rounded-neo border-2 border-base-ink bg-white shadow-neo-sm"
+            className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm"
           >
-            <div className={cn("flex items-center gap-3 border-b-2 border-base-ink p-4", ep.color)}>
-              <span className="flex h-9 w-9 items-center justify-center rounded-neo border-2 border-base-ink bg-white shadow-neo-sm"><ep.icon className="h-4 w-4" /></span>
+            <div className={cn("flex items-center gap-3 border-b border-base-line p-4", ep.color)}>
+              <span className="flex h-9 w-9 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm"><ep.icon className="h-4 w-4" /></span>
               <div className="flex-1">
                 <h3 className="font-black">{ep.title}</h3>
                 <p className="text-xs font-bold text-base-ink/60">{ep.description}</p>
@@ -221,9 +221,9 @@ export function ReswebApiDocsClient({ reseller, baseUrl }: { reseller: { name: s
 
             <div className="space-y-4 p-4">
               <div className="flex items-center gap-2">
-                <span className={cn("inline-flex rounded-neo border-2 border-base-ink px-2.5 py-1 font-mono text-xs font-black", ep.method === "GET" ? "bg-accent-mint" : "bg-accent-sun")}>{ep.method}</span>
-                <code className="flex-1 overflow-x-auto whitespace-nowrap rounded-neo border-2 border-base-ink bg-base-bg px-3 py-1.5 font-mono text-xs font-bold">{baseUrl}{ep.path}</code>
-                <button onClick={() => copy(`path-${i}`, `${baseUrl}${ep.path}`)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm" title="Salin URL">
+                <span className={cn("inline-flex rounded-neo border border-base-line px-2.5 py-1 font-mono text-xs font-black", ep.method === "GET" ? "bg-accent-mint" : "bg-accent-sun")}>{ep.method}</span>
+                <code className="flex-1 overflow-x-auto whitespace-nowrap rounded-neo border border-base-line bg-base-bg px-3 py-1.5 font-mono text-xs font-bold">{baseUrl}{ep.path}</code>
+                <button onClick={() => copy(`path-${i}`, `${baseUrl}${ep.path}`)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-base-surface shadow-neo-sm" title="Salin URL">
                   {copied === `path-${i}` ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                 </button>
               </div>
@@ -231,7 +231,7 @@ export function ReswebApiDocsClient({ reseller, baseUrl }: { reseller: { name: s
               {ep.params && (
                 <div>
                   <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-base-ink/45">Parameter</p>
-                  <div className="overflow-hidden rounded-neo border-2 border-base-ink">
+                  <div className="overflow-hidden rounded-neo border border-base-line">
                     <table className="w-full text-left text-xs">
                       <thead className="bg-base-ink text-white">
                         <tr>
@@ -241,12 +241,12 @@ export function ReswebApiDocsClient({ reseller, baseUrl }: { reseller: { name: s
                           <th className="px-3 py-2 font-black">Keterangan</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y-2 divide-base-ink/15">
+                      <tbody className="divide-y divide-base-line">
                         {ep.params.map((p) => (
                           <tr key={p.name} className="bg-base-bg">
                             <td className="px-3 py-2 font-mono font-bold">{p.name}</td>
                             <td className="px-3 py-2 font-bold text-base-ink/60">{p.type}</td>
-                            <td className="px-3 py-2 font-bold">{p.required ? <span className="text-red-600">Ya</span> : "Tidak"}</td>
+                            <td className="px-3 py-2 font-bold">{p.required ? <span className="text-accent-terraDeep">Ya</span> : "Tidak"}</td>
                             <td className="px-3 py-2 text-base-ink/70">{p.desc}</td>
                           </tr>
                         ))}
@@ -259,40 +259,40 @@ export function ReswebApiDocsClient({ reseller, baseUrl }: { reseller: { name: s
               {ep.bodyExample && (
                 <div>
                   <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-base-ink/45">Request Body</p>
-                  <pre className="overflow-x-auto rounded-neo border-2 border-base-ink bg-base-ink p-3 font-mono text-xs text-white"><code>{ep.bodyExample}</code></pre>
+                  <pre className="overflow-x-auto rounded-neo border border-base-line bg-base-ink p-3 font-mono text-xs text-white"><code>{ep.bodyExample}</code></pre>
                 </div>
               )}
 
               <div>
                 <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-base-ink/45">Response</p>
-                <pre className="overflow-x-auto rounded-neo border-2 border-base-ink bg-base-ink p-3 font-mono text-xs text-white"><code>{ep.responseExample}</code></pre>
+                <pre className="overflow-x-auto rounded-neo border border-base-line bg-base-ink p-3 font-mono text-xs text-white"><code>{ep.responseExample}</code></pre>
               </div>
             </div>
           </motion.div>
         ))}
       </section>
 
-      <section className="rounded-neo border-2 border-base-ink bg-white p-5 shadow-neo-sm sm:p-6">
-        <div className="flex items-center gap-3 border-b-2 border-base-ink/15 pb-4">
-          <span className="flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-mint shadow-neo-sm"><Terminal className="h-5 w-5" /></span>
+      <section className="rounded-neo border border-base-line bg-white p-5 shadow-neo-sm sm:p-6">
+        <div className="flex items-center gap-3 border-b border-base-line pb-4">
+          <span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-accent-mint shadow-neo-sm"><Terminal className="h-5 w-5" /></span>
           <div>
             <h2 className="text-lg font-black">Contoh Request</h2>
             <p className="text-xs font-bold text-base-ink/50">curl command untuk testing</p>
           </div>
         </div>
         <div className="mt-4 space-y-3">
-          <pre className="overflow-x-auto rounded-neo border-2 border-base-ink bg-base-ink p-3 font-mono text-xs text-white"><code>{`curl ${baseUrl}/api/reseller/balance \\
+          <pre className="overflow-x-auto rounded-neo border border-base-line bg-base-ink p-3 font-mono text-xs text-white"><code>{`curl ${baseUrl}/api/reseller/balance \\
   -H "Authorization: Bearer <API_KEY>"`}</code></pre>
-          <pre className="overflow-x-auto rounded-neo border-2 border-base-ink bg-base-ink p-3 font-mono text-xs text-white"><code>{`curl -X POST ${baseUrl}/api/reseller/members \\
+          <pre className="overflow-x-auto rounded-neo border border-base-line bg-base-ink p-3 font-mono text-xs text-white"><code>{`curl -X POST ${baseUrl}/api/reseller/members \\
   -H "Authorization: Bearer <API_KEY>" \\
   -H "Content-Type: application/json" \\
   -d '{"packageCode": "1M"}'`}</code></pre>
         </div>
       </section>
 
-      <section className="rounded-neo border-2 border-base-ink bg-white p-5 shadow-neo-sm sm:p-6">
-        <div className="flex items-center gap-3 border-b-2 border-base-ink/15 pb-4">
-          <span className="flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-lavender shadow-neo-sm"><ShieldCheck className="h-5 w-5" /></span>
+      <section className="rounded-neo border border-base-line bg-white p-5 shadow-neo-sm sm:p-6">
+        <div className="flex items-center gap-3 border-b border-base-line pb-4">
+          <span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-accent-lavender shadow-neo-sm"><ShieldCheck className="h-5 w-5" /></span>
           <div>
             <h2 className="text-lg font-black">Kode Paket</h2>
             <p className="text-xs font-bold text-base-ink/50">Daftar kode paket yang tersedia</p>
@@ -307,7 +307,7 @@ export function ReswebApiDocsClient({ reseller, baseUrl }: { reseller: { name: s
                 <th className="px-4 py-3 font-black">Masa Berlaku</th>
               </tr>
             </thead>
-            <tbody className="divide-y-2 divide-base-ink/15">
+            <tbody className="divide-y divide-base-line">
               {PACKAGE_TABLE.map((p) => (
                 <tr key={p.code} className="hover:bg-accent-sky/10">
                   <td className="px-4 py-2.5 font-mono font-black">{p.code}</td>
@@ -320,7 +320,7 @@ export function ReswebApiDocsClient({ reseller, baseUrl }: { reseller: { name: s
         </div>
       </section>
 
-      <section className="rounded-neo border-2 border-base-ink bg-red-200 p-5 shadow-neo-sm">
+      <section className="rounded-neo border border-base-line bg-accent-terraSoft p-5 shadow-neo-sm">
         <div className="flex items-start gap-3">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" />
           <div className="space-y-1">

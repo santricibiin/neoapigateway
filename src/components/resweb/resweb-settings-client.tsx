@@ -57,27 +57,27 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
 
   return (
     <div className="space-y-6">
-      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-lavender p-5 shadow-neo sm:p-7">
+      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border border-base-line bg-accent-lavender p-5 shadow-neo sm:p-7">
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border-2 border-base-ink bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Sparkles className="h-3 w-3" /> Pengaturan</span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Sparkles className="h-3 w-3" /> Pengaturan</span>
           <h1 className="mt-3 text-3xl font-black sm:text-4xl">Pengaturan Akun</h1>
           <p className="mt-1 text-sm font-bold text-base-ink/60">{reseller?.email}</p>
         </div>
       </motion.section>
 
-      {pwOk && <p className="rounded-neo border-2 border-base-ink bg-accent-mint p-3 text-sm font-bold">Password berhasil diubah.</p>}
-      {keyOk && <p className="rounded-neo border-2 border-base-ink bg-accent-mint p-3 text-sm font-bold">API key berhasil disimpan.</p>}
+      {pwOk && <p className="rounded-neo border border-base-line bg-accent-mint p-3 text-sm font-bold">Password berhasil diubah.</p>}
+      {keyOk && <p className="rounded-neo border border-base-line bg-accent-mint p-3 text-sm font-bold">API key berhasil disimpan.</p>}
 
-      <section className="rounded-neo border-2 border-base-ink bg-white p-5 shadow-neo-sm sm:p-6">
-        <div className="flex items-center gap-3 border-b-2 border-base-ink/15 pb-4">
-          <span className="flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky shadow-neo-sm"><ShieldCheck className="h-5 w-5" /></span>
+      <section className="rounded-neo border border-base-line bg-white p-5 shadow-neo-sm sm:p-6">
+        <div className="flex items-center gap-3 border-b border-base-line pb-4">
+          <span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-accent-sky shadow-neo-sm"><ShieldCheck className="h-5 w-5" /></span>
           <div>
             <h2 className="text-lg font-black">Password</h2>
             <p className="text-xs font-bold text-base-ink/50">Ubah password login Anda</p>
           </div>
         </div>
 
-        {pwError && <p className="mt-4 rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{pwError}</p>}
+        {pwError && <p className="mt-4 rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{pwError}</p>}
 
         {pwMode ? (
           <form action={handlePassword} className="mt-4 space-y-4">
@@ -95,16 +95,16 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
         )}
       </section>
 
-      <section className="rounded-neo border-2 border-base-ink bg-white p-5 shadow-neo-sm sm:p-6">
-        <div className="flex items-center gap-3 border-b-2 border-base-ink/15 pb-4">
-          <span className="flex h-10 w-10 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun shadow-neo-sm"><KeyRound className="h-5 w-5" /></span>
+      <section className="rounded-neo border border-base-line bg-white p-5 shadow-neo-sm sm:p-6">
+        <div className="flex items-center gap-3 border-b border-base-line pb-4">
+          <span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-accent-sun shadow-neo-sm"><KeyRound className="h-5 w-5" /></span>
           <div>
             <h2 className="text-lg font-black">API Key</h2>
             <p className="text-xs font-bold text-base-ink/50">Key untuk autentikasi API reseller</p>
           </div>
         </div>
 
-        {keyError && <p className="mt-4 rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{keyError}</p>}
+        {keyError && <p className="mt-4 rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{keyError}</p>}
 
         <form action={handleApiKey} className="mt-4 space-y-4">
           <div className="flex flex-col gap-1.5">
@@ -116,7 +116,7 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
                 onChange={(e) => { setApiKey(e.target.value); setApiKeyCopied(false); setKeyOk(false); }}
                 placeholder="Klik generate untuk membuat API key"
                 maxLength={128}
-                className="h-[42px] flex-1 rounded-neo border-2 border-base-ink bg-base-surface px-4 font-mono text-sm text-base-ink shadow-neo-sm outline-none transition-shadow focus:shadow-neo"
+                className="h-[42px] flex-1 rounded-neo border border-base-line bg-base-surface px-4 font-mono text-sm text-base-ink shadow-neo-sm outline-none transition-shadow focus:shadow-neo"
               />
               <Button type="button" variant="sky" title="Generate API key acak" onClick={() => { setApiKey(generateApiKey()); setApiKeyCopied(false); setKeyOk(false); }}>
                 <KeyRound className="h-4 w-4" />

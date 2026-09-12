@@ -68,13 +68,13 @@ export default function ResWebLoginPage() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="relative w-full max-w-md"
       >
-        <div className="rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-lg">
-          <div className="flex flex-col items-center gap-3 border-b-2 border-base-ink bg-accent-sky p-6">
+        <div className="rounded-neo border border-base-line bg-base-surface shadow-neo-lg">
+          <div className="flex flex-col items-center gap-3 border-b border-base-line bg-accent-sky p-6">
             <motion.span
               initial={{ scale: 0, rotate: -30 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 18 }}
-              className="inline-flex h-14 w-14 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun shadow-neo-sm"
+              className="inline-flex h-14 w-14 items-center justify-center rounded-neo border border-base-line bg-accent-sun shadow-neo-sm"
             >
               <Users className="h-7 w-7 text-base-ink" strokeWidth={2.5} />
             </motion.span>
@@ -89,7 +89,7 @@ export default function ResWebLoginPage() {
               <motion.div
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-neo border-2 border-base-ink bg-red-100 px-4 py-2.5 text-sm font-semibold text-red-700 shadow-neo-sm"
+                className="rounded-neo border border-base-line bg-accent-terraSoft px-4 py-2.5 text-sm font-semibold text-accent-terraDeep shadow-neo-sm"
               >
                 {error}
               </motion.div>
@@ -125,7 +125,7 @@ export default function ResWebLoginPage() {
                   placeholder="••••••••"
                   autoComplete="current-password"
                   required
-                  className="w-full rounded-neo border-2 border-base-ink bg-base-surface px-4 py-2.5 pr-12 text-base text-base-ink shadow-neo-sm outline-none transition-shadow focus:shadow-neo"
+                  className="w-full rounded-neo border border-base-line bg-base-surface px-4 py-2.5 pr-12 text-base text-base-ink shadow-neo-sm outline-none transition-shadow focus:shadow-neo"
                 />
                 <button
                   type="button"
@@ -156,7 +156,7 @@ export default function ResWebLoginPage() {
             </motion.div>
           </form>
 
-          <div className="border-t-2 border-base-ink p-4">
+          <div className="border-t border-base-line p-4">
             <Link
               href="/"
               className="flex items-center justify-center gap-2 text-sm font-semibold text-base-ink/60 transition-colors hover:text-base-ink"

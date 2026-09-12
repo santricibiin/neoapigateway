@@ -48,7 +48,7 @@ export function DashboardSidebar({
     <motion.aside
       animate={{ width: collapsed ? 72 : 256 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="fixed left-0 top-16 bottom-0 z-40 my-3 ml-3 hidden flex-col overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo lg:flex"
+      className="fixed left-0 top-16 bottom-0 z-40 my-3 ml-3 hidden flex-col overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo lg:flex"
     >
       <nav className="flex-1 overflow-y-auto p-3">
         <ul className="flex flex-col gap-2">
@@ -61,7 +61,7 @@ export function DashboardSidebar({
                   href={item.href}
                   title={collapsed ? item.label : undefined}
                   className={cn(
-                    "flex items-center rounded-neo border-2 border-base-ink font-semibold transition-all",
+                    "flex items-center rounded-neo border border-base-line font-semibold transition-all",
                     collapsed ? "justify-center p-2.5" : "gap-3 px-4 py-2.5 text-sm",
                     active
                       ? "bg-accent-sky shadow-neo-sm"

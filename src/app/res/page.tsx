@@ -4,7 +4,7 @@ import { ReswebDashboardClient } from "@/components/resweb/resweb-dashboard-clie
 
 export const dynamic = "force-dynamic";
 
-export const MEMBERS_PER_PAGE = 10;
+const MEMBERS_PER_PAGE = 10;
 
 export default async function ResDashboardPage({
   searchParams,

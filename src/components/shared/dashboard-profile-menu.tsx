@@ -25,9 +25,9 @@ export function DashboardProfileMenu({ adminId }: { adminId: number }) {
         whileHover={{ y: -2 }}
         whileTap={{ y: 2 }}
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-neo border-2 border-base-ink bg-base-bg px-3 py-2 shadow-neo-sm"
+        className="flex items-center gap-2 rounded-neo border border-base-line bg-base-bg px-3 py-2 shadow-neo-sm"
       >
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-mint">
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-neo border border-base-line bg-accent-mint">
           <User className="h-4 w-4 text-base-ink" strokeWidth={2.5} />
         </span>
         <span className="hidden text-sm font-bold sm:inline">Admin</span>
@@ -44,9 +44,9 @@ export function DashboardProfileMenu({ adminId }: { adminId: number }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 top-full mt-2 w-56 rounded-neo border-2 border-base-ink bg-base-surface p-2 shadow-neo-lg"
+            className="absolute right-0 top-full mt-2 w-56 rounded-neo border border-base-line bg-base-surface p-2 shadow-neo-lg"
           >
-            <div className="mb-2 rounded-neo border-2 border-base-ink bg-accent-lavender px-3 py-2">
+            <div className="mb-2 rounded-neo border border-base-line bg-accent-lavender px-3 py-2">
               <div className="text-sm font-bold">Super Admin</div>
               <div className="text-xs text-base-ink/70">ID: {adminId}</div>
             </div>
@@ -55,7 +55,7 @@ export function DashboardProfileMenu({ adminId }: { adminId: number }) {
                 whileHover={{ y: -2 }}
                 whileTap={{ y: 2 }}
                 type="submit"
-                className="flex w-full items-center gap-3 rounded-neo border-2 border-base-ink bg-red-100 px-3 py-2.5 text-sm font-semibold text-red-700 shadow-neo-sm transition-colors hover:bg-red-200"
+                className="flex w-full items-center gap-3 rounded-neo border border-base-line bg-accent-terraSoft px-3 py-2.5 text-sm font-semibold text-accent-terraDeep shadow-neo-sm transition-colors hover:bg-accent-terraSoft"
               >
                 <LogOut className="h-4 w-4" strokeWidth={2.5} />
                 Keluar

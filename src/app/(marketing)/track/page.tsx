@@ -34,7 +34,7 @@ export default function TrackPage() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
-          className="rounded-neo border-2 border-base-ink bg-accent-sun px-4 py-1.5 text-sm font-bold shadow-neo-sm"
+          className="rounded-neo border border-base-line bg-accent-sun px-4 py-1.5 text-sm font-bold shadow-neo-sm"
         >
           <Receipt className="mr-1.5 inline-block h-4 w-4" />
           {t("Cek Pesanan")}
@@ -63,7 +63,7 @@ export default function TrackPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex flex-col gap-3 rounded-neo border-2 border-base-ink bg-base-surface p-5 shadow-neo sm:p-6"
+          className="flex flex-col gap-3 rounded-neo border border-base-line bg-base-surface p-5 shadow-neo sm:p-6"
         >
           <label className="text-sm font-bold" htmlFor="invoice">
             {t("No. Invoice")}
@@ -81,7 +81,7 @@ export default function TrackPage() {
             autoFocus
           />
           {error && (
-            <p className="text-center text-xs font-semibold text-red-600">{error}</p>
+            <p className="text-center text-xs font-semibold text-accent-terraDeep">{error}</p>
           )}
           <Button type="submit" variant="primary" size="lg" className="w-full">
             <Search className="h-5 w-5" />
@@ -103,9 +103,9 @@ export default function TrackPage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.4 + i * 0.08 }}
-              className="flex flex-col items-center gap-2 rounded-neo border-2 border-base-ink bg-base-surface p-4 text-center shadow-neo-sm"
+              className="flex flex-col items-center gap-2 rounded-neo border border-base-line bg-base-surface p-4 text-center shadow-neo-sm"
             >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky shadow-neo-sm">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-neo border border-base-line bg-accent-sky shadow-neo-sm">
                 <Icon className="h-4 w-4" strokeWidth={2.5} />
               </span>
               <p className="text-sm font-extrabold">{t(f.titleId)}</p>

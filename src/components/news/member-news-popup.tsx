@@ -69,7 +69,7 @@ export function MemberNewsPopup({ token }: { token?: string }) {
           whileTap={{ scale: 0.95 }}
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-4 z-40 flex items-center gap-2 rounded-neo border-2 border-base-ink bg-accent-sun px-3 py-2.5 font-extrabold shadow-neo sm:px-4 sm:py-3 lg:bottom-7 lg:right-7"
+          className="fixed bottom-5 right-4 z-40 flex items-center gap-2 rounded-neo border border-base-line bg-accent-sun px-3 py-2.5 font-extrabold shadow-neo sm:px-4 sm:py-3 lg:bottom-7 lg:right-7"
         >
           <Megaphone className="h-4 w-4 sm:h-5 sm:w-5" />
           <span className="hidden sm:inline">Berita</span>
@@ -98,13 +98,13 @@ export function MemberNewsPopup({ token }: { token?: string }) {
               className="relative z-10 flex max-h-[90dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border-2 border-b-0 border-base-ink bg-base-bg shadow-[8px_8px_0_0_#0F172A] sm:max-h-[85vh] sm:rounded-neo sm:border-b-2"
             >
               {/* Header */}
-              <header className="relative shrink-0 overflow-hidden border-b-2 border-base-ink bg-accent-lavender px-4 py-4 sm:px-6 sm:py-5">
+              <header className="relative shrink-0 overflow-hidden border-b border-base-line bg-accent-lavender px-4 py-4 sm:px-6 sm:py-5">
                 <motion.svg animate={{ rotate: 360 }} transition={{ duration: 22, repeat: Infinity, ease: "linear" }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 text-white/30 sm:-right-10 sm:-top-10 sm:h-36 sm:w-36">
                   <path d="M50 4 61 36 95 37 68 57 77 91 50 71 23 91 32 57 5 37 39 36Z" fill="currentColor" />
                 </motion.svg>
                 <div className="relative flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2.5 sm:gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sun shadow-neo-sm sm:h-11 sm:w-11">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sun shadow-neo-sm sm:h-11 sm:w-11">
                       <Megaphone className="h-4 w-4 sm:h-5 sm:w-5" />
                     </span>
                     <div>
@@ -112,7 +112,7 @@ export function MemberNewsPopup({ token }: { token?: string }) {
                       <h2 id="member-news-title" className="text-xl font-black tracking-tight sm:text-2xl">Berita Member</h2>
                     </div>
                   </div>
-                  <button type="button" onClick={() => setOpen(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-white shadow-neo-sm transition-transform active:translate-y-0.5 sm:h-10 sm:w-10" aria-label="Tutup">
+                  <button type="button" onClick={() => setOpen(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm transition-transform active:translate-y-0.5 sm:h-10 sm:w-10" aria-label="Tutup">
                     <X className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
                 </div>
@@ -127,7 +127,7 @@ export function MemberNewsPopup({ token }: { token?: string }) {
                   </div>
                 ) : null}
 
-                {error ? <p className="rounded-neo border-2 border-base-ink bg-red-200 p-4 text-sm font-bold">{error}</p> : null}
+                {error ? <p className="rounded-neo border border-base-line bg-accent-terraSoft p-4 text-sm font-bold">{error}</p> : null}
 
                 {!loading && data ? (
                   <div className="space-y-2.5 sm:space-y-3">
@@ -137,13 +137,13 @@ export function MemberNewsPopup({ token }: { token?: string }) {
                         initial={{ opacity: 0, x: -14 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.055 }}
-                        className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-white p-3.5 shadow-neo-sm sm:p-5"
+                        className="relative overflow-hidden rounded-neo border border-base-line bg-white p-3.5 shadow-neo-sm sm:p-5"
                       >
                         <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -bottom-10 -right-8 h-24 w-24 text-accent-sky/15 sm:h-28 sm:w-28">
                           <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="13" />
                         </svg>
                         <div className="relative flex gap-2.5 sm:gap-3">
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky text-[11px] font-black sm:h-8 sm:w-8 sm:text-xs">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sky text-[11px] font-black sm:h-8 sm:w-8 sm:text-xs">
                             {(data.page - 1) * 5 + index + 1}
                           </span>
                           <div className="min-w-0 flex-1">
@@ -160,7 +160,7 @@ export function MemberNewsPopup({ token }: { token?: string }) {
 
               {/* Footer pagination */}
               {data && data.totalPages > 1 ? (
-                <footer className="grid shrink-0 grid-cols-[auto_1fr_auto] items-center gap-2 border-t-2 border-base-ink bg-white p-2.5 sm:grid-cols-[1fr_auto_1fr] sm:gap-3 sm:p-4">
+                <footer className="grid shrink-0 grid-cols-[auto_1fr_auto] items-center gap-2 border-t border-base-line bg-white p-2.5 sm:grid-cols-[1fr_auto_1fr] sm:gap-3 sm:p-4">
                   <Button type="button" variant="outline" size="sm" disabled={loading || page <= 1} onClick={() => void move(page - 1)} className="justify-self-start px-2.5 sm:px-4">
                     <ChevronLeft className="h-4 w-4" />
                     <span className="hidden sm:inline">Sebelum</span>
@@ -173,7 +173,7 @@ export function MemberNewsPopup({ token }: { token?: string }) {
                           key={number}
                           type="button"
                           onClick={() => void move(number)}
-                          className={`h-7 min-w-7 rounded-neo border-2 border-base-ink px-1 text-[11px] font-black sm:h-8 sm:min-w-8 sm:text-xs ${number === page ? "bg-accent-sun shadow-neo-sm" : "bg-base-bg"}`}
+                          className={`h-7 min-w-7 rounded-neo border border-base-line px-1 text-[11px] font-black sm:h-8 sm:min-w-8 sm:text-xs ${number === page ? "bg-accent-sun shadow-neo-sm" : "bg-base-bg"}`}
                         >
                           {number}
                         </button>
@@ -187,7 +187,7 @@ export function MemberNewsPopup({ token }: { token?: string }) {
               ) : null}
 
               {data && data.totalPages <= 1 ? (
-                <footer className="flex shrink-0 items-center justify-center gap-2 border-t-2 border-base-ink bg-white p-2.5 text-xs font-bold text-base-ink/50 sm:p-3">
+                <footer className="flex shrink-0 items-center justify-center gap-2 border-t border-base-line bg-white p-2.5 text-xs font-bold text-base-ink/50 sm:p-3">
                   <Newspaper className="h-4 w-4" /> Semua berita sudah ditampilkan
                 </footer>
               ) : null}

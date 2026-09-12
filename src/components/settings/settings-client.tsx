@@ -133,7 +133,7 @@ export function SettingsClient({
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-5 sm:mb-7">
-        <span className="mb-2 inline-flex items-center gap-2 rounded-full border-2 border-base-ink bg-accent-mint px-3 py-1 text-xs font-black uppercase tracking-wider">
+        <span className="mb-2 inline-flex items-center gap-2 rounded-full border border-base-line bg-accent-mint px-3 py-1 text-xs font-black uppercase tracking-wider">
           <ShieldCheck className="h-3.5 w-3.5" />
           Konfigurasi Aman
         </span>
@@ -146,8 +146,8 @@ export function SettingsClient({
       <form action={handleSubmit} className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.82fr)]">
         <div className="space-y-4 sm:space-y-6">
           {/* Branding */}
-          <section className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm">
-            <div className="flex items-center gap-3 border-b-2 border-base-ink bg-accent-mint px-4 py-3 sm:px-5">
+          <section className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
+            <div className="flex items-center gap-3 border-b border-base-line bg-accent-mint px-4 py-3 sm:px-5">
               <ImageIcon className="h-5 w-5" strokeWidth={2.5} />
               <div>
                 <h2 className="font-extrabold">Branding Website</h2>
@@ -159,7 +159,7 @@ export function SettingsClient({
               <div>
                 <label className="mb-1.5 block text-sm font-bold">Logo Website</label>
                 <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-neo border-2 border-base-ink bg-base-bg">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-neo border border-base-line bg-base-bg">
                     {logoUrl ? (
                       <img src={logoUrl} alt="Logo" className="h-full w-full object-contain" />
                     ) : (
@@ -184,8 +184,8 @@ export function SettingsClient({
           </section>
 
           {/* Reseller */}
-          <section className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm">
-            <div className="flex items-center gap-3 border-b-2 border-base-ink bg-accent-lavender px-4 py-3 sm:px-5">
+          <section className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
+            <div className="flex items-center gap-3 border-b border-base-line bg-accent-lavender px-4 py-3 sm:px-5">
               <KeyRound className="h-5 w-5" strokeWidth={2.5} />
               <div>
                 <h2 className="font-extrabold">Koneksi Reseller</h2>
@@ -215,8 +215,8 @@ export function SettingsClient({
           </section>
 
           {/* QRIS */}
-          <section className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm">
-            <div className="flex items-center gap-3 border-b-2 border-base-ink bg-accent-sun px-4 py-3 sm:px-5">
+          <section className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
+            <div className="flex items-center gap-3 border-b border-base-line bg-accent-sun px-4 py-3 sm:px-5">
               <QrCode className="h-5 w-5" strokeWidth={2.5} />
               <div>
                 <h2 className="font-extrabold">Pembayaran QRIS</h2>
@@ -227,7 +227,7 @@ export function SettingsClient({
               <div className="grid gap-4 sm:grid-cols-[1fr_180px]">
                 <div>
                   <label htmlFor="qrisProvider" className="mb-1.5 block text-sm font-bold">Provider</label>
-                  <select id="qrisProvider" name="qrisProvider" defaultValue={initialQrisProvider} className="w-full rounded-neo border-2 border-base-ink bg-base-surface px-4 py-2.5 text-base shadow-neo-sm outline-none focus:shadow-neo">
+                  <select id="qrisProvider" name="qrisProvider" defaultValue={initialQrisProvider} className="w-full rounded-neo border border-base-line bg-base-surface px-4 py-2.5 text-base shadow-neo-sm outline-none focus:shadow-neo">
                     <option value="none">Nonaktif</option>
                     <option value="dana">DANA</option>
                     <option value="gopay">GoPay Merchant</option>
@@ -241,9 +241,9 @@ export function SettingsClient({
               </div>
               <div>
                 <label htmlFor="qrisStatic" className="mb-1.5 block text-sm font-bold">QRIS Statis</label>
-                <textarea id="qrisStatic" name="qrisStatic" defaultValue={initialQrisStatic} placeholder="00020101021126...6304ABCD" rows={5} className="w-full resize-y rounded-neo border-2 border-base-ink bg-base-surface px-4 py-3 font-mono text-xs leading-relaxed shadow-neo-sm outline-none focus:shadow-neo sm:text-sm" />
+                <textarea id="qrisStatic" name="qrisStatic" defaultValue={initialQrisStatic} placeholder="00020101021126...6304ABCD" rows={5} className="w-full resize-y rounded-neo border border-base-line bg-base-surface px-4 py-3 font-mono text-xs leading-relaxed shadow-neo-sm outline-none focus:shadow-neo sm:text-sm" />
               </div>
-              <label className="flex cursor-pointer items-start gap-3 rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold sm:items-center">
+              <label className="flex cursor-pointer items-start gap-3 rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold sm:items-center">
                 <input type="checkbox" name="uniqueCodeEnabled" defaultChecked={initialUniqueCodeEnabled} className="mt-0.5 h-5 w-5 shrink-0 accent-black sm:mt-0" />
                 <span>Aktifkan kode unik 3 digit pada nominal QRIS</span>
               </label>
@@ -251,8 +251,8 @@ export function SettingsClient({
           </section>
 
           {/* Backup */}
-          <section className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo-sm">
-            <div className="flex items-center gap-3 border-b-2 border-base-ink bg-accent-sky px-4 py-3 sm:px-5">
+          <section className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
+            <div className="flex items-center gap-3 border-b border-base-line bg-accent-sky px-4 py-3 sm:px-5">
               <Database className="h-5 w-5" strokeWidth={2.5} />
               <div>
                 <h2 className="font-extrabold">Backup & Telegram</h2>
@@ -268,14 +268,14 @@ export function SettingsClient({
                 <Input name="backupInterval" label="Interval" type="number" min={1} max={100000} defaultValue={initialBackupInterval} />
                 <div>
                   <label className="mb-1.5 block text-sm font-bold">Satuan</label>
-                  <select name="backupUnit" defaultValue={initialBackupUnit} className="w-full rounded-neo border-2 border-base-ink bg-base-surface px-4 py-2.5 text-base shadow-neo-sm outline-none focus:shadow-neo">
+                  <select name="backupUnit" defaultValue={initialBackupUnit} className="w-full rounded-neo border border-base-line bg-base-surface px-4 py-2.5 text-base shadow-neo-sm outline-none focus:shadow-neo">
                     <option value="minutes">Menit</option>
                     <option value="hours">Jam</option>
                     <option value="days">Hari</option>
                   </select>
                 </div>
                 <div className="flex items-end">
-                  <label className="flex cursor-pointer items-center gap-3 rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold">
                     <input name="backupEnabled" type="checkbox" defaultChecked={initialBackupEnabled} className="h-5 w-5 accent-black" />
                     Aktif
                   </label>
@@ -287,8 +287,8 @@ export function SettingsClient({
 
         {/* Right column */}
         <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-24">
-          <section className="overflow-hidden rounded-neo border-2 border-base-ink bg-base-surface shadow-neo">
-            <div className="flex items-center gap-3 border-b-2 border-base-ink bg-accent-sky px-4 py-3 sm:px-5">
+          <section className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo">
+            <div className="flex items-center gap-3 border-b border-base-line bg-accent-sky px-4 py-3 sm:px-5">
               <Smartphone className="h-5 w-5" strokeWidth={2.5} />
               <div>
                 <h2 className="font-extrabold">Notification Forwarder</h2>
@@ -306,15 +306,15 @@ export function SettingsClient({
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => { setForwarderSecret(generateSecret()); setShowForwarder(true); setCopied(false); }} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-neo border-2 border-base-ink bg-accent-sun px-3 py-2 text-sm font-bold shadow-neo-sm transition-transform active:translate-y-0.5">
+                <button type="button" onClick={() => { setForwarderSecret(generateSecret()); setShowForwarder(true); setCopied(false); }} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-neo border border-base-line bg-accent-sun px-3 py-2 text-sm font-bold shadow-neo-sm transition-transform active:translate-y-0.5">
                   <RefreshCw className="h-4 w-4" /> Generate
                 </button>
-                <button type="button" onClick={handleCopy} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-neo border-2 border-base-ink bg-accent-mint px-3 py-2 text-sm font-bold shadow-neo-sm transition-transform active:translate-y-0.5">
+                <button type="button" onClick={handleCopy} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-neo border border-base-line bg-accent-mint px-3 py-2 text-sm font-bold shadow-neo-sm transition-transform active:translate-y-0.5">
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   {copied ? "Tersalin" : "Salin"}
                 </button>
               </div>
-              <div className="rounded-neo border-2 border-base-ink bg-base-bg p-3">
+              <div className="rounded-neo border border-base-line bg-base-bg p-3">
                 <div className="mb-3 text-xs font-black uppercase tracking-wider text-base-ink/55">Set di aplikasi HP</div>
                 <dl className="space-y-2 text-sm">
                   <div className="grid grid-cols-[80px_minmax(0,1fr)] gap-2">
@@ -331,9 +331,9 @@ export function SettingsClient({
             </div>
           </section>
 
-          {error && <div className="rounded-neo border-2 border-base-ink bg-red-100 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
+          {error && <div className="rounded-neo border border-base-line bg-accent-terraSoft px-4 py-3 text-sm font-semibold text-accent-terraDeep">{error}</div>}
           {success && (
-            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 rounded-neo border-2 border-base-ink bg-accent-mint px-4 py-3 text-sm font-semibold">
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 rounded-neo border border-base-line bg-accent-mint px-4 py-3 text-sm font-semibold">
               <CheckCircle2 className="h-4 w-4 shrink-0" strokeWidth={2.5} /> Pengaturan berhasil disimpan.
             </motion.div>
           )}

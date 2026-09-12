@@ -25,7 +25,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={cn(
-            "rounded-neo border-2 border-base-ink bg-base-surface px-4 py-2.5 text-base text-base-ink shadow-neo-sm outline-none transition-shadow focus:shadow-neo",
+            "rounded-neo border border-base-line bg-base-surface px-4 py-2.5 text-base text-base-ink shadow-neo-sm outline-none transition-all focus:border-accent-terra focus:shadow-neo",
             className
           )}
           {...props}

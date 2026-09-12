@@ -130,7 +130,7 @@ export function ProductAdminClient({
     <div className="space-y-5">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-neo border-2 border-base-ink bg-accent-sky shadow-neo-sm">
+          <span className="flex h-11 w-11 items-center justify-center rounded-neo border border-base-line bg-accent-sky shadow-neo-sm">
             <Boxes className="h-5 w-5" />
           </span>
           <div>
@@ -144,14 +144,14 @@ export function ProductAdminClient({
       </div>
 
       {!categories.length ? (
-        <p className="rounded-neo border-2 border-base-ink bg-accent-sun p-3 text-sm font-bold">
+        <p className="rounded-neo border border-base-line bg-accent-sun p-3 text-sm font-bold">
           Buat kategori aktif sebelum menambahkan produk.
         </p>
       ) : null}
-      {error ? <p className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{error}</p> : null}
+      {error ? <p className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</p> : null}
 
       <div className="grid gap-2 lg:grid-cols-[1fr_220px_180px]">
-        <label className="flex h-11 items-center gap-2 rounded-neo border-2 border-base-ink bg-white px-3 shadow-neo-sm">
+        <label className="flex h-11 items-center gap-2 rounded-neo border border-base-line bg-white px-3 shadow-neo-sm">
           <Search className="h-4 w-4 text-base-ink/45" />
           <input
             value={query}
@@ -163,7 +163,7 @@ export function ProductAdminClient({
         <select
           value={category}
           onChange={(event) => setCategory(event.target.value)}
-          className="rounded-neo border-2 border-base-ink bg-white px-3 text-sm font-bold shadow-neo-sm"
+          className="rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm"
         >
           <option value="all">Semua kategori</option>
           {categories.map((item) => (
@@ -175,7 +175,7 @@ export function ProductAdminClient({
         <select
           value={status}
           onChange={(event) => setStatus(event.target.value)}
-          className="rounded-neo border-2 border-base-ink bg-white px-3 text-sm font-bold shadow-neo-sm"
+          className="rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm"
         >
           <option value="all">Semua status</option>
           <option value="active">Aktif</option>
@@ -201,18 +201,18 @@ export function ProductAdminClient({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.035 }}
               whileHover={{ y: -3 }}
-              className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-white p-5 shadow-neo-sm"
+              className="relative overflow-hidden rounded-neo border border-base-line bg-white p-5 shadow-neo-sm"
             >
               <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 text-accent-lavender/25">
                 <path d="M50 5 95 90H5Z" fill="currentColor" />
               </svg>
               <div className="relative flex items-start justify-between gap-3">
                 <div>
-                  <span className={`inline-flex rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase ${item.active ? "bg-accent-mint" : "bg-base-bg"}`}>
+                  <span className={`inline-flex rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase ${item.active ? "bg-accent-mint" : "bg-base-bg"}`}>
                     {item.active ? "Aktif" : "Nonaktif"}
                   </span>
                   {item.sortOrder !== 0 && (
-                    <span className="ml-1 inline-flex rounded-full border-2 border-base-ink bg-accent-lavender px-2 py-0.5 text-[10px] font-black uppercase">
+                    <span className="ml-1 inline-flex rounded-full border border-base-line bg-accent-lavender px-2 py-0.5 text-[10px] font-black uppercase">
                       Urutan #{item.sortOrder}
                     </span>
                   )}
@@ -234,8 +234,8 @@ export function ProductAdminClient({
                 <Metric label="Modal" value={`Rp ${item.costPrice.toLocaleString("id-ID")}`} />
                 <Metric label="Margin/unit" value={`Rp ${margin.toLocaleString("id-ID")}`} />
               </div>
-              <div className="relative mt-4 flex items-center justify-between border-t-2 border-base-ink/15 pt-4">
-                <span className={cn("text-xs font-black", available ? "text-green-700" : "text-red-600")}>
+              <div className="relative mt-4 flex items-center justify-between border-t border-base-line pt-4">
+                <span className={cn("text-xs font-black", available ? "text-accent-sageDeep" : "text-accent-terraDeep")}>
                   {available ? "Tersedia" : "Stok habis"}
                 </span>
                 <div className="flex gap-2">
@@ -244,7 +244,7 @@ export function ProductAdminClient({
                     whileHover={{ y: -2 }}
                     whileTap={{ y: 1 }}
                     onClick={() => show(item)}
-                    className="inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-white px-3 py-1.5 text-xs font-extrabold shadow-neo-sm transition-colors hover:bg-accent-sky"
+                    className="inline-flex items-center gap-1.5 rounded-neo border border-base-line bg-white px-3 py-1.5 text-xs font-extrabold shadow-neo-sm transition-colors hover:bg-accent-sky"
                   >
                     <Pencil className="h-3.5 w-3.5" strokeWidth={2.5} />
                     Edit
@@ -254,7 +254,7 @@ export function ProductAdminClient({
                     whileHover={{ y: -2 }}
                     whileTap={{ y: 1 }}
                     onClick={() => { setError(null); setConfirming(item); }}
-                    className="inline-flex items-center gap-1.5 rounded-neo border-2 border-base-ink bg-white px-3 py-1.5 text-xs font-extrabold shadow-neo-sm transition-colors hover:bg-red-200 hover:text-red-700"
+                    className="inline-flex items-center gap-1.5 rounded-neo border border-base-line bg-white px-3 py-1.5 text-xs font-extrabold shadow-neo-sm transition-colors hover:bg-accent-terraSoft hover:text-accent-terraDeep"
                   >
                     <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />
                     Hapus
@@ -267,7 +267,7 @@ export function ProductAdminClient({
       </div>
 
       {!filtered.length ? (
-        <div className="rounded-neo border-2 border-dashed border-base-ink bg-white py-16 text-center">
+        <div className="rounded-neo border border-dashed border-base-line bg-white py-16 text-center">
           <Boxes className="mx-auto h-10 w-10 text-base-ink/20" />
           <p className="mt-3 font-black">Produk tidak ditemukan</p>
         </div>
@@ -279,7 +279,7 @@ export function ProductAdminClient({
             <select
               name="categoryId"
               defaultValue={editing?.categoryId || categories[0]?.id}
-              className="mt-1.5 h-11 w-full rounded-neo border-2 border-base-ink bg-white px-3 shadow-neo-sm"
+              className="mt-1.5 h-11 w-full rounded-neo border border-base-line bg-white px-3 shadow-neo-sm"
               required
             >
               {categories.map((item) => (
@@ -298,7 +298,7 @@ export function ProductAdminClient({
                   name="sku"
                   value={selectedPackage}
                   onChange={(e) => setSelectedPackage(e.target.value)}
-                  className="mt-0 h-11 w-full rounded-neo border-2 border-base-ink bg-white px-3 shadow-neo-sm"
+                  className="mt-0 h-11 w-full rounded-neo border border-base-line bg-white px-3 shadow-neo-sm"
                   required
                 >
                   <option value="" disabled>
@@ -316,7 +316,7 @@ export function ProductAdminClient({
                   defaultValue={editing?.sku || ""}
                   maxLength={50}
                   required
-                  className="h-11 w-full rounded-neo border-2 border-base-ink bg-white px-3 text-sm font-bold shadow-neo-sm outline-none"
+                  className="h-11 w-full rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm outline-none"
                 />
               )}
             </div>
@@ -337,7 +337,7 @@ export function ProductAdminClient({
               defaultValue={editing?.description || ""}
               maxLength={4000}
               rows={5}
-              className="mt-1.5 w-full resize-y rounded-neo border-2 border-base-ink bg-white px-4 py-3 text-sm font-semibold shadow-neo-sm outline-none"
+              className="mt-1.5 w-full resize-y rounded-neo border border-base-line bg-white px-4 py-3 text-sm font-semibold shadow-neo-sm outline-none"
             />
           </label>
 
@@ -348,7 +348,7 @@ export function ProductAdminClient({
                 name="stockMode"
                 value={stockMode}
                 onChange={(event) => setStockMode(event.target.value)}
-                className="mt-1.5 h-11 w-full rounded-neo border-2 border-base-ink bg-white px-3 shadow-neo-sm"
+                className="mt-1.5 h-11 w-full rounded-neo border border-base-line bg-white px-3 shadow-neo-sm"
               >
                 <option value="counted">Stok dihitung</option>
                 <option value="external">External / Bandel API</option>
@@ -357,12 +357,12 @@ export function ProductAdminClient({
             <Input name="stock" label="Stok" type="number" min={0} step={1} defaultValue={editing?.stock || 0} disabled={stockMode === "external"} />
           </div>
 
-          <label className="flex items-center gap-3 rounded-neo border-2 border-base-ink bg-base-bg p-3 text-sm font-bold">
+          <label className="flex items-center gap-3 rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold">
             <input name="active" type="checkbox" defaultChecked={editing?.active ?? true} className="h-5 w-5 accent-black" />
             Produk aktif
           </label>
 
-          {error ? <p className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{error}</p> : null}
+          {error ? <p className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</p> : null}
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
@@ -377,8 +377,8 @@ export function ProductAdminClient({
 
       <Modal open={Boolean(confirming)} onClose={() => setConfirming(null)} title="Hapus Produk">
         <div className="space-y-4">
-          <div className="flex items-start gap-3 rounded-neo border-2 border-base-ink bg-red-200 p-4">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border-2 border-base-ink bg-white">
+          <div className="flex items-start gap-3 rounded-neo border border-base-line bg-accent-terraSoft p-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border border-base-line bg-white">
               <AlertTriangle className="h-5 w-5" strokeWidth={2.5} />
             </span>
             <div className="min-w-0">
@@ -400,7 +400,7 @@ export function ProductAdminClient({
               whileTap={{ y: 1 }}
               onClick={() => void remove()}
               disabled={deleting}
-              className="inline-flex items-center gap-2 rounded-neo border-2 border-base-ink bg-red-500 px-4 py-2.5 text-sm font-extrabold text-white shadow-neo transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-neo border border-base-line bg-[#B4522E] px-4 py-2.5 text-sm font-extrabold text-white shadow-neo transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {deleting ? <LoaderIcon /> : confirming && confirming.transactionCount > 0 ? <Archive className="h-4 w-4" strokeWidth={2.5} /> : <Trash2 className="h-4 w-4" strokeWidth={2.5} />}
               {deleting ? "Menghapus..." : confirming && confirming.transactionCount > 0 ? "Arsipkan" : "Hapus Permanen"}
@@ -418,7 +418,7 @@ function LoaderIcon() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-neo border-2 border-base-ink bg-base-bg p-2">
+    <div className="rounded-neo border border-base-line bg-base-bg p-2">
       <p className="text-[9px] font-black uppercase text-base-ink/40">{label}</p>
       <p className="mt-0.5 truncate text-xs font-black">{value}</p>
     </div>

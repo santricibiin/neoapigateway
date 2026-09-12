@@ -120,7 +120,7 @@ export function ModelShowcase() {
               variants={cell}
               whileHover={{ y: -3 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              className="flex flex-col rounded-neo border-2 border-base-ink bg-base-surface p-4 shadow-neo-sm transition-shadow hover:shadow-neo"
+              className="flex flex-col rounded-neo border border-base-line bg-base-surface p-4 shadow-neo-sm transition-shadow hover:shadow-neo"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -129,32 +129,32 @@ export function ModelShowcase() {
                   </p>
                   <span className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-bold text-base-ink/60">
                     <span
-                      className="h-2.5 w-2.5 shrink-0 rounded-full border-2 border-base-ink/20"
+                      className="h-2.5 w-2.5 shrink-0 rounded-full border border-base-line/20"
                       style={{ backgroundColor: brandColor(model.brand) }}
                     />
                     {model.brand}
                   </span>
                 </div>
                 <span
-                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase ${
-                    model.enabled ? "bg-accent-mint" : "bg-red-200"
+                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase ${
+                    model.enabled ? "bg-accent-mint" : "bg-accent-terraSoft"
                   }`}
                 >
-                  <span className={`h-1.5 w-1.5 rounded-full ${model.enabled ? "bg-green-600" : "bg-red-500"}`} />
+                  <span className={`h-1.5 w-1.5 rounded-full ${model.enabled ? "bg-accent-sageDeep" : "bg-[#B4522E]"}`} />
                   {model.enabled ? "Aktif" : "Nonaktif"}
                 </span>
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t-2 border-dashed border-base-ink/15 pt-3">
-                <span className="rounded-neo border-2 border-base-ink bg-base-bg px-1.5 py-0.5 font-mono text-[10px] font-black">
+              <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-dashed border-base-line pt-3">
+                <span className="rounded-neo border border-base-line bg-base-bg px-1.5 py-0.5 font-mono text-[10px] font-black">
                   {model.multiplier}x
                 </span>
                 {model.grade && model.grade !== "-" ? (
-                  <span className="rounded-neo border-2 border-base-ink bg-accent-sunSoft px-1.5 py-0.5 text-[10px] font-black uppercase">
+                  <span className="rounded-neo border border-base-line bg-accent-sunSoft px-1.5 py-0.5 text-[10px] font-black uppercase">
                     Grade {model.grade}
                   </span>
                 ) : null}
                 {model.vision ? (
-                  <span className="inline-flex items-center gap-1 rounded-neo border-2 border-base-ink bg-accent-skySoft px-1.5 py-0.5 text-[10px] font-black uppercase">
+                  <span className="inline-flex items-center gap-1 rounded-neo border border-base-line bg-accent-skySoft px-1.5 py-0.5 text-[10px] font-black uppercase">
                     <Eye className="h-3 w-3" strokeWidth={2.5} /> Vision
                   </span>
                 ) : null}
@@ -172,7 +172,7 @@ export function ModelShowcase() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={safePage <= 1}
-            className="inline-flex items-center gap-1 rounded-neo border-2 border-base-ink bg-base-surface px-3 py-1.5 text-xs font-bold shadow-neo-sm transition-shadow hover:shadow-neo disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-1 rounded-neo border border-base-line bg-base-surface px-3 py-1.5 text-xs font-bold shadow-neo-sm transition-shadow hover:shadow-neo disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronLeft className="h-4 w-4" strokeWidth={2.5} /> {t("Sebelumnya")}
           </button>
@@ -182,7 +182,7 @@ export function ModelShowcase() {
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={safePage >= totalPages}
-            className="inline-flex items-center gap-1 rounded-neo border-2 border-base-ink bg-base-surface px-3 py-1.5 text-xs font-bold shadow-neo-sm transition-shadow hover:shadow-neo disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-1 rounded-neo border border-base-line bg-base-surface px-3 py-1.5 text-xs font-bold shadow-neo-sm transition-shadow hover:shadow-neo disabled:cursor-not-allowed disabled:opacity-40"
           >
             {t("Berikutnya")} <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
           </button>

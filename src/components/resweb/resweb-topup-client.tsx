@@ -33,7 +33,7 @@ const statusStyle: Record<string, string> = {
   pending: "bg-accent-sun",
   paid: "bg-accent-mint",
   expired: "bg-orange-200",
-  failed: "bg-red-200",
+  failed: "bg-accent-terraSoft",
 };
 
 export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tier[]; orders: Order[] }) {
@@ -117,12 +117,12 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
 
   return (
     <div className="space-y-6">
-      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-accent-sun p-5 shadow-neo sm:p-7">
+      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border border-base-line bg-accent-sun p-5 shadow-neo sm:p-7">
         <motion.svg animate={{ rotate: [0, 8, 0] }} transition={{ duration: 5, repeat: Infinity }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 text-white/35"><path d="M50 5 60 38 94 39 67 58 76 91 50 72 24 91 33 58 6 39 40 38Z" fill="currentColor" /></motion.svg>
-        <div className="relative flex items-center gap-4"><span className="flex h-12 w-12 items-center justify-center rounded-neo border-2 border-base-ink bg-white shadow-neo-sm"><ScanLine className="h-6 w-6" /></span><div><p className="text-[10px] font-black uppercase tracking-[0.2em]">QRIS Instant</p><h1 className="text-3xl font-black sm:text-4xl">Isi saldo token.</h1><p className="mt-1 text-sm font-bold text-base-ink/60">Pilih paket, scan, saldo masuk otomatis.</p></div></div>
+        <div className="relative flex items-center gap-4"><span className="flex h-12 w-12 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm"><ScanLine className="h-6 w-6" /></span><div><p className="text-[10px] font-black uppercase tracking-[0.2em]">QRIS Instant</p><h1 className="text-3xl font-black sm:text-4xl">Isi saldo token.</h1><p className="mt-1 text-sm font-bold text-base-ink/60">Pilih paket, scan, saldo masuk otomatis.</p></div></div>
       </motion.section>
 
-      {error && <div className="rounded-neo border-2 border-base-ink bg-red-200 p-3 text-sm font-bold">{error}</div>}
+      {error && <div className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</div>}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {tiers.map((t) => (
@@ -132,7 +132,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: Math.min(t.sortOrder, 8) * 0.04 }}
             whileHover={{ y: -6, rotate: -0.4 }}
-            className="relative overflow-hidden rounded-neo border-2 border-base-ink bg-white p-5 shadow-neo-sm"
+            className="relative overflow-hidden rounded-neo border border-base-line bg-white p-5 shadow-neo-sm"
           >
             <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -bottom-12 -right-10 h-32 w-32 text-accent-mint/25"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg>
             <div className="flex items-start justify-between">
@@ -152,7 +152,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
           </motion.div>
         ))}
         {!tiers.length && (
-          <div className="col-span-full rounded-neo border-2 border-dashed border-base-ink bg-white py-16 text-center">
+          <div className="col-span-full rounded-neo border border-dashed border-base-line bg-white py-16 text-center">
             <Wallet className="mx-auto h-10 w-10 text-base-ink/20" />
             <p className="mt-3 font-black">Belum ada paket topup aktif</p>
           </div>
@@ -164,14 +164,14 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
           <div className="flex flex-col items-center gap-4">
             {!isPaid && !isExpired && (
               <>
-                <div className="w-full rounded-neo border-2 border-base-ink bg-accent-sun p-3 text-center">
+                <div className="w-full rounded-neo border border-base-line bg-accent-sun p-3 text-center">
                   <div className="text-[10px] font-black uppercase text-base-ink/60">No. Invoice</div>
                   <div className="mt-0.5 break-all font-mono text-sm font-extrabold">{payment.invoice}</div>
                 </div>
-                <div className="rounded-neo border-2 border-base-ink bg-white p-3">
+                <div className="rounded-neo border border-base-line bg-white p-3">
                   {qrUrl ? <img src={qrUrl} alt="QRIS" className="h-56 w-56" /> : <Loader2 className="h-8 w-8 animate-spin" />}
                 </div>
-                <div className="w-full rounded-neo border-2 border-base-ink bg-base-bg p-4 text-center">
+                <div className="w-full rounded-neo border border-base-line bg-base-bg p-4 text-center">
                   <div className="text-xs font-bold uppercase text-base-ink/50">Total Bayar</div>
                   <div className="mt-1 text-2xl font-extrabold">{money(payment.amount)}</div>
                   <button onClick={copyAmount} className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-accent-sky">
@@ -188,15 +188,15 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
               </>
             )}
             {isPaid && (
-              <div className="flex w-full flex-col items-center gap-3 rounded-neo border-2 border-base-ink bg-accent-mint p-6 text-center">
-                <CheckCircle2 className="h-12 w-12 text-green-600" />
+              <div className="flex w-full flex-col items-center gap-3 rounded-neo border border-base-line bg-accent-mint p-6 text-center">
+                <CheckCircle2 className="h-12 w-12 text-accent-sageDeep" />
                 <h3 className="text-xl font-extrabold">Pembayaran Berhasil!</h3>
                 <p className="text-sm text-base-ink/70">Saldo token telah ditambahkan ke akun Anda.</p>
                 <Button variant="primary" className="w-full" onClick={() => { setPayment(null); setQrUrl(null); }}>Tutup</Button>
               </div>
             )}
             {isExpired && (
-              <div className="flex w-full flex-col items-center gap-3 rounded-neo border-2 border-base-ink bg-accent-sun p-6 text-center">
+              <div className="flex w-full flex-col items-center gap-3 rounded-neo border border-base-line bg-accent-sun p-6 text-center">
                 <XCircle className="h-12 w-12 text-red-500" />
                 <h3 className="text-xl font-extrabold">Invoice Kedaluwarsa</h3>
                 <p className="text-sm text-base-ink/70">Silakan buat topup baru.</p>
@@ -208,12 +208,12 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
       </Modal>
 
       {/* Riwayat */}
-      <div className="overflow-hidden rounded-neo border-2 border-base-ink bg-white shadow-neo-sm">
-        <div className="flex items-center gap-2 border-b-2 border-base-ink bg-accent-lavender p-4">
+      <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm">
+        <div className="flex items-center gap-2 border-b border-base-line bg-accent-lavender p-4">
           <ReceiptText className="h-5 w-5" /><h2 className="font-extrabold">Riwayat Topup</h2>
         </div>
-        <div className="divide-y-2 divide-base-ink/10 sm:hidden">
-          {orders.length === 0 ? <p className="p-8 text-center text-sm font-bold text-base-ink/40">Belum ada topup</p> : orders.map((o) => <article key={o.id} className="space-y-2 p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-black">{o.tierLabel} <span className="text-xs text-base-ink/45">{formatTokens(o.tokens)}</span></p><p className="font-mono text-[10px] font-bold text-base-ink/45">{o.invoice}</p></div><span className={cn("rounded-full border-2 border-base-ink px-2 py-0.5 text-[9px] font-black uppercase", statusStyle[o.status] || "bg-base-bg")}>{o.status}</span></div><div className="flex justify-between text-xs font-bold"><span>{money(o.amount)}</span><span className="text-base-ink/45">{new Date(o.createdAt).toLocaleDateString("id-ID")}</span></div></article>)}
+        <div className="divide-y divide-base-line/10 sm:hidden">
+          {orders.length === 0 ? <p className="p-8 text-center text-sm font-bold text-base-ink/40">Belum ada topup</p> : orders.map((o) => <article key={o.id} className="space-y-2 p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-black">{o.tierLabel} <span className="text-xs text-base-ink/45">{formatTokens(o.tokens)}</span></p><p className="font-mono text-[10px] font-bold text-base-ink/45">{o.invoice}</p></div><span className={cn("rounded-full border border-base-line px-2 py-0.5 text-[9px] font-black uppercase", statusStyle[o.status] || "bg-base-bg")}>{o.status}</span></div><div className="flex justify-between text-xs font-bold"><span>{money(o.amount)}</span><span className="text-base-ink/45">{new Date(o.createdAt).toLocaleDateString("id-ID")}</span></div></article>)}
         </div>
         <div className="hidden overflow-x-auto sm:block">
           <table className="w-full min-w-[640px] text-left text-sm">
@@ -226,7 +226,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
                 <th className="px-4 py-3">Tanggal</th>
               </tr>
             </thead>
-            <tbody className="divide-y-2 divide-base-ink/15">
+            <tbody className="divide-y divide-base-line">
               {orders.length === 0 ? (
                 <tr><td colSpan={5} className="px-4 py-8 text-center font-bold text-base-ink/40">Belum ada topup</td></tr>
               ) : orders.map((o) => (
@@ -235,7 +235,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
                   <td className="px-4 py-3 font-bold">{o.tierLabel} <span className="text-[10px] text-base-ink/45">{formatTokens(o.tokens)}</span></td>
                   <td className="px-4 py-3 font-bold">{money(o.amount)}</td>
                   <td className="px-4 py-3">
-                    <span className={cn("inline-flex rounded-full border-2 border-base-ink px-2 py-0.5 text-[10px] font-black uppercase", statusStyle[o.status] || "bg-base-bg")}>{o.status}</span>
+                    <span className={cn("inline-flex rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase", statusStyle[o.status] || "bg-base-bg")}>{o.status}</span>
                   </td>
                   <td className="px-4 py-3 text-xs font-bold">{new Date(o.createdAt).toLocaleString("id-ID")}</td>
                 </tr>
