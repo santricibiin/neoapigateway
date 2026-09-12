@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { QUOTA_PACKAGES, provisionCustomerKey, formatBandelDelivery, addCustomerQuota, fetchResellerKeys } from "@/lib/bandelbanget";
+import { notifyOrderPaid } from "@/lib/telegram-notify";
 import type { ActionResult } from "@/types";
 
 /** Claim event dengan order pending yang cocok secara atomic. */
@@ -17,6 +18,8 @@ export async function claimPaymentEvent(eventId: string) {
     const order = await tx.paymentOrder.findFirst({
       where: {
         status: "pending",
+        // Event forwarder QRIS hanya boleh match order IDR (order USDT diclaim poller Binance).
+        currency: "idr",
         amount: event.amount,
         // Grace period: order lewat TTL masih bisa diclaim (notifikasi telat)
         expiresAt: { gt: new Date(Date.now() - 10 * 60 * 1000) },
@@ -151,6 +154,18 @@ export async function fulfillOrder(orderId: string): Promise<ActionResult<{ deli
   if (done.count !== 1) {
     return { ok: false, error: "Order gagal difinalisasi (status berubah saat pengiriman)" };
   }
+
+  await notifyOrderPaid({
+    invoice: order.invoice,
+    productName: order.buyerQuotaToken ? "Tambah Kuota" : order.productName,
+    productSku: order.productSku,
+    qty: order.qty,
+    amount: order.amount,
+    currency: (order.currency as "idr" | "usdt") ?? "idr",
+    buyerPhone: order.buyerPhone,
+    telegramUserId: order.telegramUserId,
+    paidAt: order.paidAt,
+  });
 
   return { ok: true, data: { delivered } };
 }

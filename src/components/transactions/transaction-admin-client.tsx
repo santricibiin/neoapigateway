@@ -17,6 +17,8 @@ type Transaction = {
   qty: number;
   unitPrice: number;
   amount: number;
+  currency: "idr" | "usdt";
+  payMethod: "qris" | "binancepay" | "usdt";
   status: string;
   delivered: string | null;
   createdAt: string;
@@ -24,6 +26,10 @@ type Transaction = {
   paidAt: string | null;
   source: "Toko" | "ResWeb";
 };
+
+function fmtAmount(t: Pick<Transaction, "amount" | "currency">) {
+  return t.currency === "usdt" ? `${(t.amount / 100).toFixed(2)} USDT` : `Rp ${t.amount.toLocaleString("id-ID")}`;
+}
 
 const FULFILLABLE = ["pending", "processing", "delivering", "expired", "failed"];
 const FULFILLABLE_RESWEB = ["pending", "processing", "expired", "failed"];
@@ -119,7 +125,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
       ).length,
       revenue: filtered
         .filter((item) => item.status === "paid")
-        .reduce((sum, item) => sum + item.amount, 0),
+        .reduce((sum, item) => sum + (item.currency === "usdt" ? Math.round((item.amount / 100) * 16000) : item.amount), 0),
     }),
     [filtered]
   );
@@ -311,7 +317,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
                       </p>
                     </td>
                     <td className="px-4 py-3 text-sm font-black">
-                      Rp {item.amount.toLocaleString("id-ID")}
+                      {fmtAmount(item)}
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -380,7 +386,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
             <Detail label="Produk" value={`${detail.productName} (${detail.productSku})`} />
             <Detail label="Kategori" value={detail.categoryName} />
             <Detail label="Jumlah" value={`${detail.qty} x Rp ${detail.unitPrice.toLocaleString("id-ID")}`} />
-            <Detail label="Total" value={`Rp ${detail.amount.toLocaleString("id-ID")}`} accent />
+            <Detail label="Total" value={fmtAmount(detail)} accent />
             <Detail label="Status" value={statusLabel[detail.status] ?? detail.status} />
             <Detail label="Dibuat" value={new Date(detail.createdAt).toLocaleString("id-ID")} />
             {detail.paidAt ? (
@@ -430,7 +436,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
               <p className="font-mono text-sm font-black">{fulfillTarget.reference}</p>
               <p className="text-sm font-bold">{fulfillTarget.buyerName}</p>
               <p className="mt-0.5 text-xs text-base-ink/70">
-                {fulfillTarget.productName} · {fulfillTarget.qty}x · Rp {fulfillTarget.amount.toLocaleString("id-ID")}
+                {fulfillTarget.productName} · {fulfillTarget.qty}x · {fmtAmount(fulfillTarget)}
               </p>
               <p className="mt-1 text-xs font-bold uppercase text-base-ink/60">
                 Status: {statusLabel[fulfillTarget.status] ?? fulfillTarget.status}

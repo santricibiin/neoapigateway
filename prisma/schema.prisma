@@ -72,6 +72,18 @@ model Setting {
   csTelegram        String?  @db.VarChar(64)
   /// Kontak CS landing: nomor WhatsApp (format 62xxx)
   csWhatsapp        String?  @db.VarChar(20)
+  /// Pembayaran Binance aktif
+  binanceEnabled    Boolean  @default(false)
+  /// API key Binance (SAPI, read-only)
+  binanceApiKey     String?  @db.VarChar(200)
+  /// API secret Binance
+  binanceApiSecret  String?  @db.VarChar(200)
+  /// UID Binance Pay penerima
+  binanceUid        String?  @db.VarChar(20)
+  /// Alamat deposit USDT per network (JSON: {"TRC20":"T..","BEP20":"0x..","ERC20":"0x..","SOL":".."})
+  binanceUsdtAddresses String? @db.VarChar(500)
+  /// Kurs manual Rp per USDT
+  binanceUsdtRate   Int      @default(16000)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
@@ -179,6 +191,12 @@ model PaymentOrder {
   /// pending | processing | paid | expired | failed
   status          String        @default("pending") @db.VarChar(20)
   amount          Int
+  /// idr | usdt (amount USDT = cents)
+  currency        String        @default("idr") @db.VarChar(10)
+  /// qris | binancepay | usdt
+  payMethod       String        @default("qris") @db.VarChar(20)
+  /// Snapshot kurs Rp/USDT saat order dibuat (khusus USDT)
+  usdtRate        Int?
   qty             Int           @default(1)
   unitPrice       Int
   /// Snapshot harga modal saat invoice dibuat
@@ -207,7 +225,7 @@ model PaymentOrder {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  @@index([status, amount, expiresAt])
+  @@index([status, currency, amount, expiresAt])
   @@index([tokenId, status])
 }
 

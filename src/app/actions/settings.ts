@@ -26,9 +26,6 @@ export async function saveSettings(
   const qrisTtlMinutes = Number(formData.get("qrisTtlMinutes") ?? "5");
   const forwarderSecret = formData.get("forwarderSecret")?.toString().trim() ?? "";
   const uniqueCodeEnabled = formData.get("uniqueCodeEnabled") === "on";
-  const backupEnabled = formData.get("backupEnabled") === "on";
-  const backupInterval = Number(formData.get("backupInterval") ?? "1440");
-  const backupUnit = formData.get("backupUnit")?.toString().trim() ?? "minutes";
   const telegramBotToken = formData.get("telegramBotToken")?.toString().trim() ?? "";
   const telegramChatId = formData.get("telegramChatId")?.toString().trim() ?? "";
   const siteName = formData.get("siteName")?.toString().trim() ?? "";
@@ -37,6 +34,36 @@ export async function saveSettings(
 
   // Preserve existing values jika field kosong (memungkinkan update section lain tanpa re-input)
   const existing = await prisma.setting.findUnique({ where: { id: 1 } });
+
+  // Field backup hanya dikirim dari halaman Backup; kalau tidak ada, pertahankan nilai lama.
+  // (Pakai backupInterval sebagai penanda — checkbox "Aktif" yang unchecked tidak ikut terkirim.)
+  const hasBackupFields = formData.has("backupInterval") || formData.has("telegramBotToken");
+  const backupEnabled = hasBackupFields
+    ? formData.get("backupEnabled") === "on"
+    : Boolean(existing?.backupEnabled);
+  const backupInterval = hasBackupFields ? Number(formData.get("backupInterval") ?? "1440") : (existing?.backupInterval ?? 1440);
+  const backupUnit = hasBackupFields ? formData.get("backupUnit")?.toString().trim() ?? "minutes" : (existing?.backupUnit ?? "minutes");
+  // Channel notif transaksi (dikirim dari halaman Backup; preserve kalau tidak ada).
+  const notifyChannelId = formData.has("notifyChannelId")
+    ? formData.get("notifyChannelId")?.toString().trim() ?? ""
+    : (existing?.notifyChannelId ?? "");
+
+  // ===== Binance Pay (dikirim dari halaman Settings; preserve kalau tidak ada) =====
+  const hasBinanceFields = formData.has("binanceUsdtRate");
+  const binanceEnabled = hasBinanceFields ? formData.get("binanceEnabled") === "on" : Boolean(existing?.binanceEnabled);
+  const binanceUid = hasBinanceFields ? formData.get("binanceUid")?.toString().trim() ?? "" : (existing?.binanceUid ?? "");
+  const binanceApiKeyRaw = hasBinanceFields ? formData.get("binanceApiKey")?.toString().trim() ?? "" : "";
+  const binanceApiSecretRaw = hasBinanceFields ? formData.get("binanceApiSecret")?.toString().trim() ?? "" : "";
+  const binanceUsdtRate = hasBinanceFields ? Number(formData.get("binanceUsdtRate") ?? "16000") : (existing?.binanceUsdtRate ?? 16000);
+  const usdtAddressesRaw = hasBinanceFields
+    ? {
+        TRC20: formData.get("binanceTrc20")?.toString().trim() ?? "",
+        BEP20: formData.get("binanceBep20")?.toString().trim() ?? "",
+        ERC20: formData.get("binanceErc20")?.toString().trim() ?? "",
+        SOL: formData.get("binanceSol")?.toString().trim() ?? "",
+      }
+    : null;
+
   const finalSecretKey = secretKey || existing?.secretKey || "";
   const finalPin = pin || existing?.pin || "";
   const finalForwarderSecret = forwarderSecret || existing?.forwarderSecret || "";
@@ -87,6 +114,42 @@ export async function saveSettings(
     return { ok: false, error: "Masa berlaku QRIS harus 1-120 menit" };
   }
 
+  // Validasi Binance
+  if (hasBinanceFields) {
+    if (!Number.isInteger(binanceUsdtRate) || binanceUsdtRate < 1000 || binanceUsdtRate > 100000) {
+      return { ok: false, error: "Kurs USDT: 1000–100000 (Rp per USDT)" };
+    }
+    if (binanceEnabled) {
+      // kosong = pertahankan lama
+      const hasKey = binanceApiKeyRaw || existing?.binanceApiKey;
+      const hasSecret = binanceApiSecretRaw || existing?.binanceApiSecret;
+      if (!hasKey || !hasSecret) {
+        return { ok: false, error: "API Key & Secret Binance wajib diisi" };
+      }
+      if (binanceUid && !/^\d{6,12}$/.test(binanceUid)) {
+        return { ok: false, error: "UID Binance tidak valid (digit saja)" };
+      }
+      if (usdtAddressesRaw) {
+        const trc = usdtAddressesRaw.TRC20;
+        if (trc && !/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(trc)) {
+          return { ok: false, error: "Alamat TRC20 tidak valid (awali T, 34 char)" };
+        }
+        for (const [net, addr] of Object.entries(usdtAddressesRaw)) {
+          if (net === "TRC20") continue;
+          if (addr && addr.length < 20) return { ok: false, error: `Alamat ${net} tidak valid` };
+        }
+      }
+      if (!binanceUid && !Object.values(usdtAddressesRaw ?? {}).some(Boolean)) {
+        return { ok: false, error: "Isi minimal UID Binance Pay atau satu alamat USDT" };
+      }
+    }
+  }
+  const binanceApiKey = binanceApiKeyRaw || existing?.binanceApiKey || null;
+  const binanceApiSecret = binanceApiSecretRaw || existing?.binanceApiSecret || null;
+  const binanceUsdtAddresses = usdtAddressesRaw
+    ? JSON.stringify(Object.fromEntries(Object.entries(usdtAddressesRaw).filter(([, v]) => v)))
+    : (existing?.binanceUsdtAddresses ?? null);
+
   try {
     await prisma.setting.upsert({
       where: { id: 1 },
@@ -103,6 +166,13 @@ export async function saveSettings(
         backupUnit,
         telegramBotToken: finalTelegramBotToken,
         telegramChatId: finalTelegramChatId,
+        notifyChannelId: notifyChannelId || null,
+        binanceEnabled,
+        binanceUid: binanceUid || null,
+        binanceApiKey,
+        binanceApiSecret,
+        binanceUsdtAddresses,
+        binanceUsdtRate,
         siteName: finalSiteName,
         csTelegram: csTelegram || null,
         csWhatsapp: csWhatsapp || null,
@@ -121,6 +191,13 @@ export async function saveSettings(
         backupUnit,
         telegramBotToken: finalTelegramBotToken,
         telegramChatId: finalTelegramChatId,
+        notifyChannelId: notifyChannelId || null,
+        binanceEnabled,
+        binanceUid: binanceUid || null,
+        binanceApiKey,
+        binanceApiSecret,
+        binanceUsdtAddresses,
+        binanceUsdtRate,
         siteName: finalSiteName,
         csTelegram: csTelegram || null,
         csWhatsapp: csWhatsapp || null,

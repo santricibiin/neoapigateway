@@ -15,6 +15,7 @@ export default async function BackupPage() {
       initialUnit={settings.backupUnit}
       initialBotToken={settings.telegramBotToken}
       initialChatId={settings.telegramChatId}
+      initialNotifyChannel={settings.notifyChannelId}
     />
   );
 }

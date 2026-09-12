@@ -6,6 +6,7 @@ import { KeyRound, Copy, Check, Eye, EyeOff, Loader2, ShieldCheck, Sparkles } fr
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { updateResellerPassword, updateResellerApiKey } from "@/app/actions/resweb-auth";
+import { useT } from "@/lib/lang";
 
 type Reseller = { id: number; name: string; email: string; apiKey: string | null };
 
@@ -16,6 +17,7 @@ function generateApiKey() {
 }
 
 export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }) {
+  const t = useT();
   const [pwMode, setPwMode] = useState(false);
   const [pwSaving, setPwSaving] = useState(false);
   const [pwError, setPwError] = useState<string | null>(null);
@@ -96,15 +98,15 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
         </div>
       </motion.section>
 
-      {pwOk && <p className="rounded-neo border border-base-line bg-accent-mint p-3 text-sm font-bold">Password berhasil diubah.</p>}
-      {keyOk && <p className="rounded-neo border border-base-line bg-accent-mint p-3 text-sm font-bold">API key berhasil disimpan.</p>}
+      {pwOk && <p className="rounded-neo border border-base-line bg-accent-mint p-3 text-sm font-bold">{t("Password berhasil diubah.")}</p>}
+      {keyOk && <p className="rounded-neo border border-base-line bg-accent-mint p-3 text-sm font-bold">{t("API key berhasil disimpan.")}</p>}
 
       <section className="rounded-neo border border-base-line bg-white p-5 shadow-neo-sm sm:p-6">
         <div className="flex items-center gap-3 border-b border-base-line pb-4">
           <span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-accent-sky shadow-neo-sm"><ShieldCheck className="h-5 w-5" /></span>
           <div>
-            <h2 className="text-lg font-black">Password</h2>
-            <p className="text-xs font-bold text-base-ink/50">Ubah password login Anda</p>
+            <h2 className="text-lg font-black">{t("Password")}</h2>
+            <p className="text-xs font-bold text-base-ink/50">{t("Ubah password login Anda")}</p>
           </div>
         </div>
 
@@ -112,16 +114,16 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
 
         {pwMode ? (
           <form action={handlePassword} className="mt-4 space-y-4">
-            <Input name="currentPassword" label="Password lama" type="password" required minLength={1} />
-            <Input name="newPassword" label="Password baru (min 6 karakter)" type="password" required minLength={6} />
+            <Input name="currentPassword" label={t("Password lama")} type="password" required minLength={1} />
+            <Input name="newPassword" label={t("Password baru (min 6 karakter)")} type="password" required minLength={6} />
             <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={() => { setPwMode(false); setPwError(null); }}>Batal</Button>
-              <Button type="submit" variant="primary" disabled={pwSaving}>{pwSaving ? <><Loader2 className="h-4 w-4 animate-spin" /> Menyimpan...</> : "Simpan Password"}</Button>
+              <Button type="button" variant="outline" onClick={() => { setPwMode(false); setPwError(null); }}>{t("Batal")}</Button>
+              <Button type="submit" variant="primary" disabled={pwSaving}>{pwSaving ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("Menyimpan...")}</> : t("Simpan Password")}</Button>
             </div>
           </form>
         ) : (
           <div className="mt-4">
-            <Button variant="outline" onClick={() => { setPwMode(true); setPwError(null); setPwOk(false); }}>Ubah Password</Button>
+            <Button variant="outline" onClick={() => { setPwMode(true); setPwError(null); setPwOk(false); }}>{t("Ubah Password")}</Button>
           </div>
         )}
       </section>
@@ -131,7 +133,7 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
           <span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-accent-sun shadow-neo-sm"><KeyRound className="h-5 w-5" /></span>
           <div>
             <h2 className="text-lg font-black">API Key</h2>
-            <p className="text-xs font-bold text-base-ink/50">Key untuk autentikasi API reseller</p>
+            <p className="text-xs font-bold text-base-ink/50">{t("Key untuk autentikasi API reseller")}</p>
           </div>
         </div>
 
@@ -145,7 +147,7 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
                 name="apiKey"
                 value={apiKey}
                 onChange={(e) => { setApiKey(e.target.value); setApiKeyCopied(false); setKeyOk(false); }}
-                placeholder="Klik generate untuk membuat API key"
+                placeholder={t("Klik generate untuk membuat API key")}
                 maxLength={128}
                 className="h-[42px] flex-1 rounded-neo border border-base-line bg-base-surface px-4 font-mono text-sm text-base-ink shadow-neo-sm outline-none transition-shadow focus:shadow-neo"
               />
@@ -159,11 +161,11 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
               )}
             </div>
             {reseller?.apiKey && (
-              <p className="text-xs font-bold text-base-ink/45">API key saat ini sudah diset. Generate untuk mengganti.</p>
+              <p className="text-xs font-bold text-base-ink/45">{t("API key saat ini sudah diset. Generate untuk mengganti.")}</p>
             )}
           </div>
           <div className="flex justify-end">
-            <Button type="submit" variant="primary" disabled={keySaving || !apiKey}>{keySaving ? <><Loader2 className="h-4 w-4 animate-spin" /> Menyimpan...</> : "Simpan API Key"}</Button>
+            <Button type="submit" variant="primary" disabled={keySaving || !apiKey}>{keySaving ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("Menyimpan...")}</> : t("Simpan API Key")}</Button>
           </div>
         </form>
       </section>

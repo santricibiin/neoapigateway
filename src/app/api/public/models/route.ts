@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { fetchAllowedModels, type UpstreamModel } from "@/lib/model-gate";
+import { fetchAllowedModels, modelGateConfig, routerModelAllowed, type UpstreamModel } from "@/lib/model-gate";
+import { fetchRouterModels } from "@/lib/router-upstream";
 import { fetchResellerData } from "@/lib/bandelbanget";
 import { prisma } from "@/lib/prisma";
 
@@ -43,7 +44,23 @@ function detectBrand(modelId: string): string | null {
 
 export async function GET() {
   try {
-    const models: UpstreamModel[] = await fetchAllowedModels();
+    const config = await modelGateConfig();
+    const [bandelModels, routerResult] = await Promise.all([
+      fetchAllowedModels(),
+      config.routerEnabled ? fetchRouterModels().catch(() => []) : Promise.resolve([]),
+    ]);
+
+    const models: UpstreamModel[] = [
+      ...bandelModels,
+      ...routerResult
+        .filter((m) => routerModelAllowed(m.id, config))
+        .map((m) => ({
+          id: m.id,
+          enabled: true,
+          vision: Boolean(m.capabilities?.vision),
+          grade: "-",
+        })),
+    ];
 
     const setting = await prisma.setting.findUnique({
       where: { id: 1 },

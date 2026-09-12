@@ -18,13 +18,14 @@ const jetbrains = JetBrains_Mono({
 });
 
 export async function generateMetadata() {
-  const { siteName } = await getBranding();
+  const { siteName, logoUrl } = await getBranding();
   return {
     title: {
       default: siteName,
       template: `%s · ${siteName}`,
     },
     description: `${siteName} — Token API AI Multi Model`,
+    icons: logoUrl ? { icon: logoUrl, shortcut: logoUrl, apple: logoUrl } : undefined,
   };
 }
 

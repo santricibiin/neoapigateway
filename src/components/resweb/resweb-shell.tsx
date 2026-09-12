@@ -4,10 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, Wallet, LayoutDashboard, Newspaper, Sparkles, Boxes, Settings, Code, ChevronLeft, PanelLeftClose, PanelLeftOpen, TrendingUp } from "lucide-react";
+import { LogOut, Wallet, LayoutDashboard, Newspaper, Sparkles, Boxes, Settings, Code, PanelLeftClose, PanelLeftOpen, TrendingUp } from "lucide-react";
 import { logoutResWeb } from "@/app/actions/resweb-auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { LangSwitch } from "@/components/resweb/res-lang";
+import { useT } from "@/lib/lang";
 
 type NavItem = { href: string; label: string; icon: typeof Wallet };
 
@@ -42,6 +44,7 @@ export function ReswebShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const t = useT();
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -70,13 +73,13 @@ export function ReswebShell({
       <header className="sticky top-0 z-50 border-b border-base-line bg-base-surface/90 shadow-neo-sm backdrop-blur-md">
         <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <motion.button
+              <motion.button
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.94 }}
               onClick={toggle}
               className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-base-surface text-base-ink/55 shadow-neo-sm transition-colors hover:border-stone-400 hover:text-base-ink lg:inline-flex"
-              aria-label={collapsed ? "Buka sidebar" : "Tutup sidebar"}
-              title={collapsed ? "Buka sidebar" : "Tutup sidebar"}
+              aria-label={collapsed ? t("Buka sidebar") : t("Tutup sidebar")}
+              title={collapsed ? t("Buka sidebar") : t("Tutup sidebar")}
             >
               {collapsed ? <PanelLeftOpen className="h-4 w-4" strokeWidth={2.5} /> : <PanelLeftClose className="h-4 w-4" strokeWidth={2.5} />}
             </motion.button>
@@ -89,12 +92,13 @@ export function ReswebShell({
                 <p className="truncate text-sm font-black leading-tight">{reseller?.name ?? "Reseller"}</p>
                 <p className="flex items-center gap-1 text-[10px] font-bold leading-tight text-base-ink/50">
                   <span className={`inline-block h-1.5 w-1.5 rounded-full ${reseller?.active ? "bg-accent-sageDeep" : "bg-accent-terraDeep"}`} />
-                  Reseller Web{reseller?.active ? "" : " (nonaktif)"}
+                  Reseller Web{reseller?.active ? "" : ` ${t("(nonaktif)")}`}
                 </p>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <LangSwitch />
             <div className="hidden items-center gap-2.5 rounded-neo border border-base-line bg-base-bg px-3 py-1.5 shadow-neo-sm sm:flex">
               <span className="flex h-7 w-7 items-center justify-center rounded-neo bg-accent-sageSoft">
                 <TrendingUp className="h-4 w-4 text-accent-sageDeep" strokeWidth={2.5} />
@@ -111,7 +115,7 @@ export function ReswebShell({
             <form action={() => logoutResWeb()}>
               <Button type="submit" size="sm" variant="outline">
                 <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Keluar</span>
+                <span className="hidden sm:inline">{t("Keluar")}</span>
               </Button>
             </form>
           </div>
@@ -122,10 +126,10 @@ export function ReswebShell({
       <motion.aside
         animate={{ width: collapsed ? 76 : 264 }}
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-        className="fixed bottom-3 left-3 top-20 z-40 hidden flex-col overflow-hidden rounded-neo border border-base-line bg-base-ink shadow-neo-lg lg:flex"
+        className="fixed bottom-3 left-3 top-20 z-40 hidden flex-col overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-lg lg:flex"
       >
-        <div className={cn("flex items-center border-b border-white/10 px-4 pb-3 pt-4", collapsed ? "justify-center" : "gap-2.5")}>
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-neo bg-accent-terra">
+        <div className={cn("flex items-center border-b border-base-line px-4 pb-3 pt-4", collapsed ? "justify-center" : "gap-2.5")}>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-neo bg-gradient-to-br from-accent-terra to-accent-terraDeep shadow-neo-sm">
             <Wallet className="h-4 w-4 text-white" strokeWidth={2.5} />
           </span>
           <AnimatePresence>
@@ -137,8 +141,8 @@ export function ReswebShell({
                 transition={{ duration: 0.15 }}
                 className="min-w-0"
               >
-                <p className="truncate text-sm font-extrabold text-white">Reseller Center</p>
-                <p className="truncate text-[9px] font-bold uppercase tracking-widest text-white/40">{reseller?.email}</p>
+                <p className="truncate text-sm font-extrabold">Reseller Center</p>
+                <p className="truncate text-[9px] font-bold uppercase tracking-widest text-base-ink/45">{reseller?.email}</p>
               </motion.div>
             ) : null}
           </AnimatePresence>
@@ -154,9 +158,9 @@ export function ReswebShell({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
-                    className="mb-1.5 px-3 text-[9px] font-black uppercase tracking-[0.18em] text-white/35"
+                    className="mb-1.5 px-3 text-[9px] font-black uppercase tracking-[0.18em] text-base-ink/35"
                   >
-                    {section.title}
+                    {t(section.title)}
                   </motion.p>
                 ) : null}
               </AnimatePresence>
@@ -168,11 +172,11 @@ export function ReswebShell({
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        title={collapsed ? item.label : undefined}
+                        title={collapsed ? t(item.label) : undefined}
                         className={cn(
                           "group relative flex items-center rounded-neo font-semibold transition-colors duration-150",
                           collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2 text-sm",
-                          active ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/5 hover:text-white"
+                          active ? "bg-accent-sageSoft text-base-ink" : "text-base-ink/55 hover:bg-accent-sky/30 hover:text-base-ink"
                         )}
                       >
                         {active ? (
@@ -185,11 +189,11 @@ export function ReswebShell({
                         <Icon
                           className={cn(
                             "h-4 w-4 shrink-0 transition-colors",
-                            active ? "text-accent-terra" : "text-white/50 group-hover:text-white/80"
+                            active ? "text-accent-terra" : "text-base-ink/40 group-hover:text-base-ink/70"
                           )}
                           strokeWidth={2.5}
                         />
-                        {!collapsed && <span className="truncate">{item.label}</span>}
+                        {!collapsed && <span className="truncate">{t(item.label)}</span>}
                       </Link>
                     </li>
                   );
@@ -199,20 +203,21 @@ export function ReswebShell({
           ))}
         </nav>
 
-        <button
-          type="button"
-          onClick={toggle}
-          className={cn(
-            "flex items-center gap-2.5 border-t border-white/10 px-3.5 py-3 text-xs font-bold text-white/50 transition-colors hover:bg-white/5 hover:text-white",
-            collapsed && "justify-center"
-          )}
-          aria-label={collapsed ? "Buka sidebar" : "Tutup sidebar"}
-        >
-          <motion.span animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.3 }}>
-            <ChevronLeft className="h-4 w-4" strokeWidth={2.5} />
-          </motion.span>
-          {!collapsed && <span>Sembunyikan menu</span>}
-        </button>
+        <div className="border-t border-base-line p-2.5">
+          <form action={() => logoutResWeb()}>
+            <button
+              type="submit"
+              className={cn(
+                "flex w-full items-center rounded-neo font-semibold text-base-ink/50 transition-colors hover:bg-accent-terraSoft hover:text-accent-terraDeep",
+                collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2 text-sm"
+              )}
+              title={collapsed ? t("Keluar") : undefined}
+            >
+              <LogOut className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+              {!collapsed && <span className="truncate">{t("Keluar")}</span>}
+            </button>
+          </form>
+        </div>
       </motion.aside>
 
       <main
@@ -232,7 +237,7 @@ export function ReswebShell({
               <motion.span whileTap={{ scale: 0.9 }} className={cn("flex h-8 w-8 items-center justify-center rounded-neo border border-base-ink", active ? "bg-accent-terra text-white shadow-neo-sm" : "bg-transparent")}>
                 <item.icon className="h-4 w-4" strokeWidth={2.5} />
               </motion.span>
-              {item.label}
+              {t(item.label)}
             </Link>
           );
         })}

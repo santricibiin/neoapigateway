@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { authenticateApiKey } from "@/lib/reseller-api-auth";
-import { fetchAllowedModels } from "@/lib/model-gate";
+import { fetchAllowedModels, modelGateConfig, routerModelAllowed, type UpstreamModel } from "@/lib/model-gate";
+import { fetchRouterModels } from "@/lib/router-upstream";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,25 @@ export async function GET(req: Request) {
   }
 
   try {
-    const models = (await fetchAllowedModels()).map((m) => ({
+    const config = await modelGateConfig();
+    const [bandelModels, routerResult] = await Promise.all([
+      fetchAllowedModels(),
+      config.routerEnabled ? fetchRouterModels().catch(() => []) : Promise.resolve([]),
+    ]);
+
+    const models: UpstreamModel[] = [
+      ...bandelModels,
+      ...routerResult
+        .filter((m) => routerModelAllowed(m.id, config))
+        .map((m) => ({
+          id: m.id,
+          enabled: true,
+          vision: Boolean(m.capabilities?.vision),
+          grade: "-",
+        })),
+    ];
+
+    const rows = models.map((m) => ({
       id: m.id,
       enabled: Boolean(m.enabled),
       vision: Boolean(m.vision),

@@ -32,6 +32,16 @@ export async function saveResWebNews(id: number | null, formData: FormData) {
   }
 }
 
+export async function toggleResWebNews(id: number, active: boolean) {
+  const session = getResWebSession();
+  if (!session) return { ok: false, error: "Unauthorized" };
+  if (!Number.isInteger(id) || id < 1) return { ok: false, error: "ID berita tidak valid" };
+  const result = await prisma.resellerWebNews.updateMany({ where: { id, resellerId: session.id }, data: { active } });
+  if (!result.count) return { ok: false, error: "Berita tidak ditemukan" };
+  revalidatePath("/res/news");
+  return { ok: true };
+}
+
 export async function deleteResWebNews(id: number) {
   const session = getResWebSession();
   if (!session) return { ok: false, error: "Unauthorized" };

@@ -5,12 +5,14 @@ import { motion } from "framer-motion";
 import { Check, Copy, Eye, EyeOff, Loader2, Search, Sparkles, Zap, ZapOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/lang";
 
 type Model = { id: string; brand: string; enabled: boolean; vision: boolean; grade: string; multiplier: number; input: string[]; output: string[] };
 
 type Filter = "all" | "active" | "inactive";
 
 export function ReswebModelsClient() {
+  const t = useT();
   const [models, setModels] = useState<Model[]>([]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("active");
@@ -56,7 +58,7 @@ export function ReswebModelsClient() {
     <div className="space-y-6">
       <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border border-base-line bg-accent-mint p-5 shadow-neo sm:p-7">
         <motion.svg animate={{ rotate: 360 }} transition={{ duration: 28, repeat: Infinity, ease: "linear" }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 text-white/35"><path d="M50 5 61 38 95 39 68 58 77 91 50 72 23 91 32 58 5 39 39 38Z" fill="currentColor" /></motion.svg>
-        <div className="relative"><span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Sparkles className="h-3 w-3" /> Realtime Catalog</span><h1 className="mt-3 text-3xl font-black sm:text-4xl">Katalog model.</h1><p className="mt-1 text-sm font-bold text-base-ink/60">{stats.active} aktif · {stats.inactive} nonaktif · {stats.total} total</p></div>
+        <div className="relative"><span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Sparkles className="h-3 w-3" /> Realtime Catalog</span><h1 className="mt-3 text-3xl font-black sm:text-4xl">{t("Katalog model.")}</h1><p className="mt-1 text-sm font-bold text-base-ink/60">{stats.active} {t("aktif")} · {stats.inactive} {t("nonaktif")} · {stats.total} {t("total")}</p></div>
       </motion.section>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -71,15 +73,15 @@ export function ReswebModelsClient() {
               )}
             >
               {f === "active" ? <Zap className="h-3.5 w-3.5" /> : f === "inactive" ? <ZapOff className="h-3.5 w-3.5" /> : null}
-              {f === "active" ? "Aktif" : f === "inactive" ? "Nonaktif" : "Semua"}
+              {f === "active" ? t("Aktif") : f === "inactive" ? t("Nonaktif") : t("Semua")}
               <span className={cn("rounded-full px-1.5 py-0.5 text-[9px]", filter === f ? "bg-white/20" : "bg-base-bg")}>{f === "active" ? stats.active : f === "inactive" ? stats.inactive : stats.total}</span>
             </button>
           ))}
         </div>
-        <div className="relative max-w-md flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-base-ink/45" /><Input className="pl-10" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari nama atau brand model..." /></div>
+        <div className="relative max-w-md flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-base-ink/45" /><Input className="pl-10" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("Cari nama atau brand model...")} /></div>
       </div>
 
-      {loading ? <div className="flex items-center gap-2 rounded-neo border border-base-line bg-white p-4 font-bold"><Loader2 className="h-4 w-4 animate-spin" /> Memuat model...</div> : null}
+      {loading ? <div className="flex items-center gap-2 rounded-neo border border-base-line bg-white p-4 font-bold"><Loader2 className="h-4 w-4 animate-spin" /> {t("Memuat model...")}</div> : null}
       {error ? <p className="rounded-neo border border-base-line bg-accent-terraSoft p-4 text-sm font-bold">{error}</p> : null}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {filtered.map((model, index) => (
@@ -101,19 +103,19 @@ export function ReswebModelsClient() {
             <div className="relative flex items-start justify-between gap-3">
               <span className={cn("inline-flex items-center gap-1 rounded-full border border-base-line px-2 py-0.5 text-[9px] font-black uppercase", model.enabled ? "bg-accent-mint" : "bg-accent-terraSoft")}>
                 {model.enabled ? <Zap className="h-2.5 w-2.5" /> : <ZapOff className="h-2.5 w-2.5" />}
-                {model.enabled ? "Aktif" : "Nonaktif"}
+                {model.enabled ? t("Aktif") : t("Nonaktif")}
               </span>
               <span className="font-mono text-xs font-black">{model.multiplier}x</span>
             </div>
             <p className="relative mt-5 break-all font-mono text-sm font-black">{model.id}</p>
             <div className="relative mt-4 flex items-center justify-between text-[10px] font-bold uppercase text-base-ink/55">
               <span className="flex items-center gap-1">{model.vision ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}{model.vision ? "Vision" : "Text"} · {model.brand}</span>
-              <span className="flex items-center gap-1">{copied === model.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}{copied === model.id ? "Tersalin" : "Copy"}</span>
+              <span className="flex items-center gap-1">{copied === model.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}{copied === model.id ? t("Tersalin") : t("Copy")}</span>
             </div>
           </motion.button>
         ))}
       </div>
-      {!loading && !error && !filtered.length ? <div className="rounded-neo border border-dashed border-base-line bg-white py-14 text-center font-bold text-base-ink/45">Model tidak ditemukan.</div> : null}
+      {!loading && !error && !filtered.length ? <div className="rounded-neo border border-dashed border-base-line bg-white py-14 text-center font-bold text-base-ink/45">{t("Model tidak ditemukan.")}</div> : null}
     </div>
   );
 }

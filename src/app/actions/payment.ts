@@ -8,6 +8,8 @@ export async function createOrder(formData: FormData) {
   const tokenId = Number(formData.get("tokenId"));
   const phone = String(formData.get("phone") || "").trim() || undefined;
   const qty = Number(formData.get("qty") || "1");
+  const payMethodRaw = String(formData.get("payMethod") || "qris");
+  const network_ = String(formData.get("network") || "").trim().toUpperCase() || null;
 
   if (!Number.isInteger(tokenId) || tokenId < 1) {
     return { ok: false, error: "Produk tidak valid" } as const;
@@ -15,8 +17,18 @@ export async function createOrder(formData: FormData) {
   if (!Number.isInteger(qty) || qty < 1) {
     return { ok: false, error: "Jumlah tidak valid" } as const;
   }
+  const payMethod =
+    payMethodRaw === "binancepay" || payMethodRaw === "usdt" ? payMethodRaw : ("qris" as const);
+  const usdtNetworks = ["TRC20", "BEP20", "ERC20", "SOL"] as const;
+  const network: (typeof usdtNetworks)[number] | null =
+    payMethod === "usdt" && usdtNetworks.includes(network_ as (typeof usdtNetworks)[number])
+      ? (network_ as (typeof usdtNetworks)[number])
+      : null;
+  if (payMethod === "usdt" && !network) {
+    return { ok: false, error: "Network USDT tidak valid" } as const;
+  }
 
-  const result = await createShopOrder({ tokenId, phone, qty });
+  const result = await createShopOrder({ tokenId, phone, qty, payMethod, network });
   if (!result.ok) return { ok: false, error: result.error } as const;
 
   revalidatePath(`/order/${tokenId}`);

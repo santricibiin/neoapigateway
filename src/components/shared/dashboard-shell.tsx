@@ -36,7 +36,7 @@ export function DashboardShell({
   return (
     <div className="min-h-screen bg-base-bg">
       <DashboardHeader adminId={adminId} onToggleSidebar={toggle} sidebarCollapsed={collapsed} />
-      <DashboardSidebar collapsed={collapsed} onToggle={toggle} />
+      <DashboardSidebar collapsed={collapsed} />
       <main
         className={`p-4 transition-[margin] duration-300 ease-out sm:p-5 lg:p-6 ${
           collapsed ? "lg:ml-[88px]" : "lg:ml-[276px]"

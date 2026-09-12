@@ -28,6 +28,8 @@ interface PayOrder {
   invoice: string;
   status: string;
   amount: number;
+  currency: "idr" | "usdt";
+  payMethod: "qris" | "binancepay" | "usdt";
   qty: number;
   unitPrice: number;
   productName: string;
@@ -46,6 +48,10 @@ function formatRupiah(value: number) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+function formatAmount(order: PayOrder) {
+  return order.currency === "usdt" ? `${(order.amount / 100).toFixed(2)} USDT` : formatRupiah(order.amount);
 }
 
 function formatCountdown(target: Date) {
@@ -163,10 +169,34 @@ export function PayClient({ order: initialOrder }: { order: PayOrder }) {
                     <QrCode className="h-4.5 w-4.5" strokeWidth={2.5} />
                   </span>
                   <div>
-                    <h1 className="text-lg font-extrabold sm:text-xl">{t("Scan QRIS untuk Bayar")}</h1>
+                    <h1 className="text-lg font-extrabold sm:text-xl">
+                      {order.currency === "usdt"
+                        ? t("Kirim USDT sesuai nominal")
+                        : order.payMethod === "binancepay"
+                          ? t("Transfer Binance Pay sesuai nominal")
+                          : t("Scan QRIS untuk Bayar")}
+                    </h1>
                     <p className="text-xs font-semibold text-base-ink/55">{t("Bayar tepat sesuai nominal. Pembayaran akan dicek otomatis.")}</p>
                   </div>
                 </div>
+
+                {order.currency === "usdt" && (
+                  <div className="w-full rounded-neo border border-base-line bg-base-bg p-4">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/50">
+                      {order.payMethod === "binancepay" ? t("UID Binance Pay") : t("Alamat USDT")}
+                    </div>
+                    <button
+                      onClick={() => copyValue("addr", order.qrisPayload)}
+                      className="mt-1 w-full break-all rounded-neo border border-base-line bg-white p-2.5 text-left font-mono text-xs font-extrabold shadow-neo-sm"
+                    >
+                      {order.qrisPayload}
+                    </button>
+                    <p className="mt-1.5 text-[10px] font-bold text-base-ink/45">
+                      {t("Klik untuk copy")} · {order.payMethod === "binancepay" ? t("Transfer USDT ke UID ini dari app Binance") : t("Kirim USDT ke alamat ini (network sesuai pilihan)")} · {t("tepat sesuai nominal")}
+                    </p>
+                    {copied === "addr" ? <p className="mt-1 text-[10px] font-black text-accent-sageDeep">{t("Alamat tersalin!")}</p> : null}
+                  </div>
+                )}
 
                 <div className="rounded-neo border border-base-line bg-white p-4 shadow-neo">
                   {qrUrl ? (
@@ -386,11 +416,11 @@ export function PayClient({ order: initialOrder }: { order: PayOrder }) {
               </div>
               <div className="flex items-center justify-between gap-2 border-t border-dashed border-base-line pt-2">
                 <dt className="font-extrabold">{t("Total yang harus dibayar")}</dt>
-                <dd className="text-xl font-extrabold">{formatRupiah(order.amount)}</dd>
+                <dd className="text-xl font-extrabold">{formatAmount(order)}</dd>
               </div>
             </dl>
             <button
-              onClick={() => copyValue("amount", String(order.amount))}
+              onClick={() => copyValue("amount", order.currency === "usdt" ? (order.amount / 100).toFixed(2) : String(order.amount))}
               className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-neo border border-base-line bg-base-surface px-3 py-2 text-xs font-bold shadow-neo-sm"
             >
               <Copy className="h-3.5 w-3.5" />

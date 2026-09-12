@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -101,6 +101,14 @@ function formatCountdown(target: Date) {
   return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
+type PayMethods = { qris: boolean; binancepay: boolean; usdtNetworks: string[] };
+type PayMethodChoice = { kind: "qris" } | { kind: "binancepay" } | { kind: "usdt"; network: string };
+
+function usdtOf(idr: number, rate: number) {
+  if (!rate) return null;
+  return (idr / rate).toFixed(2);
+}
+
 export function OrderClient({ product }: { product: Product }) {
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -110,6 +118,24 @@ export function OrderClient({ product }: { product: Product }) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<OrderHistoryItem[]>([]);
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [payMethods, setPayMethods] = useState<PayMethods | null>(null);
+  const [method, setMethod] = useState<PayMethodChoice>({ kind: "qris" });
+  const [usdtRate, setUsdtRate] = useState(0);
+
+  useEffect(() => {
+    void fetch("/api/public/pay-methods", { cache: "no-store" })
+      .then(async (r) => {
+        const data = await r.json();
+        if (data.ok) {
+          setPayMethods(data.methods);
+          if (typeof data.usdtRate === "number" && data.usdtRate > 0) setUsdtRate(data.usdtRate);
+          if (data.methods.qris) setMethod({ kind: "qris" });
+          else if (data.methods.binancepay) setMethod({ kind: "binancepay" });
+          else if (data.methods.usdtNetworks?.length) setMethod({ kind: "usdt", network: data.methods.usdtNetworks[0] });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   async function handleCreateOrder(e: React.FormEvent) {
     e.preventDefault();
@@ -130,6 +156,8 @@ export function OrderClient({ product }: { product: Product }) {
     const formData = new FormData();
     formData.set("tokenId", String(product.id));
     formData.set("qty", String(qty));
+    formData.set("payMethod", method.kind);
+    if (method.kind === "usdt") formData.set("network", method.network);
 
     const res = await createOrder(formData);
     setLoading(false);
@@ -212,6 +240,9 @@ export function OrderClient({ product }: { product: Product }) {
               <div>
                 <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/40">{t("Harga satuan")}</div>
                 <div className="text-2xl font-extrabold sm:text-3xl">{formatRupiah(product.price)}</div>
+                {usdtOf(product.price, usdtRate) && (
+                  <div className="font-mono text-xs font-bold text-base-ink/45">≈ {usdtOf(product.price, usdtRate)} USDT</div>
+                )}
               </div>
               <span
                 className={`inline-flex items-center gap-1.5 rounded-full border border-base-line px-2.5 py-1 text-[10px] font-black uppercase ${
@@ -253,6 +284,32 @@ export function OrderClient({ product }: { product: Product }) {
                   >
                     +
                   </button>
+                </div>
+              </div>
+            )}
+
+            {payMethods && (payMethods.binancepay || payMethods.usdtNetworks.length > 0) && (
+              <div className="rounded-neo border border-base-line bg-base-surface p-5 shadow-neo sm:p-6">
+                <label className="mb-2 flex items-center gap-2 text-sm font-bold">
+                  <WalletIcon />
+                  {t("Metode Pembayaran")}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {payMethods.qris && (
+                    <button type="button" onClick={() => setMethod({ kind: "qris" })} className={`rounded-neo border-2 px-3 py-2 text-xs font-black ${method.kind === "qris" ? "border-base-ink bg-accent-sky" : "border-base-line bg-base-bg"}`}>
+                      QRIS
+                    </button>
+                  )}
+                  {payMethods.binancepay && (
+                    <button type="button" onClick={() => setMethod({ kind: "binancepay" })} className={`rounded-neo border-2 px-3 py-2 text-xs font-black ${method.kind === "binancepay" ? "border-base-ink bg-accent-sun" : "border-base-line bg-base-bg"}`}>
+                      Binance Pay
+                    </button>
+                  )}
+                  {payMethods.usdtNetworks.map((net) => (
+                    <button key={net} type="button" onClick={() => setMethod({ kind: "usdt", network: net })} className={`rounded-neo border-2 px-3 py-2 text-xs font-black ${method.kind === "usdt" && method.network === net ? "border-base-ink bg-accent-mint" : "border-base-line bg-base-bg"}`}>
+                      USDT {net}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
@@ -300,7 +357,12 @@ export function OrderClient({ product }: { product: Product }) {
               </div>
               <div className="flex items-center justify-between gap-2 border-t border-dashed border-base-line pt-2">
                 <dt className="font-extrabold">{t("Total")}</dt>
-                <dd className="text-lg font-extrabold">{formatRupiah(product.price * (isExternal ? 1 : qty))}</dd>
+                <dd className="text-right">
+                  <span className="text-lg font-extrabold">{formatRupiah(product.price * (isExternal ? 1 : qty))}</span>
+                  {usdtOf(product.price * (isExternal ? 1 : qty), usdtRate) && (
+                    <span className="block font-mono text-[11px] font-bold text-base-ink/45">≈ {usdtOf(product.price * (isExternal ? 1 : qty), usdtRate)} USDT</span>
+                  )}
+                </dd>
               </div>
             </dl>
             <p className="mt-3 text-[11px] font-semibold text-base-ink/45">

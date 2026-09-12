@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { QUOTA_PACKAGES, provisionCustomerKey, formatBandelDelivery, fetchResellerKeys, addCustomerQuota } from "@/lib/bandelbanget";
+import { notifyOrderPaid, notifyTopupPaid } from "@/lib/telegram-notify";
 import type { ActionResult } from "@/types";
 
 /**
@@ -86,6 +87,18 @@ export async function forceFulfillOrder(invoice: string): Promise<ActionResult<{
       return { ok: false, error: "Order gagal difinalisasi (status berubah)" };
     }
 
+    await notifyOrderPaid({
+      invoice: order.invoice,
+      productName: order.buyerQuotaToken ? "Tambah Kuota" : order.productName,
+      productSku: order.productSku,
+      qty: order.qty,
+      amount: order.amount,
+      currency: (order.currency as "idr" | "usdt") ?? "idr",
+      buyerPhone: order.buyerPhone,
+      telegramUserId: order.telegramUserId,
+      paidAt: order.paidAt,
+    });
+
     revalidatePath("/dashboard/transactions");
     return { ok: true, data: { delivered } };
   } catch (e) {
@@ -132,6 +145,14 @@ export async function forceFulfillReswebOrder(invoice: string): Promise<ActionRe
   if (!done) {
     return { ok: false, error: "Order sedang diproses lain" };
   }
+
+  await notifyTopupPaid({
+    invoice: order.invoice,
+    tokens: `${Number(order.tokens).toLocaleString("id-ID")}`,
+    resellerId: order.resellerId,
+    amount: order.amount,
+    paidAt: order.paidAt,
+  });
 
   revalidatePath("/dashboard/transactions");
   return {

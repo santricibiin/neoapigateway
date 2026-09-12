@@ -326,11 +326,11 @@ EOF
   pm2 startup systemd -u root --hp /root 2>/dev/null || true
   log "Aplikasi berjalan di port $APP_PORT (PM2)"
 
-  # 8b. Backup cron via PM2
+  # 8b. Backup cron via PM2 (tiap 15 menit; script sendiri cek interval dari settings DB)
   pm2 delete "neo-backup" 2>/dev/null || true
-  pm2 start "$APP_DIR/scripts/backup-cron.sh" --name "neo-backup" --cron "0 * * * *" 2>/dev/null || true
+  pm2 start "$APP_DIR/scripts/backup-cron.sh" --name "neo-backup" --cron "*/15 * * * *" 2>/dev/null || true
   pm2 save 2>/dev/null || true
-  log "Backup cron aktif (cek tiap jam via PM2)"
+  log "Backup cron aktif (cek tiap 15 menit via PM2)"
 
   # 8c. Uploads dir (logo, dll — di luar public)
   mkdir -p "$APP_DIR/uploads"

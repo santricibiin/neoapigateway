@@ -32,6 +32,23 @@ function formatRupiah(value: number) {
   }).format(value);
 }
 
+/** Ambil kurs USDT dari server (0 kalau Binance mati → harga USDT disembunyikan). */
+function useUsdtRate() {
+  const [rate, setRate] = useState(0);
+  useEffect(() => {
+    void fetch("/api/public/pay-methods", { cache: "no-store" })
+      .then(async (r) => {
+        const data = await r.json();
+        if (data.ok && typeof data.usdtRate === "number" && data.usdtRate > 0) {
+          const methods = data.methods as { binancepay: boolean; usdtNetworks: string[] };
+          if (methods.binancepay || methods.usdtNetworks?.length) setRate(data.usdtRate);
+        }
+      })
+      .catch(() => {});
+  }, []);
+  return rate;
+}
+
 function formatTokens(value: number) {
   if (value >= 1_000_000_000) return `${value / 1_000_000_000}B`;
   if (value >= 1_000_000) return `${value / 1_000_000}M`;
@@ -84,7 +101,10 @@ const cell = {
 export function ProductsClient({ products }: { products: Product[] }) {
   const [resellerQuota, setResellerQuota] = useState<number | null>(null);
   const [mode, setMode] = useState<ViewMode>("card");
+  const usdtRate = useUsdtRate();
   const t = useT();
+
+  const usdtOf = (idr: number) => (usdtRate ? (idr / usdtRate).toFixed(2) : null);
 
   useEffect(() => {
     fetch("/api/public/reseller-quota")
@@ -256,7 +276,12 @@ export function ProductsClient({ products }: { products: Product[] }) {
                       </div>
 
                       <div className="mt-3 flex items-center justify-between gap-3">
-                        <div className="text-lg font-extrabold">{formatRupiah(product.price)}</div>
+                        <div>
+                          <div className="text-lg font-extrabold">{formatRupiah(product.price)}</div>
+                          {usdtOf(product.price) && (
+                            <div className="font-mono text-[10px] font-bold text-base-ink/45">≈ {usdtOf(product.price)} USDT</div>
+                          )}
+                        </div>
                         {available ? (
                           <Link href={`/order/${product.id}`}>
                             <Button variant="primary" size="sm">
@@ -311,6 +336,9 @@ export function ProductsClient({ products }: { products: Product[] }) {
                         <div className="col-start-1 row-start-2 items-baseline gap-1.5 md:col-start-3 md:row-start-1 md:justify-self-end">
                           <span className="text-[10px] font-black uppercase text-base-ink/40 md:hidden">{t("Harga")}</span>
                           <p className="text-sm font-extrabold md:text-base">{formatRupiah(product.price)}</p>
+                          {usdtOf(product.price) && (
+                            <p className="font-mono text-[10px] font-bold text-base-ink/45">≈ {usdtOf(product.price)} USDT</p>
+                          )}
                         </div>
 
                         {/* Aksi — HP: baris kedua kanan; tablet/PC: kolom terakhir */}

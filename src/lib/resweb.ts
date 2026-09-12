@@ -3,6 +3,7 @@ import { qrisStaticToDynamic } from "@/lib/qris";
 import { addCustomerQuota, provisionCustomerKey } from "@/lib/bandelbanget";
 import { BANDEL_DEFAULT_MEMBER_PIN, fetchQuotaMeta, fetchResellerKeys, QUOTA_PACKAGES } from "@/lib/bandelbanget";
 import { publicApiBase } from "@/lib/bandel-upstream";
+import { notifyTopupPaid } from "@/lib/telegram-notify";
 
 function invoiceCode() {
   return `RW${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -122,7 +123,7 @@ export async function expireOverdueReswebOrders(): Promise<number> {
 export async function claimReswebOrder(eventId: string) {
   await expireOverdueReswebOrders();
   const EXPIRE_GRACE_MS = 10 * 60 * 1000;
-  return prisma.$transaction(async (tx) => {
+  const claimedOrder = await prisma.$transaction(async (tx) => {
     const event = await tx.paymentEvent.findUnique({ where: { id: eventId } });
     if (!event || event.matched || event.amount == null) return null;
 
@@ -153,6 +154,25 @@ export async function claimReswebOrder(eventId: string) {
 
     return order;
   });
+  if (claimedOrder) {
+    await notifyTopupPaid({
+      invoice: claimedOrder.invoice,
+      tokens: formatTokensShort(claimedOrder.tokens),
+      resellerId: claimedOrder.resellerId,
+      amount: claimedOrder.amount,
+      paidAt: claimedOrder.paidAt,
+    });
+  }
+  return claimedOrder;
+}
+
+/** "500000000" → "500M". */
+function formatTokensShort(tokens: bigint): string {
+  const n = Number(tokens);
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(0)}B`;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(0)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
+  return n.toLocaleString("id-ID");
 }
 
 export type AddMemberResult =

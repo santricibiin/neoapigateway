@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { readFileSync, writeFileSync, unlinkSync, existsSync, readdirSync, statSync } from "fs";
+import { readFileSync, writeFileSync, unlinkSync, copyFileSync, existsSync, readdirSync, statSync } from "fs";
 import { gzipSync } from "zlib";
 import { join } from "path";
 import { prisma } from "@/lib/prisma";
@@ -10,6 +10,7 @@ interface BackupSettings {
   backupUnit: string;
   telegramBotToken: string;
   telegramChatId: string;
+  notifyChannelId: string;
 }
 
 export async function getBackupSettings(): Promise<BackupSettings> {
@@ -20,13 +21,25 @@ export async function getBackupSettings(): Promise<BackupSettings> {
     backupUnit: setting?.backupUnit ?? "minutes",
     telegramBotToken: setting?.telegramBotToken ?? "",
     telegramChatId: setting?.telegramChatId ?? "",
+    notifyChannelId: setting?.notifyChannelId ?? "",
   };
 }
 
 function parseDatabaseUrl(url: string) {
   const match = url.match(/^mysql:\/\/([^:]+):([^@]*)@([^:]+):(\d+)\/(.+)$/);
   if (!match) throw new Error("DATABASE_URL tidak valid");
-  return { user: match[1], password: match[2], host: match[3], port: match[4], db: match[5] };
+  return {
+    user: decodeURIComponent(match[1]),
+    password: decodeURIComponent(match[2]),
+    host: match[3],
+    port: match[4],
+    db: match[5].split("?")[0],
+  };
+}
+
+/** Escape untuk disisipkan dalam single-quote shell. */
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
 function wibTimestamp(): string {
@@ -57,7 +70,7 @@ export async function runBackup(): Promise<{ ok: boolean; file?: string; error?:
   // mysqldump
   try {
     execSync(
-      `mysqldump -h ${db.host} -P ${db.port} -u ${db.user} -p'${db.password}' ${db.db} --single-transaction --routines --triggers > "${sqlPath}"`,
+      `mysqldump -h ${shellQuote(db.host)} -P ${shellQuote(db.port)} -u ${shellQuote(db.user)} -p${shellQuote(db.password)} ${shellQuote(db.db)} --single-transaction --routines --triggers > "${sqlPath}"`,
       { stdio: "pipe", timeout: 60000 }
     );
   } catch (e) {
@@ -79,7 +92,18 @@ export async function runBackup(): Promise<{ ok: boolean; file?: string; error?:
   const gzName = `bc-${ts}.sql.gz`;
   const sent = await sendToTelegram(gzPath, gzName, settings.telegramBotToken, settings.telegramChatId);
 
-  unlinkSync(gzPath);
+  if (sent) {
+    unlinkSync(gzPath);
+  } else {
+    // Gagal kirim Telegram: simpan lokal (dir backup) supaya tidak hilang.
+    const backupDir = process.env.BACKUP_DIR || "/root/neoapigateway";
+    try {
+      if (existsSync(backupDir)) {
+        copyFileSync(gzPath, join(backupDir, gzName));
+      }
+    } catch {}
+    unlinkSync(gzPath);
+  }
 
   return { ok: true, file: gzName, sent };
 }

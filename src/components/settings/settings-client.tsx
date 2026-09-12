@@ -19,8 +19,8 @@ import {
   Smartphone,
   Trash2,
   Upload,
-  Database,
   Send,
+  Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,14 +41,10 @@ export function SettingsClient({
   initialQrisTtlMinutes,
   initialForwarderSecret,
   initialUniqueCodeEnabled,
-  initialBackupEnabled,
-  initialBackupInterval,
-  initialBackupUnit,
-  initialTelegramBotToken,
-  initialTelegramChatId,
   initialSiteName,
   initialCsTelegram,
   initialCsWhatsapp,
+  initialBinance,
   hasLogo,
 }: {
   initialSecretKey: string;
@@ -58,14 +54,10 @@ export function SettingsClient({
   initialQrisTtlMinutes: number;
   initialForwarderSecret: string;
   initialUniqueCodeEnabled: boolean;
-  initialBackupEnabled: boolean;
-  initialBackupInterval: number;
-  initialBackupUnit: string;
-  initialTelegramBotToken: string;
-  initialTelegramChatId: string;
   initialSiteName: string;
   initialCsTelegram: string;
   initialCsWhatsapp: string;
+  initialBinance: { enabled: boolean; uid: string; addresses: Record<string, string>; rate: number };
   hasLogo: boolean;
 }) {
   const [showKey, setShowKey] = useState(false);
@@ -136,16 +128,25 @@ export function SettingsClient({
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      <div className="mb-5 sm:mb-7">
-        <span className="mb-2 inline-flex items-center gap-2 rounded-full border border-base-line bg-accent-mint px-3 py-1 text-xs font-black uppercase tracking-wider">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          Konfigurasi Aman
-        </span>
-        <h1 className="text-2xl font-extrabold sm:text-3xl">Pengaturan Sistem</h1>
-        <p className="mt-1 max-w-2xl text-sm text-base-ink/60 sm:text-base">
-          Kelola branding, koneksi reseller, pembayaran QRIS, backup, dan notifikasi.
-        </p>
-      </div>
+      <motion.section
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="mb-6 relative overflow-hidden rounded-neo border border-base-line bg-accent-mint p-5 shadow-neo sm:p-7"
+      >
+        <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 text-white/30">
+          <path d="M50 6 61 38 95 39 68 58 77 91 50 72 23 91 32 58 5 39 39 38Z" fill="currentColor" />
+        </svg>
+        <div className="relative">
+          <span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+            <ShieldCheck className="h-3 w-3" /> Konfigurasi Sistem
+          </span>
+          <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Pengaturan.</h1>
+          <p className="mt-1 max-w-2xl text-sm font-bold text-base-ink/60">
+            Kelola branding, koneksi reseller, pembayaran QRIS, dan notifikasi.
+          </p>
+        </div>
+      </motion.section>
 
       <form action={handleSubmit} className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.82fr)]">
         <div className="space-y-4 sm:space-y-6">
@@ -261,39 +262,41 @@ export function SettingsClient({
             </div>
           </section>
 
-          {/* Backup */}
+          {/* Binance Pay & USDT */}
           <section className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
-            <div className="flex items-center gap-3 border-b border-base-line bg-accent-sky px-4 py-3 sm:px-5">
-              <Database className="h-5 w-5" strokeWidth={2.5} />
+            <div className="flex items-center gap-3 border-b border-base-line bg-accent-lavender px-4 py-3 sm:px-5">
+              <Coins className="h-5 w-5" strokeWidth={2.5} />
               <div>
-                <h2 className="font-extrabold">Backup & Telegram</h2>
-                <p className="text-xs text-base-ink/65">Backup otomatis database ke Telegram</p>
+                <h2 className="font-extrabold">Binance Pay & USDT</h2>
+                <p className="text-xs text-base-ink/65">Pembayaran crypto otomatis (UID / deposit USDT)</p>
               </div>
             </div>
             <div className="space-y-4 p-4 sm:p-5">
+              <label className="flex cursor-pointer items-center gap-3 rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold">
+                <input name="binanceEnabled" type="checkbox" defaultChecked={initialBinance.enabled} className="h-5 w-5 accent-black" />
+                Aktifkan pembayaran Binance
+              </label>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Input name="telegramBotToken" label="Telegram Bot Token" type="password" defaultValue={initialTelegramBotToken} placeholder="123456:ABC-DEF..." autoComplete="off" />
-                <Input name="telegramChatId" label="Telegram Chat ID" defaultValue={initialTelegramChatId} placeholder="-1001234567890" autoComplete="off" />
+                <Input name="binanceApiKey" label="API Key" type="password" defaultValue="" placeholder="Kosong = pertahankan lama" autoComplete="off" />
+                <Input name="binanceApiSecret" label="API Secret" type="password" defaultValue="" placeholder="Kosong = pertahankan lama" autoComplete="off" />
               </div>
-              <div className="grid gap-4 sm:grid-cols-[1fr_1fr_auto]">
-                <Input name="backupInterval" label="Interval" type="number" min={1} max={100000} defaultValue={initialBackupInterval} />
-                <div>
-                  <label className="mb-1.5 block text-sm font-bold">Satuan</label>
-                  <select name="backupUnit" defaultValue={initialBackupUnit} className="w-full rounded-neo border border-base-line bg-base-surface px-4 py-2.5 text-base shadow-neo-sm outline-none focus:shadow-neo">
-                    <option value="minutes">Menit</option>
-                    <option value="hours">Jam</option>
-                    <option value="days">Hari</option>
-                  </select>
-                </div>
-                <div className="flex items-end">
-                  <label className="flex cursor-pointer items-center gap-3 rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold">
-                    <input name="backupEnabled" type="checkbox" defaultChecked={initialBackupEnabled} className="h-5 w-5 accent-black" />
-                    Aktif
-                  </label>
-                </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input name="binanceUid" label="UID Binance Pay" defaultValue={initialBinance.uid} placeholder="1275360723" maxLength={12} autoComplete="off" />
+                <Input name="binanceUsdtRate" label="Kurs (Rp per USDT)" type="number" min={1000} max={100000} defaultValue={initialBinance.rate} />
               </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input name="binanceTrc20" label="Alamat USDT TRC20" defaultValue={initialBinance.addresses?.TRC20 ?? ""} placeholder="T..." autoComplete="off" />
+                <Input name="binanceBep20" label="Alamat USDT BEP20" defaultValue={initialBinance.addresses?.BEP20 ?? ""} placeholder="0x..." autoComplete="off" />
+                <Input name="binanceErc20" label="Alamat USDT ERC20" defaultValue={initialBinance.addresses?.ERC20 ?? ""} placeholder="0x..." autoComplete="off" />
+                <Input name="binanceSol" label="Alamat USDT SOL" defaultValue={initialBinance.addresses?.SOL ?? ""} placeholder="..." autoComplete="off" />
+              </div>
+              <p className="text-xs leading-relaxed text-base-ink/60">
+                API key butuh izin <strong>read-only</strong> (endpoint pay/transactions &amp; deposit history). Deposit terdeteksi otomatis setelah confirmed di blockchain. Kurs manual dipakai untuk konversi harga produk ke USDT.
+              </p>
             </div>
           </section>
+
+          {/* Backup & notifikasi transaksi diatur di halaman Backup & Restore */}
         </div>
 
         {/* Right column */}

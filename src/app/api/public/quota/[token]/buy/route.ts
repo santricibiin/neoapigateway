@@ -2,8 +2,27 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createShopOrder } from "@/lib/shop-order";
 import { QUOTA_PACKAGES, fetchResellerKeys } from "@/lib/bandelbanget";
+import { availableBinanceMethods } from "@/lib/binance-order";
+import type { UsdtNetwork } from "@/lib/binance";
 
 export const dynamic = "force-dynamic";
+
+const USDT_NETWORKS = ["TRC20", "BEP20", "ERC20", "SOL"] as const;
+
+function parseMethod(body: { payMethod?: unknown; network?: unknown }): {
+  payMethod: "qris" | "binancepay" | "usdt";
+  network: UsdtNetwork | null;
+} | { error: string } {
+  const raw = body.payMethod;
+  if (raw == null || raw === "qris") return { payMethod: "qris", network: null };
+  if (raw === "binancepay") return { payMethod: "binancepay", network: null };
+  if (raw === "usdt") {
+    const net = String(body.network ?? "").toUpperCase();
+    if (!(USDT_NETWORKS as readonly string[]).includes(net)) return { error: "Network USDT tidak valid" };
+    return { payMethod: "usdt", network: net as UsdtNetwork };
+  }
+  return { error: "Metode pembayaran tidak valid" };
+}
 
 export async function POST(
   req: Request,
@@ -13,11 +32,16 @@ export async function POST(
     return NextResponse.json({ ok: false, error: "Token tidak valid" }, { status: 400 });
   }
 
-  let body: { productId?: unknown };
+  let body: { productId?: unknown; payMethod?: unknown; network?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ ok: false, error: "Body tidak valid" }, { status: 400 });
+  }
+
+  const method = parseMethod(body);
+  if ("error" in method) {
+    return NextResponse.json({ ok: false, error: method.error }, { status: 400 });
   }
 
   const productId = Number(body.productId);
@@ -71,6 +95,8 @@ export async function POST(
     tokenId: productId,
     qty: 1,
     buyerQuotaToken: params.token,
+    payMethod: method.payMethod,
+    network: method.network,
   });
 
   if (!result.ok) {
@@ -81,6 +107,9 @@ export async function POST(
     ok: true,
     invoice: result.invoice,
     amount: result.amount,
+    currency: result.currency,
+    payMethod: result.payMethod,
+    network: result.network,
     qrisPayload: result.qrisPayload,
     expiresAt: result.expiresAt,
     ttlMinutes: result.ttlMinutes,

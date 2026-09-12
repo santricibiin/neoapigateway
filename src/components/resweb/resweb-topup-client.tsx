@@ -7,6 +7,7 @@ import { Wallet, Sparkles, Loader2, Clock, CheckCircle2, XCircle, RefreshCw, Cop
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/lang";
 
 type Tier = { id: number; code: string; label: string; tokens: number; validDays: number; price: number; sortOrder: number };
 type Order = { id: string; invoice: string; amount: number; tokens: number; status: string; tierLabel: string; expiresAt: string; createdAt: string };
@@ -41,11 +42,18 @@ const statusLabel: Record<string, string> = {
   expired: "Kedaluwarsa",
   failed: "Gagal",
 };
+const statusLabelEn: Record<string, string> = {
+  pending: "Waiting",
+  paid: "Paid",
+  expired: "Expired",
+  failed: "Failed",
+};
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const riseIn = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 320, damping: 24 } } };
 
 export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tier[]; orders: Order[] }) {
+  const t = useT();
   const [creating, setCreating] = useState<number | null>(null);
   const [payment, setPayment] = useState<{ invoice: string; amount: number; qrisPayload: string; expiresAt: string } | null>(null);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
@@ -189,9 +197,9 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
 
       {/* Kartu paket */}
       <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {tiers.map((t) => (
+        {tiers.map((tier) => (
           <motion.div
-            key={t.id}
+            key={tier.id}
             variants={riseIn}
             whileHover={{ y: -5 }}
             transition={{ type: "spring", stiffness: 350, damping: 22 }}
@@ -202,45 +210,45 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
             </svg>
             <div className="relative flex items-start justify-between gap-2">
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-neo border border-base-line bg-accent-sageSoft">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sageSoft">
                   <Coins className="h-5 w-5 text-accent-sageDeep" strokeWidth={2.5} />
                 </span>
                 <div>
-                  <p className="text-2xl font-black leading-tight">{t.label}</p>
-                  <p className="text-xs font-bold text-base-ink/45">{formatTokens(t.tokens)} token · {t.validDays} hari</p>
+                  <p className="text-2xl font-black leading-tight">{tier.label}</p>
+                  <p className="text-xs font-bold text-base-ink/45">{formatTokens(tier.tokens)} token · {tier.validDays} {t("hari")}</p>
                 </div>
               </div>
               <Sparkles className="h-5 w-5 text-accent-terra/60 transition-transform group-hover:rotate-12" strokeWidth={2.5} />
             </div>
             <div className="relative my-4 flex items-end justify-between border-y border-dashed border-base-line py-3">
-              <p className="text-2xl font-black tabular-nums">{money(t.price)}</p>
+              <p className="text-2xl font-black tabular-nums">{money(tier.price)}</p>
               <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-base-ink/40">
-                <Ticket className="h-3 w-3" /> {t.code}
+                <Ticket className="h-3 w-3" /> {tier.code}
               </span>
             </div>
-            <Button variant="primary" className="relative w-full" disabled={creating !== null} onClick={() => void create(t)}>
-              {creating === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
-              {creating === t.id ? "Menyiapkan..." : "Pilih Paket"}
-              {creating !== t.id ? <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /> : null}
+            <Button variant="primary" className="relative w-full" disabled={creating !== null} onClick={() => void create(tier)}>
+              {creating === tier.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
+              {creating === tier.id ? t("Menyiapkan...") : t("Pilih Paket")}
+              {creating !== tier.id ? <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /> : null}
             </Button>
           </motion.div>
         ))}
         {!tiers.length && (
           <div className="col-span-full rounded-neo border border-dashed border-base-line bg-white py-16 text-center">
             <Wallet className="mx-auto h-10 w-10 text-base-ink/20" />
-            <p className="mt-3 font-black">Belum ada paket topup aktif</p>
+            <p className="mt-3 font-black">{t("Belum ada paket topup aktif")}</p>
           </div>
         )}
       </motion.div>
 
       {/* Modal pembayaran */}
-      <Modal open={Boolean(payment)} onClose={() => { if (!checking) setPayment(null); }} title={isPaid ? "Pembayaran Berhasil" : isExpired ? "Invoice Kedaluwarsa" : "Scan QRIS"} className="max-w-md">
+      <Modal open={Boolean(payment)} onClose={() => { if (!checking) setPayment(null); }} title={isPaid ? t("Pembayaran Berhasil") : isExpired ? t("Invoice Kedaluwarsa") : t("Scan QRIS")} className="max-w-md">
         {payment && (
           <div className="flex flex-col items-center gap-4">
             {!isPaid && !isExpired && (
               <>
                 <div className="w-full rounded-neo border border-base-line bg-accent-sandSoft p-3 text-center">
-                  <div className="text-[10px] font-black uppercase text-base-ink/55">No. Invoice</div>
+                  <div className="text-[10px] font-black uppercase text-base-ink/55">{t("No. Invoice")}</div>
                   <div className="mt-0.5 break-all font-mono text-sm font-extrabold">{payment.invoice}</div>
                 </div>
                 <div className="rounded-neo border border-base-line bg-white p-4 shadow-neo-sm">
@@ -257,17 +265,17 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
                   )}
                 </div>
                 <div className="w-full rounded-neo border border-base-line bg-base-bg p-4 text-center">
-                  <div className="text-xs font-bold uppercase text-base-ink/50">Total Bayar</div>
+                  <div className="text-xs font-bold uppercase text-base-ink/50">{t("Total Bayar")}</div>
                   <div className="mt-1 text-2xl font-extrabold tabular-nums">{money(payment.amount)}</div>
                   <button onClick={copyAmount} className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-accent-terraDeep hover:underline">
-                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />} {copied ? "Tersalin" : "Salin nominal"}
+                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />} {copied ? t("Tersalin") : t("Salin nominal")}
                   </button>
                 </div>
                 <div className="flex items-center gap-2 rounded-neo border border-base-line bg-base-bg px-4 py-2 text-sm font-bold">
                   <Clock className="h-4 w-4 text-accent-terraDeep" /> Berlaku
                   <span className="font-mono text-base font-black tabular-nums">{countdown(payment.expiresAt)}</span>
                 </div>
-                <p className="text-center text-xs text-base-ink/55">Bayar tepat sesuai nominal. Status dicek otomatis.</p>
+                <p className="text-center text-xs text-base-ink/55">{t("Bayar tepat sesuai nominal. Status dicek otomatis.")}</p>
                 <div className="flex items-center gap-2 text-xs font-bold text-base-ink/50">
                   {checking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Cek otomatis tiap 4 detik
                 </div>
@@ -288,17 +296,17 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
                 >
                   <CheckCircle2 className="h-8 w-8 text-accent-sageDeep" />
                 </motion.span>
-                <h3 className="text-xl font-extrabold">Pembayaran Berhasil!</h3>
-                <p className="text-sm text-base-ink/70">Saldo token telah ditambahkan ke akun Anda.</p>
-                <Button variant="primary" className="w-full" onClick={() => { setPayment(null); setQrUrl(null); }}>Tutup</Button>
+                <h3 className="text-xl font-extrabold">{t("Pembayaran Berhasil")}</h3>
+                <p className="text-sm text-base-ink/70">{t("Saldo token telah ditambahkan ke akun Anda.")}</p>
+                <Button variant="primary" className="w-full" onClick={() => { setPayment(null); setQrUrl(null); }}>{t("Tutup")}</Button>
               </motion.div>
             )}
             {isExpired && (
               <div className="flex w-full flex-col items-center gap-3 rounded-neo border border-base-line bg-accent-sandSoft p-6 text-center">
                 <XCircle className="h-12 w-12 text-accent-terraDeep" />
-                <h3 className="text-xl font-extrabold">Invoice Kedaluwarsa</h3>
-                <p className="text-sm text-base-ink/70">Silakan buat topup baru.</p>
-                <Button variant="outline" className="w-full" onClick={() => { setPayment(null); setQrUrl(null); }}>Tutup</Button>
+                <h3 className="text-xl font-extrabold">{t("Invoice Kedaluwarsa")}</h3>
+                <p className="text-sm text-base-ink/70">{t("Silakan buat topup baru.")}</p>
+                <Button variant="outline" className="w-full" onClick={() => { setPayment(null); setQrUrl(null); }}>{t("Tutup")}</Button>
               </div>
             )}
           </div>
@@ -312,13 +320,13 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
             <span className="flex h-9 w-9 items-center justify-center rounded-neo border border-base-line bg-accent-skySoft">
               <ReceiptText className="h-4 w-4" strokeWidth={2.5} />
             </span>
-            <h2 className="font-extrabold">Riwayat Topup</h2>
+            <h2 className="font-extrabold">{t("Riwayat Topup")}</h2>
           </div>
           <span className="text-xs font-bold text-base-ink/45">{orders.length} transaksi</span>
         </div>
         <div className="divide-y divide-base-line sm:hidden">
           {orders.length === 0 ? (
-            <p className="p-8 text-center text-sm font-bold text-base-ink/40">Belum ada topup</p>
+            <p className="p-8 text-center text-sm font-bold text-base-ink/40">{t("Belum ada topup")}</p>
           ) : (
             orders.map((o) => (
               <article key={o.id} className="space-y-2 p-4">
@@ -328,7 +336,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
                     <p className="font-mono text-[10px] font-bold text-base-ink/45">{o.invoice}</p>
                   </div>
                   <span className={cn("rounded-full border border-base-line px-2 py-0.5 text-[9px] font-black uppercase", statusBadge[o.status] || "bg-base-bg")}>
-                    {statusLabel[o.status] || o.status}
+                    {t(statusLabel[o.status] || o.status)}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs font-bold">
@@ -343,16 +351,16 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="bg-base-ink text-xs uppercase tracking-wide text-white">
               <tr>
-                <th className="px-4 py-3">Invoice</th>
-                <th className="px-4 py-3">Paket</th>
-                <th className="px-4 py-3">Nominal</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Tanggal</th>
+                <th className="px-4 py-3">{t("Invoice")}</th>
+                <th className="px-4 py-3">{t("Paket")}</th>
+                <th className="px-4 py-3">{t("Nominal")}</th>
+                <th className="px-4 py-3">{t("Status")}</th>
+                <th className="px-4 py-3">{t("Tanggal")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-base-line">
               {orders.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center font-bold text-base-ink/40">Belum ada topup</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center font-bold text-base-ink/40">{t("Belum ada topup")}</td></tr>
               ) : (
                 orders.map((o) => (
                   <tr key={o.id} className="transition-colors hover:bg-accent-sky/10">
@@ -362,7 +370,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
                     <td className="px-4 py-3">
                       <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase", statusBadge[o.status] || "bg-base-bg")}>
                         <span className={cn("h-1.5 w-1.5 rounded-full", o.status === "paid" ? "bg-accent-sageDeep" : o.status === "pending" ? "bg-accent-terra" : "bg-stone-400")} />
-                        {statusLabel[o.status] || o.status}
+                        {t(statusLabel[o.status] || o.status)}
                       </span>
                     </td>
                     <td className="px-4 py-3">

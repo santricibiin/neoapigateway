@@ -21,6 +21,7 @@ export default async function TrackPage({ params }: { params: { invoice: string 
         invoice: order.invoice,
         status: order.status,
         amount: order.amount,
+        currency: (order.currency as "idr" | "usdt") ?? "idr",
         qty: order.qty,
         unitPrice: order.unitPrice,
         productName: order.productName,

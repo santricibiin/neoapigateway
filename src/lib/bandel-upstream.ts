@@ -25,6 +25,14 @@ export function publicV1Base() {
   return `${publicApiBase()}/v1`;
 }
 
+/** Nama brand dari Setting.siteName (dinamis via admin); fallback env. */
 export function publicBrandName() {
   return (process.env.PUBLIC_BRAND_NAME || "Neo API Gateway").trim();
+}
+
+/** Versi async: baca siteName dari DB (prioritas), fallback env. */
+export async function publicBrandNameAsync(): Promise<string> {
+  const { prisma } = await import("@/lib/prisma");
+  const setting = await prisma.setting.findUnique({ where: { id: 1 }, select: { siteName: true } }).catch(() => null);
+  return setting?.siteName?.trim() || publicBrandName();
 }

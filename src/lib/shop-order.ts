@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { qrisStaticToDynamic } from "@/lib/qris";
 import { QUOTA_PACKAGES, fetchResellerKeys } from "@/lib/bandelbanget";
+import { getBinanceConfig, uniqueUsdtAmountCents, baseUsdtCents, binanceQrContent } from "@/lib/binance-order";
+import type { UsdtNetwork } from "@/lib/binance";
 
 export function invoiceCode() {
   return `INV${Date.now().toString(36).toUpperCase()}${Math.random()
@@ -31,6 +33,9 @@ export type CreateShopOrderResult =
       expiresAt: Date;
       ttlMinutes: number;
       uniqueCode: number;
+      currency: "idr" | "usdt";
+      payMethod: "qris" | "binancepay" | "usdt";
+      network: UsdtNetwork | null;
     }
   | { ok: false; error: string };
 
@@ -39,9 +44,13 @@ export async function createShopOrder(opts: {
   qty?: number;
   phone?: string;
   buyerQuotaToken?: string;
+  payMethod?: "qris" | "binancepay" | "usdt";
+  network?: UsdtNetwork | null;
 }): Promise<CreateShopOrderResult> {
+  const payMethod = opts.payMethod ?? "qris";
   const setting = await prisma.setting.findUnique({ where: { id: 1 } });
-  if (!setting || setting.qrisProvider === "none" || !setting.qrisStatic) {
+  if (!setting) return { ok: false, error: "Pengaturan belum tersedia." };
+  if (payMethod === "qris" && (setting.qrisProvider === "none" || !setting.qrisStatic)) {
     return { ok: false, error: "Pembayaran QRIS belum aktif. Hubungi admin." };
   }
 
@@ -88,46 +97,75 @@ export async function createShopOrder(opts: {
 
   let amount = base;
   let uniqueCode = 0;
+  let currency: "idr" | "usdt" = "idr";
+  let qrisPayload = "";
+  let provider = "";
 
-  if (setting.uniqueCodeEnabled) {
-    for (let i = 0; i < 80; i++) {
-      // 500–999: range unik bot5 (bot4 pakai 001–499) — anti nominal tabrakan antar site yang share 1 QRIS
-      const unik = Math.floor(Math.random() * 500) + 500;
-      const candidate = base + unik;
-      const [shopClash, reswebClash] = await Promise.all([
-        prisma.paymentOrder.findFirst({
-          where: {
-            status: "pending",
-            amount: candidate,
-            expiresAt: { gt: new Date() },
-          },
-          select: { id: true },
-        }),
-        prisma.resellerWebOrder.findFirst({
-          where: {
-            status: "pending",
-            amount: candidate,
-            expiresAt: { gt: new Date() },
-          },
-          select: { id: true },
-        }),
-      ]);
-      if (!shopClash && !reswebClash) {
-        amount = candidate;
-        uniqueCode = unik;
-        break;
+  if (payMethod === "binancepay" || payMethod === "usdt") {
+    // ===== Pembayaran Binance: amount = USDT cents + kode unik =====
+    const cfg = await getBinanceConfig();
+    if (!cfg) return { ok: false, error: "Pembayaran Binance belum aktif." };
+    const qrContent = binanceQrContent(payMethod, opts.network ?? null, cfg);
+    if (!qrContent) {
+      return {
+        ok: false,
+        error: payMethod === "binancepay" ? "UID Binance Pay belum diset." : `Alamat USDT ${opts.network} belum diset.`,
+      };
+    }
+    const baseCents = baseUsdtCents(base, cfg.rate);
+    if (baseCents < 10) return { ok: false, error: "Nominal terlalu kecil untuk USDT (min 0.10 USDT)." };
+    const amountCents = await uniqueUsdtAmountCents(baseCents);
+    if (!amountCents) return { ok: false, error: "Nominal pembayaran sedang penuh. Coba lagi." };
+    amount = amountCents;
+    uniqueCode = amountCents - baseCents;
+    currency = "usdt";
+    qrisPayload = qrContent;
+    provider = payMethod === "binancepay" ? "Binance Pay" : `USDT ${opts.network}`;
+  } else {
+    // ===== QRIS: amount IDR + kode unik 500–999 =====
+    if (!setting.qrisStatic) {
+      return { ok: false, error: "Pembayaran QRIS belum aktif. Hubungi admin." };
+    }
+    if (setting.uniqueCodeEnabled) {
+      for (let i = 0; i < 80; i++) {
+        // 500–999: range unik bot5 (bot4 pakai 001–499) — anti nominal tabrakan antar site yang share 1 QRIS
+        const unik = Math.floor(Math.random() * 500) + 500;
+        const candidate = base + unik;
+        const [shopClash, reswebClash] = await Promise.all([
+          prisma.paymentOrder.findFirst({
+            where: {
+              status: "pending",
+              currency: "idr",
+              amount: candidate,
+              expiresAt: { gt: new Date() },
+            },
+            select: { id: true },
+          }),
+          prisma.resellerWebOrder.findFirst({
+            where: {
+              status: "pending",
+              amount: candidate,
+              expiresAt: { gt: new Date() },
+            },
+            select: { id: true },
+          }),
+        ]);
+        if (!shopClash && !reswebClash) {
+          amount = candidate;
+          uniqueCode = unik;
+          break;
+        }
+      }
+      if (uniqueCode === 0) {
+        return { ok: false, error: "Nominal pembayaran sedang penuh. Coba lagi." };
       }
     }
-    if (uniqueCode === 0) {
-      return { ok: false, error: "Nominal pembayaran sedang penuh. Coba lagi." };
+    try {
+      qrisPayload = qrisStaticToDynamic(setting.qrisStatic, { amount });
+    } catch {
+      return { ok: false, error: "QRIS statis tidak valid. Hubungi admin." };
     }
-  }
-
-  let qrisPayload: string;
-  try {
-    qrisPayload = qrisStaticToDynamic(setting.qrisStatic, { amount });
-  } catch {
-    return { ok: false, error: "QRIS statis tidak valid. Hubungi admin." };
+    provider = providerLabel(setting.qrisProvider);
   }
 
   const invoice = invoiceCode();
@@ -139,6 +177,9 @@ export async function createShopOrder(opts: {
       invoice,
       status: "pending",
       amount,
+      currency,
+      payMethod,
+      usdtRate: currency === "usdt" ? (await getBinanceConfig())?.rate ?? null : null,
       qty: safeQty,
       unitPrice,
       unitCost,
@@ -146,7 +187,7 @@ export async function createShopOrder(opts: {
       productSku: product.sku,
       buyerPhone: opts.phone || null,
       buyerQuotaToken: opts.buyerQuotaToken || null,
-      qrisProvider: setting.qrisProvider,
+      qrisProvider: payMethod === "qris" ? setting.qrisProvider : payMethod,
       qrisPayload,
       expiresAt,
       tokenId: product.id,
@@ -163,10 +204,13 @@ export async function createShopOrder(opts: {
     productSku: product.sku,
     productId: product.id,
     qrisPayload,
-    provider: providerLabel(setting.qrisProvider),
+    provider,
     expiresAt,
     ttlMinutes,
     uniqueCode,
+    currency,
+    payMethod,
+    network: opts.network ?? null,
   };
 }
 

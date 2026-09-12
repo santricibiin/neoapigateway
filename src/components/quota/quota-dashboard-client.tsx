@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import type { QuotaDashboardView } from "@/lib/quota-dashboard";
 import { cn } from "@/lib/utils";
 import { MemberNewsPopup } from "@/components/news/member-news-popup";
+import { useLang, useT } from "@/lib/lang";
+import { LangSwitch } from "@/components/resweb/res-lang";
 
 type Meta = {
   id: string | number;
@@ -65,6 +67,7 @@ function formatTokens(value: number) {
 
 export function QuotaDashboardClient({ token, brandName, hideBuy = false, resellerCs = null }: { token: string; brandName: string; hideBuy?: boolean; resellerCs?: { name: string; waNumber: string | null; telegram: string | null } | null }) {
   const storageKey = `quota_at_${token}`;
+  const t = useT();
   const [meta, setMeta] = useState<Meta | null>(null);
   const [data, setData] = useState<QuotaDashboardView | null>(null);
   const [pin, setPin] = useState("");
@@ -179,10 +182,10 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
     return data.models.map((model) => ({ id: model.id, total: 0, prompt: 0, completion: 0, requests: 0 }));
   }, [data]);
 
-  if (loading) return <QuotaShell><p className="font-extrabold">Memuat dashboard...</p></QuotaShell>;
+  if (loading) return <QuotaShell><p className="font-extrabold">{t("Memuat dashboard...")}</p></QuotaShell>;
 
   if (!meta || (!data && error && !meta)) {
-    return <QuotaShell><Alert>{error || "Dashboard tidak ditemukan"}</Alert></QuotaShell>;
+    return <QuotaShell><Alert>{error || t("Dashboard tidak ditemukan")}</Alert></QuotaShell>;
   }
 
   if (!data) {
@@ -191,10 +194,10 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
         <Header brandName={brandName} name={meta.name} status={meta.status} />
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><LockKeyhole className="h-5 w-5" /> Masuk PIN</CardTitle>
+            <CardTitle className="flex items-center gap-2"><LockKeyhole className="h-5 w-5" /> {t("Masuk PIN")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-4 text-sm font-semibold text-base-ink/60">Dashboard dilindungi PIN 6 digit.</p>
+            <p className="mb-4 text-sm font-semibold text-base-ink/60">{t("Dashboard dilindungi PIN 6 digit.")}</p>
             {meta.pinLockedUntil ? <Alert>PIN terkunci sampai {String(meta.pinLockedUntil)}</Alert> : null}
             <form onSubmit={unlock} className="mt-4 space-y-3">
               <Input
@@ -209,7 +212,7 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
               />
               {error ? <Alert>{error}</Alert> : null}
               <Button type="submit" className="w-full" disabled={unlocking || pin.length !== 6}>
-                {unlocking ? "Membuka..." : "Buka dashboard"}
+                {unlocking ? t("Membuka...") : t("Buka dashboard")}
               </Button>
             </form>
           </CardContent>
@@ -229,10 +232,10 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
         <div className="flex items-center gap-2">
           {!hideBuy ? (
             <Button type="button" variant="sun" size="sm" className="px-2.5 py-1.5 text-xs" onClick={openBuyPopup}>
-              <PlusCircle className="h-3.5 w-3.5" /> Tambah Kuota
+              <PlusCircle className="h-3.5 w-3.5" /> {t("Tambah Kuota")}
             </Button>
           ) : null}
-          <Button type="button" variant="outline" size="sm" className="px-2.5 py-1.5 text-xs" onClick={logout}><LogOut className="h-3.5 w-3.5" /> Kunci lagi</Button>
+          <Button type="button" variant="outline" size="sm" className="px-2.5 py-1.5 text-xs" onClick={logout}><LogOut className="h-3.5 w-3.5" /> {t("Kunci lagi")}</Button>
         </div>
       </div>
       <div className="mb-6 grid grid-cols-2 gap-2 rounded-neo border border-base-line bg-white p-2 shadow-neo sm:grid-cols-4 md:grid-cols-7">
@@ -251,13 +254,13 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
       {tab === "quota" ? (
         <motion.div key="quota" variants={reveal} initial="hidden" animate="visible" className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-3">
-            <Stat label="Sisa" value={formatTokens(data.remainingTokens)} color="bg-accent-sky" />
-            <Stat label="Terpakai" value={formatTokens(data.usage.total_tokens)} color="bg-accent-sun" />
-            <Stat label="Maksimal" value={formatTokens(data.maxTokens)} color="bg-white" />
+            <Stat label={t("Sisa")} value={formatTokens(data.remainingTokens)} color="bg-accent-sky" />
+            <Stat label={t("Terpakai")} value={formatTokens(data.usage.total_tokens)} color="bg-accent-sun" />
+            <Stat label={t("Maksimal")} value={formatTokens(data.maxTokens)} color="bg-white" />
           </div>
           <div className="grid gap-4 xl:grid-cols-3">
             <Card className="xl:col-span-2">
-              <CardHeader><CardTitle>Pemakaian</CardTitle></CardHeader>
+              <CardHeader><CardTitle>{t("Pemakaian")}</CardTitle></CardHeader>
               <CardContent>
                 <div className="relative h-5 overflow-hidden rounded-full border border-base-line bg-base-bg">
                   <motion.div initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ duration: 0.9, ease: "easeOut" }} className="relative h-full bg-accent-lavender">
@@ -280,8 +283,8 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
                 <CardContent className="flex flex-1 flex-col">
                   <code className="block break-all rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold">{showKey ? data.key : data.keyMasked}</code>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => setShowKey((value) => !value)}>{showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{showKey ? "Sembunyikan" : "Tampilkan"}</Button>
-                    <Button type="button" size="sm" onClick={() => copy("key", data.key)}><Copy className="h-4 w-4" />{copied === "key" ? "Tersalin" : "Copy key"}</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setShowKey((value) => !value)}>{showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{showKey ? t("Sembunyikan") : t("Tampilkan")}</Button>
+                    <Button type="button" size="sm" onClick={() => copy("key", data.key)}><Copy className="h-4 w-4" />{copied === "key" ? t("Tersalin") : t("Copy key")}</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -290,7 +293,7 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
                 <CardContent className="flex flex-1 flex-col">
                   <code className="block break-all rounded-neo border border-base-line bg-base-bg p-3 font-mono text-sm font-bold">{data.baseUrl}</code>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <Button type="button" size="sm" onClick={() => copy("base", data.baseUrl)}><Copy className="h-4 w-4" />{copied === "base" ? "Tersalin" : "Copy Base URL"}</Button>
+                    <Button type="button" size="sm" onClick={() => copy("base", data.baseUrl)}><Copy className="h-4 w-4" />{copied === "base" ? t("Tersalin") : t("Copy Base URL")}</Button>
                   </div>
                   <p className="mt-3 break-all text-xs font-bold text-base-ink/50">{data.baseUrl}/models · {data.baseUrl}/chat/completions</p>
                 </CardContent>
@@ -320,7 +323,7 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
 
       {tab === "usage" ? (
         <motion.div key="usage" variants={reveal} initial="hidden" animate="visible"><Card>
-          <CardHeader><CardTitle>Usage per model</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("Usage per model")}</CardTitle></CardHeader>
           <CardContent>
             <div className="mb-4 grid gap-2 sm:grid-cols-4"><Mini label="Total" value={formatTokens(data.usage.total_tokens)} /><Mini label="Input" value={formatTokens(data.usage.prompt_tokens)} /><Mini label="Output" value={formatTokens(data.usage.completion_tokens)} /><Mini label="Request" value={data.usage.requests.toLocaleString("id-ID")} /></div>
             <div className="overflow-x-auto">
@@ -1295,6 +1298,11 @@ function QuotaShell({ children, wide = false }: { children: React.ReactNode; wid
       <svg aria-hidden className="pointer-events-none fixed inset-0 h-full w-full text-base-ink/[0.045]"><defs><pattern id="quota-grid" width="36" height="36" patternUnits="userSpaceOnUse"><path d="M36 0H0V36" fill="none" stroke="currentColor" strokeWidth="1" /></pattern></defs><rect width="100%" height="100%" fill="url(#quota-grid)" /></svg>
       <motion.svg animate={{ rotate: 360 }} transition={{ duration: 35, repeat: Infinity, ease: "linear" }} viewBox="0 0 200 200" aria-hidden className="pointer-events-none fixed -right-28 -top-28 h-80 w-80 text-accent-sky/35"><path d="M100 8 120 72 188 72 133 112 154 178 100 138 46 178 67 112 12 72 80 72Z" fill="currentColor" /></motion.svg>
       <motion.svg animate={{ y: [0, -18, 0], rotate: [0, 8, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} viewBox="0 0 160 160" aria-hidden className="pointer-events-none fixed -bottom-20 -left-20 h-64 w-64 text-accent-sun/40"><rect x="30" y="30" width="100" height="100" rx="18" fill="currentColor" stroke="currentColor" strokeWidth="4" /></motion.svg>
+      <div className="relative mx-auto w-full">
+        <div className="mb-2 flex justify-end">
+          <LangSwitch />
+        </div>
+      </div>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className={cn("relative mx-auto w-full", wide ? "max-w-none" : "max-w-lg")}>{children}</motion.div>
     </main>
   );
@@ -1320,6 +1328,9 @@ function Step({ number, title, children }: { number: string; title: string; chil
   return <div className="flex gap-3 rounded-neo border border-base-line bg-white p-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sky font-extrabold">{number}</span><div className="min-w-0"><p className="font-extrabold">{title}</p><div className="mt-1 text-sm font-semibold text-base-ink/60">{children}</div></div></div>;
 }
 
+type PayMethods = { qris: boolean; binancepay: boolean; usdtNetworks: string[] };
+type PayMethodChoice = { kind: "qris" } | { kind: "binancepay" } | { kind: "usdt"; network: string };
+
 function BuyQuotaPopup({
   token,
   products,
@@ -1333,13 +1344,24 @@ function BuyQuotaPopup({
   onClose: () => void;
   onRefreshProducts?: () => Promise<void> | void;
 }) {
+  const t = useT();
   const [selected, setSelected] = useState<QuotaProduct | null>(null);
   const [ordering, setOrdering] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [payMethods, setPayMethods] = useState<PayMethods | null>(null);
+  const [method, setMethod] = useState<PayMethodChoice>({ kind: "qris" });
+  const [usdtRate, setUsdtRate] = useState(0);
+
+  function usdtPrice(idr: number) {
+    if (!usdtRate) return null;
+    return (idr / usdtRate).toFixed(2);
+  }
 
   // Payment state
   const [invoice, setInvoice] = useState<string | null>(null);
   const [amount, setAmount] = useState(0);
+  const [currency, setCurrency] = useState<"idr" | "usdt">("idr");
+  const [payInfo, setPayInfo] = useState<{ method: string; content: string } | null>(null);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [qrFailed, setQrFailed] = useState(false);
   const [countdown, setCountdown] = useState("");
@@ -1347,6 +1369,22 @@ function BuyQuotaPopup({
   const [expired, setExpired] = useState(false);
   const [grace, setGrace] = useState(false);
   const timersRef = useRef<{ timer?: ReturnType<typeof setInterval>; poller?: ReturnType<typeof setInterval> }>({});
+
+  // Ambil metode pembayaran yang tersedia
+  useEffect(() => {
+    void fetch("/api/public/pay-methods", { cache: "no-store" })
+      .then(async (r) => {
+        const data = await r.json();
+        if (data.ok) {
+          setPayMethods(data.methods);
+          if (typeof data.usdtRate === "number" && data.usdtRate > 0) setUsdtRate(data.usdtRate);
+          if (data.methods.qris) setMethod({ kind: "qris" });
+          else if (data.methods.binancepay) setMethod({ kind: "binancepay" });
+          else if (data.methods.usdtNetworks?.length) setMethod({ kind: "usdt", network: data.methods.usdtNetworks[0] });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   function clearTimers() {
     if (timersRef.current.timer) clearInterval(timersRef.current.timer);
@@ -1365,7 +1403,11 @@ function BuyQuotaPopup({
       const res = await fetch(`/api/public/quota/${encodeURIComponent(token)}/buy`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: selected.id }),
+        body: JSON.stringify({
+          productId: selected.id,
+          payMethod: method.kind,
+          network: method.kind === "usdt" ? method.network : undefined,
+        }),
       });
       const data = await res.json();
       if (!data.ok) {
@@ -1375,13 +1417,15 @@ function BuyQuotaPopup({
       }
       setInvoice(data.invoice);
       setAmount(data.amount);
+      setCurrency(data.currency ?? "idr");
+      setPayInfo({ method: data.payMethod ?? method.kind, content: String(data.qrisPayload || "") });
       setPaid(false);
       setExpired(false);
       setGrace(false);
       setQrFailed(false);
 
       try {
-        const url = await QRCode.toDataURL(data.qrisPayload, { width: 400, margin: 2 });
+        const url = await QRCode.toDataURL(String(data.qrisPayload || ""), { width: 400, margin: 2 });
         setQrUrl(url);
       } catch {
         setQrFailed(true);
@@ -1437,6 +1481,8 @@ function BuyQuotaPopup({
     setSelected(null);
     setInvoice(null);
     setAmount(0);
+    setCurrency("idr");
+    setPayInfo(null);
     setQrUrl(null);
     setQrFailed(false);
     setPaid(false);
@@ -1467,10 +1513,10 @@ function BuyQuotaPopup({
             </span>
             <div>
               <h2 className="font-extrabold">
-                {paid ? "Kuota Berhasil" : invoice ? "Scan QRIS" : "Tambah Kuota"}
+                {paid ? t("Kuota Bertambah") : invoice ? t("Scan QRIS") : t("Tambah Kuota")}
               </h2>
               <p className="text-xs font-semibold text-base-ink/65">
-                {paid ? "Token telah ditambahkan" : invoice ? "Bayar sesuai nominal" : "Pilih paket token"}
+                {paid ? t("Token telah ditambahkan") : invoice ? t("Bayar sesuai nominal") : t("Pilih paket token")}
               </p>
             </div>
           </div>
@@ -1491,7 +1537,7 @@ function BuyQuotaPopup({
                   </motion.svg>
                 </div>
               ) : products.length === 0 ? (
-                <p className="py-12 text-center text-sm font-bold text-base-ink/50">Belum ada paket tersedia.</p>
+                <p className="py-12 text-center text-sm font-bold text-base-ink/50">{t("Belum ada paket tersedia.")}</p>
               ) : (
                 <div className="grid gap-2">
                   {products.map((product, i) => {
@@ -1525,7 +1571,7 @@ function BuyQuotaPopup({
                             </p>
                           </div>
                         </div>
-                        <div className="relative flex items-center gap-2">
+                        <div className="relative flex flex-col items-end gap-0.5">
                           {!product.affordable ? (
                             <span className="flex items-center gap-1 text-xs font-bold text-red-500">
                               <Lock className="h-3 w-3" /> Stok habis
@@ -1536,10 +1582,36 @@ function BuyQuotaPopup({
                             </span>
                           ) : null}
                           <span className="font-mono text-sm font-extrabold">Rp{product.price.toLocaleString("id-ID")}</span>
+                          {usdtPrice(product.price) && (
+                            <span className="font-mono text-[10px] font-bold text-base-ink/45">≈ {usdtPrice(product.price)} USDT</span>
+                          )}
                         </div>
                       </button>
                     );
                   })}
+                </div>
+              )}
+              {/* Pilihan metode pembayaran */}
+              {payMethods && (payMethods.binancepay || payMethods.usdtNetworks.length > 0) && (
+                <div className="mt-3 rounded-neo border border-base-line bg-base-bg p-3">
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-base-ink/50">{t("Metode Pembayaran")}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {payMethods.qris && (
+                      <button type="button" onClick={() => setMethod({ kind: "qris" })} className={cn("rounded-neo border-2 px-3 py-1.5 text-xs font-black", method.kind === "qris" ? "border-base-ink bg-accent-sky" : "border-base-line bg-white")}>
+                        QRIS
+                      </button>
+                    )}
+                    {payMethods.binancepay && (
+                      <button type="button" onClick={() => setMethod({ kind: "binancepay" })} className={cn("rounded-neo border-2 px-3 py-1.5 text-xs font-black", method.kind === "binancepay" ? "border-base-ink bg-accent-sun" : "border-base-line bg-white")}>
+                        Binance Pay
+                      </button>
+                    )}
+                    {payMethods.usdtNetworks.map((net) => (
+                      <button key={net} type="button" onClick={() => setMethod({ kind: "usdt", network: net })} className={cn("rounded-neo border-2 px-3 py-1.5 text-xs font-black", method.kind === "usdt" && method.network === net ? "border-base-ink bg-accent-mint" : "border-base-line bg-white")}>
+                        USDT {net}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               {error && <p className="mt-3 rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</p>}
@@ -1555,11 +1627,11 @@ function BuyQuotaPopup({
               </div>
               <div className="rounded-neo border border-base-line bg-white p-3 shadow-neo-sm">
                 {qrUrl ? (
-                  <img src={qrUrl} alt="QRIS" className="h-48 w-48" />
+                  <img src={qrUrl} alt={currency === "usdt" ? "Address" : "QRIS"} className="h-48 w-48" />
                 ) : qrFailed ? (
                   <div className="flex h-48 w-48 flex-col items-center justify-center gap-2 p-3 text-center">
-                    <p className="text-xs font-black uppercase text-red-500">QR gagal dibuat</p>
-                    <Button type="button" variant="outline" size="sm" onClick={reset}>Coba Lagi</Button>
+                    <p className="text-xs font-black uppercase text-red-500">{t("QR gagal dibuat")}</p>
+                    <Button type="button" variant="outline" size="sm" onClick={reset}>{t("Coba Lagi")}</Button>
                   </div>
                 ) : (
                   <div className="flex h-48 w-48 items-center justify-center">
@@ -1567,23 +1639,36 @@ function BuyQuotaPopup({
                   </div>
                 )}
               </div>
+              {currency === "usdt" && payInfo && (
+                <div className="w-full rounded-neo border border-base-line bg-base-bg p-3 text-center">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/50">
+                    {payInfo.method === "binancepay" ? "UID Binance Pay (Transfer USDT ke UID)" : `Alamat USDT ${payInfo.method?.toUpperCase?.() ?? ""}`}
+                  </div>
+                  <button type="button" onClick={() => void navigator.clipboard.writeText(payInfo.content).catch(() => {})} className="mt-1 w-full break-all rounded-neo border border-base-line bg-white p-2 font-mono text-xs font-extrabold">
+                    {payInfo.content}
+                  </button>
+                  <p className="mt-1 text-[10px] font-bold text-base-ink/45">{t("Klik untuk copy")} · {t("Kirim tepat sesuai nominal di bawah")}</p>
+                </div>
+              )}
               <div className="w-full rounded-neo border border-base-line bg-base-bg p-4 text-center">
-                <div className="text-xs font-bold uppercase text-base-ink/50">Total Bayar</div>
-                <div className="mt-1 text-2xl font-extrabold">Rp{amount.toLocaleString("id-ID")}</div>
+                <div className="text-xs font-bold uppercase text-base-ink/50">{t("Total Bayar")}</div>
+                <div className="mt-1 text-2xl font-extrabold">
+                  {currency === "usdt" ? `${(amount / 100).toFixed(2)} USDT` : `Rp${amount.toLocaleString("id-ID")}`}
+                </div>
               </div>
               {grace ? (
                 <>
                   <p className="rounded-neo border border-base-line bg-accent-sun p-3 text-center text-xs font-bold">
-                    Waktu pembayaran habis. Jika sudah bayar, tunggu konfirmasi otomatis (verifikasi bisa makan waktu beberapa menit).
+                    {t("Waktu pembayaran habis. Jika sudah bayar, tunggu konfirmasi otomatis (verifikasi bisa makan waktu beberapa menit).")}
                   </p>
-                  <Button type="button" variant="outline" size="sm" onClick={reset}>Buat Pesanan Baru</Button>
+                  <Button type="button" variant="outline" size="sm" onClick={reset}>{t("Buat Pesanan Baru")}</Button>
                 </>
               ) : (
                 <div className="flex items-center gap-2 text-sm font-bold text-base-ink/70">
-                  <Clock className="h-4 w-4" /> Berlaku {countdown}
+                  <Clock className="h-4 w-4" /> {t("Berlaku")} {countdown}
                 </div>
               )}
-              <p className="text-center text-xs text-base-ink/55">Bayar tepat sesuai nominal. Kuota otomatis bertambah setelah pembayaran terverifikasi.</p>
+              <p className="text-center text-xs text-base-ink/55">{t("Bayar tepat sesuai nominal. Kuota otomatis bertambah setelah pembayaran terverifikasi.")}</p>
             </div>
           )}
 
@@ -1594,9 +1679,9 @@ function BuyQuotaPopup({
                 <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6" />
                 <path d="M30 30 L70 70 M70 30 L30 70" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
               </svg>
-              <h3 className="text-lg font-extrabold">Invoice Kedaluwarsa</h3>
-              <p className="text-sm text-base-ink/60">Silakan buat pesanan baru.</p>
-              <Button type="button" variant="primary" onClick={reset}>Buat Pesanan Baru</Button>
+              <h3 className="text-lg font-extrabold">{t("Invoice Kedaluwarsa")}</h3>
+              <p className="text-sm text-base-ink/60">{t("Silakan buat pesanan baru.")}</p>
+              <Button type="button" variant="primary" onClick={reset}>{t("Buat Pesanan Baru")}</Button>
             </div>
           )}
 
@@ -1609,9 +1694,9 @@ function BuyQuotaPopup({
                   <path d="M30 50 L45 65 L72 35" fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </motion.div>
-              <h3 className="text-lg font-extrabold">Kuota Bertambah!</h3>
-              <p className="text-sm text-base-ink/60">Token telah ditambahkan ke akun Anda. Dashboard akan dimuat ulang.</p>
-              <Button type="button" variant="primary" onClick={() => window.location.reload()}>Muat Ulang Dashboard</Button>
+              <h3 className="text-lg font-extrabold">{t("Kuota Bertambah!")}</h3>
+              <p className="text-sm text-base-ink/60">{t("Token telah ditambahkan ke akun Anda. Dashboard akan dimuat ulang.")}</p>
+              <Button type="button" variant="primary" onClick={() => window.location.reload()}>{t("Muat Ulang Dashboard")}</Button>
             </div>
           )}
         </div>
@@ -1620,7 +1705,7 @@ function BuyQuotaPopup({
         {!invoice && !paid && products.length > 0 && (
           <div className="border-t border-base-line p-4">
             <Button type="button" variant="primary" size="lg" className="w-full" disabled={!selected || ordering} onClick={handleOrder}>
-              {ordering ? "Memproses..." : selected ? `Order — Rp${selected.price.toLocaleString("id-ID")}` : "Pilih paket dulu"}
+              {ordering ? t("Memproses...") : selected ? `Order — Rp${selected.price.toLocaleString("id-ID")}${usdtPrice(selected.price) ? ` · ${usdtPrice(selected.price)} USDT` : ""}` : t("Pilih paket dulu")}
             </Button>
           </div>
         )}

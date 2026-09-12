@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Wallet, Users, ShoppingBag, PlusCircle, Copy, Check, Loader2, Eye, EyeOff, ExternalLink, KeyRound, ShieldCheck, Zap, CirclePlus, ChevronLeft, ChevronRight, TrendingUp, CalendarDays, Search, Activity, AlertTriangle } from "lucide-react";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
 import { QUOTA_PACKAGES } from "@/lib/bandelbanget";
+import { useT } from "@/lib/lang";
 
 type Reseller = { id: number; name: string; email: string; balance: number; active: boolean; createdAt: string };
 type Member = {
@@ -89,6 +91,7 @@ export function ReswebDashboardClient({
   statusFilter: "all" | "active" | "exceeded";
 }) {
   const router = useRouter();
+  const t = useT();
   const [addModal, setAddModal] = useState(false);
   const [quotaTarget, setQuotaTarget] = useState<Member | null>(null);
   const [packageCode, setPackageCode] = useState("1M");
@@ -103,20 +106,24 @@ export function ReswebDashboardClient({
   const selectedPackage = QUOTA_PACKAGES[packageCode as keyof typeof QUOTA_PACKAGES];
   const selectedQuotaPackage = QUOTA_PACKAGES[quotaPackageCode as keyof typeof QUOTA_PACKAGES];
 
-  /** Push query param baru (q/status) sambil reset ke halaman 1. */
-  function applyParams(next: { q?: string; status?: string }) {
+  /** URL dengan kombinasi filter (q/status) + halaman. */
+  function pageUrl(p: number, override?: { q?: string; status?: string }) {
     const params = new URLSearchParams();
-    const q = next.q ?? query;
-    const st = next.status ?? statusFilter;
+    const q = override?.q !== undefined ? override.q : query;
+    const st = override?.status !== undefined ? override.status : statusFilter;
     if (q.trim()) params.set("q", q.trim());
     if (st !== "all") params.set("status", st);
-    router.push(`/res${params.toString() ? `?${params}` : ""}`);
+    if (p > 1) params.set("page", String(p));
+    return `/res${params.toString() ? `?${params}` : ""}`;
   }
 
-  // Debounce pencarian 400ms.
+  // Debounce pencarian 400ms → navigasi via window.location (aman dari
+  // isu useContext router saat interaksi).
   useEffect(() => {
     if (search === query) return;
-    const timer = setTimeout(() => applyParams({ q: search }), 400);
+    const timer = setTimeout(() => {
+      window.location.assign(pageUrl(1, { q: search }));
+    }, 400);
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
@@ -136,7 +143,7 @@ export function ReswebDashboardClient({
       } else {
         setResult(data.member);
         setAddModal(false);
-        router.push(pageUrl(1));
+        window.location.assign(pageUrl(1));
         router.refresh();
       }
     } catch {
@@ -172,15 +179,6 @@ export function ReswebDashboardClient({
       setCopied(label);
       setTimeout(() => setCopied(null), 1500);
     } catch {}
-  }
-
-  /** URL halaman pagination yang membawa filter aktif. */
-  function pageUrl(p: number) {
-    const params = new URLSearchParams();
-    if (query.trim()) params.set("q", query.trim());
-    if (statusFilter !== "all") params.set("status", statusFilter);
-    params.set("page", String(p));
-    return `/res?${params.toString()}`;
   }
 
   return (
@@ -237,7 +235,7 @@ export function ReswebDashboardClient({
               transition={{ delay: 0.22, duration: 0.45 }}
               className="mt-3 text-3xl font-black tracking-tight sm:text-4xl"
             >
-              Kelola member, lebih cepat.
+              {t("Kelola member, lebih cepat.")}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}
@@ -258,7 +256,7 @@ export function ReswebDashboardClient({
             whileTap={{ scale: 0.98 }}
           >
             <Button variant="primary" size="lg" onClick={() => { setError(null); setAddModal(true); }}>
-              <PlusCircle className="h-4 w-4" /> Buat Token Member
+              <PlusCircle className="h-4 w-4" /> {t("Buat Token Member")}
             </Button>
           </motion.div>
         </div>
@@ -277,7 +275,7 @@ export function ReswebDashboardClient({
       {/* Stat cards */}
       <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-3 sm:grid-cols-3">
         <StatCard
-          label="Saldo Token"
+          label={t("Saldo Token")}
           raw={reseller?.balance ?? 0}
           format={formatTokens}
           icon={<Wallet className="h-5 w-5" strokeWidth={2.5} />}
@@ -286,7 +284,7 @@ export function ReswebDashboardClient({
           trend
         />
         <StatCard
-          label="Total Member"
+          label={t("Total Member")}
           raw={totalMembers}
           format={(v) => v.toLocaleString("id-ID")}
           icon={<Users className="h-5 w-5" strokeWidth={2.5} />}
@@ -294,7 +292,7 @@ export function ReswebDashboardClient({
           bar="bg-accent-sageDeep"
         />
         <StatCard
-          label="Total Topup"
+          label={t("Total Topup")}
           raw={paidTopups}
           format={(v) => v.toLocaleString("id-ID")}
           icon={<ShoppingBag className="h-5 w-5" strokeWidth={2.5} />}
@@ -306,7 +304,7 @@ export function ReswebDashboardClient({
       {/* Members */}
       <section className="space-y-3">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <h2 className="text-lg font-extrabold">Token Member</h2>
+          <h2 className="text-lg font-extrabold">{t("Token Member")}</h2>
           {totalMembers > 0 ? (
             <span className="text-xs font-bold text-base-ink/45">
               {totalMembers.toLocaleString("id-ID")} member{totalPages > 1 ? ` · hal. ${page}/${totalPages}` : ""}
@@ -321,7 +319,7 @@ export function ReswebDashboardClient({
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Cari nama member..."
+              placeholder={t("Cari nama member...")}
               className="h-full min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none placeholder:text-base-ink/35"
             />
             {search ? (
@@ -340,17 +338,16 @@ export function ReswebDashboardClient({
               { id: "active", label: "Aktif" },
               { id: "exceeded", label: "Exceed" },
             ] as const).map((item) => (
-              <button
+              <Link
                 key={item.id}
-                type="button"
-                onClick={() => applyParams({ status: item.id })}
+                href={pageUrl(1, { status: item.id })}
                 className={cn(
-                  "rounded-neo border border-base-line px-3 py-2 text-xs font-extrabold transition-all active:translate-y-0.5",
+                  "rounded-neo border border-base-line px-3 py-2 text-center text-xs font-extrabold transition-all active:translate-y-0.5",
                   statusFilter === item.id ? "bg-accent-sageSoft text-accent-sageDeep shadow-neo-sm" : "bg-base-surface hover:bg-accent-sky/20"
                 )}
               >
-                {item.label}
-              </button>
+                {t(item.label)}
+              </Link>
             ))}
           </div>
         </div>
@@ -373,8 +370,8 @@ export function ReswebDashboardClient({
               <circle cx="17" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.8" />
               <path d="M16 14c2.2 0 4 1.6 4.5 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
             </motion.svg>
-            <p className="mt-3 font-bold text-base-ink/50">Belum ada member</p>
-            <p className="mt-1 text-xs font-semibold text-base-ink/40">Klik "Buat Token Member" untuk memulai.</p>
+            <p className="mt-3 font-bold text-base-ink/50">{t("Belum ada member")}</p>
+            <p className="mt-1 text-xs font-semibold text-base-ink/40">{t("Klik \"Buat Token Member\" untuk memulai.")}</p>
           </motion.div>
         ) : (
           <>
@@ -388,12 +385,12 @@ export function ReswebDashboardClient({
                 <table className="w-full min-w-[840px] text-left">
                   <thead className="bg-base-ink text-xs uppercase tracking-wide text-white">
                     <tr>
-                      <th className="px-4 py-3">Member</th>
-                      <th className="px-4 py-3">Token</th>
+                      <th className="px-4 py-3">{t("Member")}</th>
+                      <th className="px-4 py-3">{t("Token")}</th>
                       <th className="px-4 py-3">API Key</th>
-                      <th className="px-4 py-3">Dashboard</th>
-                      <th className="px-4 py-3">Dibuat</th>
-                      <th className="px-4 py-3">Aksi</th>
+                      <th className="px-4 py-3">{t("Dashboard")}</th>
+                      <th className="px-4 py-3">{t("Dibuat")}</th>
+                      <th className="px-4 py-3">{t("Aksi")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-base-line">
@@ -406,17 +403,17 @@ export function ReswebDashboardClient({
                             </span>
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <p className="truncate text-sm font-black">{m.name || "Tanpa nama"}</p>
+                                <p className="truncate text-sm font-black">{m.name || t("Tanpa nama")}</p>
                                 {m.status ? (
                                   <span
                                     className={cn(
                                       "inline-flex shrink-0 items-center gap-1 rounded-full border border-base-line px-1.5 py-0.5 text-[8px] font-black uppercase",
                                       m.status === "active" ? "bg-accent-sageSoft text-accent-sageDeep" : "bg-accent-terraSoft text-accent-terraDeep"
                                     )}
-                                    title={m.status === "active" ? "Aktif" : "Kuota terlampaui"}
+                                    title={m.status === "active" ? t("Aktif") : t("Kuota terlampaui")}
                                   >
                                     {m.status === "active" ? <Activity className="h-2.5 w-2.5" /> : <AlertTriangle className="h-2.5 w-2.5" />}
-                                    {m.status === "active" ? "Aktif" : "Exceed"}
+                                    {m.status === "active" ? t("Aktif") : t("Exceed")}
                                   </span>
                                 ) : null}
                               </div>
@@ -440,7 +437,7 @@ export function ReswebDashboardClient({
                         </td>
                         <td className="px-4 py-3">
                           <a href={`/quota/member/${m.secretToken}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-accent-terraDeep underline decoration-accent-terra/40 underline-offset-2 transition-colors hover:text-accent-terra">
-                            Buka <ExternalLink className="h-3 w-3" />
+                            {t("Buka")} <ExternalLink className="h-3 w-3" />
                           </a>
                         </td>
                         <td className="px-4 py-3">
@@ -451,7 +448,7 @@ export function ReswebDashboardClient({
                         </td>
                         <td className="px-4 py-3">
                           <Button type="button" size="sm" variant="mint" onClick={() => { setQuotaPackageCode("1M"); setError(null); setQuotaTarget(m); }}>
-                            <CirclePlus className="h-4 w-4" /> Add Quota
+                            <CirclePlus className="h-4 w-4" /> {t("Add Quota")}
                           </Button>
                         </td>
                       </motion.tr>
@@ -468,9 +465,9 @@ export function ReswebDashboardClient({
                   variant="outline"
                   size="sm"
                   disabled={page <= 1}
-                  onClick={() => router.push(pageUrl(page - 1))}
+                  onClick={() => (window.location.assign(pageUrl(page - 1)))}
                 >
-                  <ChevronLeft className="h-4 w-4" /> Sebelumnya
+                  <ChevronLeft className="h-4 w-4" /> {t("Sebelumnya")}
                 </Button>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -482,7 +479,7 @@ export function ReswebDashboardClient({
                         ) : null}
                         <button
                           type="button"
-                          onClick={() => router.push(pageUrl(p))}
+                          onClick={() => (window.location.assign(pageUrl(p)))}
                           className={cn(
                             "h-8 w-8 rounded-neo border border-base-line text-xs font-black transition-colors",
                             p === page ? "bg-base-ink text-white shadow-neo-sm" : "bg-white hover:bg-accent-sky/40"
@@ -498,9 +495,9 @@ export function ReswebDashboardClient({
                   variant="outline"
                   size="sm"
                   disabled={page >= totalPages}
-                  onClick={() => router.push(pageUrl(page + 1))}
+                  onClick={() => (window.location.assign(pageUrl(page + 1)))}
                 >
-                  Berikutnya <ChevronRight className="h-4 w-4" />
+                  {t("Berikutnya")} <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             ) : null}
@@ -509,10 +506,10 @@ export function ReswebDashboardClient({
       </section>
 
       {/* Add Member Modal */}
-      <Modal open={addModal} onClose={() => setAddModal(false)} title="Buat Token Member" className="max-h-[92vh] overflow-y-auto">
+      <Modal open={addModal} onClose={() => setAddModal(false)} title={t("Buat Token Member")} className="max-h-[92vh] overflow-y-auto">
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-bold">Pilih paket token</label>
+            <label className="text-sm font-bold">{t("Pilih paket token")}</label>
             <div className="mt-2 grid grid-cols-3 gap-2">
               {QUOTA_PRESETS.map((p) => (
                 <button
@@ -531,18 +528,18 @@ export function ReswebDashboardClient({
             </div>
           </div>
           <div className="rounded-neo border border-base-line bg-base-bg p-3 text-xs font-bold">
-            Saldo Anda: <span className="font-mono">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</span> · Akan dipakai: <span className="font-mono">{selectedPackage.tokens.toLocaleString("id-ID")}</span> · Masa berlaku: {selectedPackage.validDays} hari
+            {t("Saldo Anda")}: <span className="font-mono">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</span> · {t("Akan dipakai")}: <span className="font-mono">{selectedPackage.tokens.toLocaleString("id-ID")}</span> · {t("Masa berlaku")}: {selectedPackage.validDays} {t("hari")}
             {reseller && reseller.balance < selectedPackage.tokens && (
-              <p className="mt-1 text-accent-terraDeep">Saldo tidak cukup. Silakan topup dulu.</p>
+              <p className="mt-1 text-accent-terraDeep">{t("Saldo tidak cukup. Silakan topup dulu.")}</p>
             )}
           </div>
           <Button variant="primary" className="w-full" disabled={creating || !reseller || reseller.balance < selectedPackage.tokens} onClick={() => void handleAdd()}>
-            {creating ? <><Loader2 className="h-4 w-4 animate-spin" /> Membuat...</> : <><PlusCircle className="h-4 w-4" /> Buat Member</>}
+            {creating ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("Membuat...")}</> : <><PlusCircle className="h-4 w-4" /> {t("Buat Member")}</>}
           </Button>
         </div>
       </Modal>
 
-      <Modal open={Boolean(quotaTarget)} onClose={() => { if (!addingQuota) setQuotaTarget(null); }} title="Tambah Kuota Member" className="max-h-[92vh] overflow-y-auto">
+      <Modal open={Boolean(quotaTarget)} onClose={() => { if (!addingQuota) setQuotaTarget(null); }} title={t("Tambah Kuota Member")} className="max-h-[92vh] overflow-y-auto">
         {quotaTarget ? <div className="space-y-4">
           <div className="relative overflow-hidden rounded-neo border border-base-line bg-accent-skySoft p-4 shadow-neo-sm">
             <motion.svg
@@ -565,7 +562,7 @@ export function ReswebDashboardClient({
             </div>
           </div>
           <div>
-            <label className="text-sm font-bold">Pilih paket token</label>
+            <label className="text-sm font-bold">{t("Pilih paket token")}</label>
             <div className="mt-2 grid grid-cols-3 gap-2">
               {QUOTA_PRESETS.map((pack) => (
                 <button
@@ -578,24 +575,24 @@ export function ReswebDashboardClient({
                   )}
                 >
                   {pack.code}
-                  <span className="block text-[9px] font-normal text-base-ink/60">{pack.validDays} hari</span>
+                  <span className="block text-[9px] font-normal text-base-ink/60">{pack.validDays} {t("hari")}</span>
                 </button>
               ))}
             </div>
           </div>
           <div className="rounded-neo border border-base-line bg-base-bg p-3 text-xs font-bold">
-            Saldo Anda: <span className="font-mono">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</span> · Dipakai: <span className="font-mono">{selectedQuotaPackage.tokens.toLocaleString("id-ID")}</span> · Masa aktif: {selectedQuotaPackage.validDays} hari
-            {reseller && reseller.balance < selectedQuotaPackage.tokens ? <p className="mt-1 text-accent-terraDeep">Saldo tidak cukup. Silakan topup dulu.</p> : null}
+            {t("Saldo Anda")}: <span className="font-mono">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</span> · {t("Dipakai")}: <span className="font-mono">{selectedQuotaPackage.tokens.toLocaleString("id-ID")}</span> · {t("Masa aktif")}: {selectedQuotaPackage.validDays} {t("hari")}
+            {reseller && reseller.balance < selectedQuotaPackage.tokens ? <p className="mt-1 text-accent-terraDeep">{t("Saldo tidak cukup. Silakan topup dulu.")}</p> : null}
           </div>
           <Button type="button" className="w-full" disabled={addingQuota || !reseller || reseller.balance < selectedQuotaPackage.tokens} onClick={() => void handleAddQuota()}>
             {addingQuota ? <Loader2 className="h-4 w-4 animate-spin" /> : <CirclePlus className="h-4 w-4" />}
-            {addingQuota ? "Menambahkan..." : "Konfirmasi Add Quota"}
+            {addingQuota ? t("Menambahkan...") : t("Konfirmasi Add Quota")}
           </Button>
         </div> : null}
       </Modal>
 
       {/* Result Modal */}
-      <Modal open={Boolean(result)} onClose={() => setResult(null)} title="Member Berhasil Dibuat">
+      <Modal open={Boolean(result)} onClose={() => setResult(null)} title={t("Member Berhasil Dibuat")}>
         {result && (
           <div className="space-y-3">
             <motion.div
@@ -612,7 +609,7 @@ export function ReswebDashboardClient({
               >
                 <KeyRound className="h-6 w-6 text-accent-sageDeep" />
               </motion.span>
-              <p className="mt-1 font-extrabold">Token member siap</p>
+              <p className="mt-1 font-extrabold">{t("Token member siap")}</p>
             </motion.div>
             {result.name && <p className="text-sm font-bold">Nama: {result.name}</p>}
             <div className="rounded-neo border border-base-line bg-base-bg p-3">
@@ -620,24 +617,24 @@ export function ReswebDashboardClient({
               <p className="break-all font-mono text-xs font-bold">{result.apiKey || result.keyMasked || "-"}</p>
             </div>
             <div className="rounded-neo border border-base-line bg-base-bg p-3">
-              <p className="mb-1 text-[10px] font-black uppercase text-base-ink/45">Dashboard Member</p>
+              <p className="mb-1 text-[10px] font-black uppercase text-base-ink/45">{t("Dashboard Member")}</p>
               <p className="break-all font-mono text-xs font-bold">{result.dashboardUrl}</p>
             </div>
             <div className="rounded-neo border border-base-line bg-accent-sun p-3">
-              <p className="mb-1 flex items-center gap-1 text-[10px] font-black uppercase text-base-ink/55"><ShieldCheck className="h-3.5 w-3.5" /> PIN Dashboard</p>
+              <p className="mb-1 flex items-center gap-1 text-[10px] font-black uppercase text-base-ink/55"><ShieldCheck className="h-3.5 w-3.5" /> {t("PIN Dashboard")}</p>
               <div className="flex items-center justify-between gap-3">
                 <p className="font-mono text-2xl font-black tracking-[0.25em]">{result.pin}</p>
                 <Button type="button" size="sm" variant="outline" onClick={() => copy("pin", result.pin)}>
-                  {copied === "pin" ? <Check className="h-4 w-4 text-accent-sageDeep" /> : <Copy className="h-4 w-4" />} {copied === "pin" ? "Tersalin" : "Salin"}
+                  {copied === "pin" ? <Check className="h-4 w-4 text-accent-sageDeep" /> : <Copy className="h-4 w-4" />} {copied === "pin" ? t("Tersalin") : t("Salin")}
                 </Button>
               </div>
             </div>
             <a href={result.dashboardUrl} target="_blank" rel="noreferrer" className="block">
               <Button variant="primary" className="w-full">
-                <ExternalLink className="h-4 w-4" /> Buka Dashboard Member
+                <ExternalLink className="h-4 w-4" /> {t("Buka Dashboard Member")}
               </Button>
             </a>
-            <Button variant="outline" className="w-full" onClick={() => setResult(null)}>Tutup</Button>
+            <Button variant="outline" className="w-full" onClick={() => setResult(null)}>{t("Tutup")}</Button>
           </div>
         )}
       </Modal>

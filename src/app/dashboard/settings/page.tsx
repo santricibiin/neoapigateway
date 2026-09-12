@@ -13,14 +13,21 @@ export default async function SettingsPage() {
       initialQrisTtlMinutes={settings.qrisTtlMinutes}
       initialForwarderSecret={settings.forwarderSecret}
       initialUniqueCodeEnabled={settings.uniqueCodeEnabled}
-      initialBackupEnabled={settings.backupEnabled}
-      initialBackupInterval={settings.backupInterval}
-      initialBackupUnit={settings.backupUnit}
-      initialTelegramBotToken={settings.telegramBotToken}
-      initialTelegramChatId={settings.telegramChatId}
       initialSiteName={settings.siteName}
       initialCsTelegram={settings.csTelegram}
       initialCsWhatsapp={settings.csWhatsapp}
+      initialBinance={{
+        enabled: settings.binanceEnabled,
+        uid: settings.binanceUid,
+        rate: settings.binanceUsdtRate,
+        addresses: (() => {
+          try {
+            return JSON.parse(settings.binanceUsdtAddresses || "{}");
+          } catch {
+            return {};
+          }
+        })(),
+      }}
       hasLogo={Boolean(settings.logoPath)}
     />
   );

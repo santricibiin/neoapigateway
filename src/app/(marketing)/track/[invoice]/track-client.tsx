@@ -24,6 +24,7 @@ interface TrackOrder {
   invoice: string;
   status: string;
   amount: number;
+  currency: "idr" | "usdt";
   qty: number;
   unitPrice: number;
   productName: string;
@@ -42,6 +43,10 @@ function formatRupiah(value: number) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+function formatAmount(order: TrackOrder) {
+  return order.currency === "usdt" ? `${(order.amount / 100).toFixed(2)} USDT` : formatRupiah(order.amount);
 }
 
 const STATUS_LABEL_ID: Record<string, string> = {
@@ -280,7 +285,7 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
               </div>
               <div className="flex justify-between gap-2 border-t border-dashed border-base-line pt-2">
                 <dt className="font-extrabold">{t("Total Dibayar")}</dt>
-                <dd className="text-xl font-extrabold">{formatRupiah(order.amount)}</dd>
+                <dd className="text-xl font-extrabold">{formatAmount(order)}</dd>
               </div>
             </dl>
           </div>

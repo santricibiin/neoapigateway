@@ -38,12 +38,14 @@ export function BackupClient({
   initialUnit,
   initialBotToken,
   initialChatId,
+  initialNotifyChannel,
 }: {
   initialEnabled: boolean;
   initialInterval: number;
   initialUnit: string;
   initialBotToken: string;
   initialChatId: string;
+  initialNotifyChannel: string;
 }) {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -158,6 +160,22 @@ export function BackupClient({
                 Aktif
               </label>
             </div>
+          </div>
+        </section>
+
+        <section className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
+          <div className="flex items-center gap-3 border-b border-base-line bg-accent-mint px-4 py-3 sm:px-5">
+            <Send className="h-5 w-5" strokeWidth={2.5} />
+            <div>
+              <h2 className="font-extrabold">Notifikasi Transaksi</h2>
+              <p className="text-xs text-base-ink/65">Kirim notif order/topup sukses ke channel Telegram (pakai Bot Token di atas)</p>
+            </div>
+          </div>
+          <div className="p-4 sm:p-5">
+            <Input name="notifyChannelId" label="Channel / Chat ID Notifikasi" defaultValue={initialNotifyChannel} placeholder="@namachannel atau -1001234567890" autoComplete="off" />
+            <p className="mt-2 text-xs text-base-ink/50">
+              Kosongkan untuk mematikan. Bot harus jadi admin channel (untuk @channel) atau pernah chat dengan bot (untuk chat pribadi/grup).
+            </p>
           </div>
         </section>
 

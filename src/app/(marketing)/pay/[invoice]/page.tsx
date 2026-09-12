@@ -21,6 +21,8 @@ export default async function PayPage({ params }: { params: { invoice: string } 
         invoice: order.invoice,
         status: order.status,
         amount: order.amount,
+        currency: (order.currency as "idr" | "usdt") ?? "idr",
+        payMethod: (order.payMethod as "qris" | "binancepay" | "usdt") ?? "qris",
         qty: order.qty,
         unitPrice: order.unitPrice,
         productName: order.productName,

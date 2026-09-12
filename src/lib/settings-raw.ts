@@ -16,9 +16,14 @@ export async function readSettingsRaw() {
     backupUnit: setting?.backupUnit ?? "minutes",
     telegramBotToken: setting?.telegramBotToken ?? "",
     telegramChatId: setting?.telegramChatId ?? "",
+    notifyChannelId: setting?.notifyChannelId ?? "",
     siteName: setting?.siteName ?? "",
     logoPath: setting?.logoPath ?? "",
     csTelegram: setting?.csTelegram ?? "",
     csWhatsapp: setting?.csWhatsapp ?? "",
+    binanceEnabled: setting?.binanceEnabled ?? false,
+    binanceUid: setting?.binanceUid ?? "",
+    binanceUsdtAddresses: setting?.binanceUsdtAddresses ?? "{}",
+    binanceUsdtRate: setting?.binanceUsdtRate ?? 16000,
   };
 }

@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { QuotaDashboardClient } from "@/components/quota/quota-dashboard-client";
-import { publicBrandName } from "@/lib/bandel-upstream";
-
-export const metadata: Metadata = {
-  title: `Dashboard Member · ${publicBrandName()}`,
-  description: "Dashboard kuota member.",
-};
+import { publicBrandNameAsync } from "@/lib/bandel-upstream";
+import { ResLangProvider } from "@/components/resweb/res-lang";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: `Dashboard Member · ${await publicBrandNameAsync()}`,
+    description: "Dashboard kuota member.",
+  };
+}
 
 export default async function MemberPage({ params }: { params: { secretToken: string } }) {
   const member = await prisma.member.findUnique({
@@ -20,15 +23,17 @@ export default async function MemberPage({ params }: { params: { secretToken: st
   const hasCs = Boolean(r?.waNumber || r?.telegram);
 
   return (
-    <QuotaDashboardClient
-      token={params.secretToken}
-      brandName={publicBrandName()}
-      hideBuy
-      resellerCs={
-        hasCs && r
-          ? { name: r.name, waNumber: r.waNumber, telegram: r.telegram }
-          : null
-      }
-    />
+    <ResLangProvider>
+      <QuotaDashboardClient
+        token={params.secretToken}
+        brandName={await publicBrandNameAsync()}
+        hideBuy
+        resellerCs={
+          hasCs && r
+            ? { name: r.name, waNumber: r.waNumber, telegram: r.telegram }
+            : null
+        }
+      />
+    </ResLangProvider>
   );
 }
