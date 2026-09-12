@@ -211,9 +211,9 @@ export function ProductAdminClient({
                   <span className={`inline-flex rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase ${item.active ? "bg-accent-mint" : "bg-base-bg"}`}>
                     {item.active ? "Aktif" : "Nonaktif"}
                   </span>
-                  {item.sortOrder !== 0 && (
-                    <span className="ml-1 inline-flex rounded-full border border-base-line bg-accent-lavender px-2 py-0.5 text-[10px] font-black uppercase">
-                      Urutan #{item.sortOrder}
+                  {item.sortOrder >= 1 && (
+                    <span className="ml-1 inline-flex rounded-full border border-base-line bg-accent-sageSoft px-2 py-0.5 text-[10px] font-black text-accent-sageDeep">
+                      Posisi #{item.sortOrder}
                     </span>
                   )}
                   <p className="mt-2 font-mono text-[10px] font-bold text-base-ink/45">{item.sku}</p>
@@ -324,7 +324,15 @@ export function ProductAdminClient({
             <Input name="model" label="Model" defaultValue={editing?.model || ""} maxLength={100} required />
             <Input name="price" label="Harga jual" type="number" min={0} step={1} defaultValue={editing?.price || 0} required />
             <Input name="costPrice" label="Harga modal (internal)" type="number" min={0} step={1} defaultValue={editing?.costPrice || 0} required />
-            <Input name="sortOrder" label="Urutan tampil (0=terbawah, angka kecil di atas)" type="number" step={1} defaultValue={editing?.sortOrder ?? 0} />
+            <Input
+              name="sortOrder"
+              label={`Posisi dalam kategori (1 = paling atas${editing && editing.sortOrder >= 1 ? `, sekarang #${editing.sortOrder}` : ""})`}
+              type="number"
+              min={1}
+              step={1}
+              defaultValue={editing && editing.sortOrder >= 1 ? editing.sortOrder : ""}
+              placeholder="otomatis paling bawah"
+            />
           </div>
           <p className="-mt-2 text-xs font-semibold text-base-ink/50">
             Harga modal hanya terlihat admin dan dipakai menghitung margin.

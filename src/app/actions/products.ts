@@ -42,13 +42,39 @@ function parseProduct(formData: FormData) {
   return { categoryId, sku, name, model, description: description || null, price, costPrice, stock: stockMode === "external" ? 0 : stock, stockMode, active, sortOrder };
 }
 
+/**
+ * Renumber posisi urutan produk dalam satu kategori menjadi 1..N berurutan.
+ * Dipanggil setelah create/update produk supaya angka urutan selalu rapat
+ * (tidak ada loncatan setelah produk dihapus/dipindah posisi).
+ */
+async function renumberCategoryOrder(categoryId: number) {
+  const items = await prisma.token.findMany({
+    where: { categoryId },
+    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    select: { id: true },
+  });
+  await prisma.$transaction(
+    items.map((item, index) =>
+      prisma.token.update({
+        where: { id: item.id },
+        data: { sortOrder: index + 1 },
+      })
+    )
+  );
+}
+
 export async function createProduct(formData: FormData) {
   requireAdmin();
   const data = parseProduct(formData);
   if ("error" in data) return { ok: false, error: data.error };
   if (!await prisma.category.findUnique({ where: { id: data.categoryId } })) return { ok: false, error: "Kategori tidak ditemukan" };
   try {
+    // Posisi baru: sisipkan di posisi yang diminta (default paling bawah).
+    const count = await prisma.token.count({ where: { categoryId: data.categoryId } });
+    const wanted = data.sortOrder >= 1 ? data.sortOrder : count + 1;
+    data.sortOrder = Math.max(1, Math.min(wanted, count + 1));
     await prisma.token.create({ data });
+    await renumberCategoryOrder(data.categoryId);
     revalidatePath("/dashboard/tokens");
     return { ok: true };
   } catch {
@@ -62,7 +88,11 @@ export async function updateProduct(id: number, formData: FormData) {
   if (!Number.isInteger(id) || id < 1 || "error" in data) return { ok: false, error: "error" in data ? data.error : "ID produk tidak valid" };
   if (!await prisma.category.findUnique({ where: { id: data.categoryId } })) return { ok: false, error: "Kategori tidak ditemukan" };
   try {
+    const count = await prisma.token.count({ where: { categoryId: data.categoryId } });
+    const wanted = data.sortOrder >= 1 ? data.sortOrder : 1;
+    data.sortOrder = Math.max(1, Math.min(wanted, Math.max(1, count)));
     await prisma.token.update({ where: { id }, data });
+    await renumberCategoryOrder(data.categoryId);
     revalidatePath("/dashboard/tokens");
     return { ok: true };
   } catch {
@@ -76,7 +106,7 @@ export async function deleteProduct(id: number) {
   const [transactions, orders, product] = await Promise.all([
     prisma.transaction.count({ where: { tokenId: id } }),
     prisma.paymentOrder.count({ where: { tokenId: id } }),
-    prisma.token.findUnique({ where: { id }, select: { sku: true } }),
+    prisma.token.findUnique({ where: { id }, select: { sku: true, categoryId: true } }),
   ]);
   if (!product) return { ok: false, error: "Produk tidak ditemukan" };
   if (transactions || orders) {
@@ -97,6 +127,8 @@ export async function deleteProduct(id: number) {
   }
   try {
     await prisma.token.delete({ where: { id } });
+    // Rapatkan posisi urutan sisanya dalam kategori (1..N tanpa lubang).
+    if (product.categoryId != null) await renumberCategoryOrder(product.categoryId);
     revalidatePath("/dashboard/tokens");
     return { ok: true, archived: false, message: "Produk dihapus permanen." };
   } catch {
