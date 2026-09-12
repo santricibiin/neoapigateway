@@ -1,8 +1,21 @@
 import type { Viewport } from "next";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { getBranding } from "@/lib/branding";
 
 export const dynamic = "force-dynamic";
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-sans",
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-mono",
+});
 
 export async function generateMetadata() {
   const { siteName } = await getBranding();
@@ -29,8 +42,8 @@ export default async function RootLayout({
 }) {
   const { siteName, logoUrl } = await getBranding();
   return (
-    <html lang="id">
-      <body className="min-h-screen bg-base-bg text-base-ink antialiased">
+    <html lang="id" className={`${jakarta.variable} ${jetbrains.variable}`}>
+      <body className="min-h-screen bg-base-bg text-base-ink antialiased font-sans">
         <script
           dangerouslySetInnerHTML={{
             __html: `window.__BRAND__=${JSON.stringify({ siteName, logoUrl })};`,
