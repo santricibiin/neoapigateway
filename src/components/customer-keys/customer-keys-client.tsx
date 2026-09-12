@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, CirclePlus, ExternalLink, KeyRound, Search, ShieldCheck, TriangleAlert, UserRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, CirclePlus, Copy, Check, ExternalLink, KeyRound, Loader2, PlusCircle, Search, ShieldCheck, TriangleAlert, UserRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,21 @@ import { cn } from "@/lib/utils";
 const PAGE_SIZE = 10;
 
 type Filter = "all" | "active" | "exceeded";
+
+interface CreateKeyResult {
+  ok: true;
+  code: string;
+  tokens: number;
+  validDays: number;
+  name: string | null;
+  pin: string;
+  apiKey: string | null;
+  keyMasked: string | null;
+  secretToken: string | null;
+  dashboardUrl: string;
+  apiBase: string;
+  deliveryText: string;
+}
 
 function formatNumber(value?: number) {
   return (value ?? 0).toLocaleString("id-ID");
@@ -55,6 +70,7 @@ export function CustomerKeysClient({
   const [keys, setKeys] = useState(initialKeys);
   const [quotaTarget, setQuotaTarget] = useState<ResellerKey | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => setKeys(initialKeys), [initialKeys]);
 
@@ -106,9 +122,14 @@ export function CustomerKeysClient({
             </div>
           </div>
         </div>
-        <span className="w-fit rounded-neo border border-base-line bg-accent-mint px-3 py-1.5 text-xs font-extrabold shadow-neo-sm">
-          {formatNumber(totals.all)} total key
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="hidden w-fit rounded-neo border border-base-line bg-accent-mint px-3 py-1.5 text-xs font-extrabold shadow-neo-sm sm:inline-block">
+            {formatNumber(totals.all)} total key
+          </span>
+          <Button variant="primary" onClick={() => setCreateOpen(true)}>
+            <PlusCircle className="h-4 w-4" /> Buat Key Baru
+          </Button>
+        </div>
       </div>
 
       {error ? (
@@ -251,7 +272,161 @@ export function CustomerKeysClient({
         </>
       )}
       <AddQuotaModal target={quotaTarget} onClose={() => setQuotaTarget(null)} onSuccess={refreshKeys} refreshing={refreshing} />
+      <CreateKeyModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSuccess={async () => {
+          await refreshKeys();
+        }}
+      />
     </div>
+  );
+}
+
+function CreateKeyModal({
+  open,
+  onClose,
+  onSuccess,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: (result: CreateKeyResult) => Promise<void>;
+}) {
+  const packageCodes = Object.keys(QUOTA_PACKAGES) as Array<keyof typeof QUOTA_PACKAGES>;
+  const [packageCode, setPackageCode] = useState<keyof typeof QUOTA_PACKAGES>("5M");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<CreateKeyResult | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setResult(null);
+      setError(null);
+      setPackageCode("5M");
+    }
+  }, [open]);
+
+  async function create() {
+    if (loading) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/dashboard/customer-keys/api/create-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packageCode }),
+      });
+      const body = await response.json();
+      if (!response.ok || !body.ok) throw new Error(body.error || "Gagal membuat key");
+      setResult(body as CreateKeyResult);
+      await onSuccess(body as CreateKeyResult);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Gagal membuat key");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function copy(label: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(label);
+      setTimeout(() => setCopied(null), 1500);
+    } catch {}
+  }
+
+  const selected = QUOTA_PACKAGES[packageCode];
+
+  return (
+    <Modal open={open} onClose={onClose} title={result ? "Key Berhasil Dibuat" : "Buat Key Baru"} className="max-h-[92vh] overflow-y-auto">
+      {result ? (
+        <div className="space-y-3">
+          <div className="rounded-neo border border-base-line bg-accent-mint p-4 text-center">
+            <KeyRound className="mx-auto h-8 w-8" />
+            <p className="mt-1 font-extrabold">Paket {result.code} · {formatNumber(result.tokens)} token · {result.validDays} hari</p>
+          </div>
+          <div className="rounded-neo border border-base-line bg-base-bg p-3">
+            <p className="mb-1 text-[10px] font-black uppercase text-base-ink/45">API Key</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="min-w-0 break-all font-mono text-xs font-bold">{result.apiKey || result.keyMasked || "-"}</p>
+              {result.apiKey ? (
+                <Button type="button" size="sm" variant="outline" onClick={() => void copy("key", result.apiKey!)}>
+                  {copied === "key" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                </Button>
+              ) : null}
+            </div>
+          </div>
+          <div className="rounded-neo border border-base-line bg-accent-sun p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <p className="text-[10px] font-black uppercase text-base-ink/55">PIN Dashboard</p>
+                <p className="font-mono text-2xl font-black tracking-[0.25em]">{result.pin}</p>
+              </div>
+              <Button type="button" size="sm" variant="outline" onClick={() => void copy("pin", result.pin)}>
+                {copied === "pin" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              </Button>
+            </div>
+          </div>
+          <div className="rounded-neo border border-base-line bg-base-bg p-3">
+            <p className="mb-1 text-[10px] font-black uppercase text-base-ink/45">Dashboard Member</p>
+            <p className="break-all font-mono text-xs font-bold">{result.dashboardUrl}</p>
+          </div>
+          <div className="rounded-neo border border-base-line bg-base-ink p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[10px] font-black uppercase text-white/45">Detail Lengkap (siap kirim)</p>
+              <Button type="button" size="sm" variant="sun" onClick={() => void copy("delivery", result.deliveryText)}>
+                {copied === "delivery" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied === "delivery" ? "Tersalin" : "Salin"}
+              </Button>
+            </div>
+            <pre className="whitespace-pre-wrap break-all font-mono text-xs leading-relaxed text-accent-mint">{result.deliveryText}</pre>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <a href={result.dashboardUrl} target="_blank" rel="noreferrer" className="flex-1">
+              <Button variant="sky" className="w-full">
+                <ExternalLink className="h-4 w-4" /> Buka Dashboard
+              </Button>
+            </a>
+            <Button variant="outline" className="flex-1" onClick={onClose}>Tutup</Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <p className="rounded-neo border border-base-line bg-accent-sunSoft p-3 text-xs font-bold">
+            Key baru dibuat dari kuota reseller bandel. Pilih paket sesuai kebutuhan customer.
+          </p>
+          <div>
+            <label className="text-sm font-bold">Pilih paket token</label>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {packageCodes.map((code) => (
+                <button
+                  key={code}
+                  type="button"
+                  onClick={() => setPackageCode(code)}
+                  className={cn(
+                    "rounded-neo border border-base-line px-2 py-3 text-sm font-black transition-colors",
+                    packageCode === code ? "bg-accent-mint shadow-neo-sm" : "bg-base-bg hover:bg-accent-sky/20"
+                  )}
+                >
+                  {code}
+                  <span className="mt-0.5 block text-[9px] font-bold text-base-ink/50">{QUOTA_PACKAGES[code].validDays} hari</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold">
+            <p>Token: <span className="font-black">{formatNumber(selected.tokens)}</span></p>
+            <p>Masa aktif: <span className="font-black">{selected.validDays} hari</span></p>
+          </div>
+          {error ? <p className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</p> : null}
+          <Button type="button" className="w-full" disabled={loading} onClick={() => void create()}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlusCircle className="h-4 w-4" />}
+            {loading ? "Membuat key..." : "Buat Key Sekarang"}
+          </Button>
+        </div>
+      )}
+    </Modal>
   );
 }
 
