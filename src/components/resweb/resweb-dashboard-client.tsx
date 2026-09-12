@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Wallet, Users, ShoppingBag, PlusCircle, Copy, Check, Loader2, Eye, EyeOff, ExternalLink, KeyRound, ShieldCheck, Zap, CirclePlus, ChevronLeft, ChevronRight, TrendingUp, CalendarDays } from "lucide-react";
+import { Wallet, Users, ShoppingBag, PlusCircle, Copy, Check, Loader2, Eye, EyeOff, ExternalLink, KeyRound, ShieldCheck, Zap, CirclePlus, ChevronLeft, ChevronRight, TrendingUp, CalendarDays, Search, Activity, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,8 @@ type Member = {
   tokens: number;
   validDays: number;
   createdAt: string;
+  /** Status live dari upstream (aktif/exceeded) — null kalau tidak difilter. */
+  status: string | null;
 };
 const QUOTA_PRESETS = Object.entries(QUOTA_PACKAGES).map(([code, pack]) => ({ code, ...pack }));
 
@@ -74,6 +76,8 @@ export function ReswebDashboardClient({
   totalMembers,
   page,
   totalPages,
+  query,
+  statusFilter,
 }: {
   reseller: Reseller | null;
   members: Member[];
@@ -81,6 +85,8 @@ export function ReswebDashboardClient({
   totalMembers: number;
   page: number;
   totalPages: number;
+  query: string;
+  statusFilter: "all" | "active" | "exceeded";
 }) {
   const router = useRouter();
   const [addModal, setAddModal] = useState(false);
@@ -93,8 +99,27 @@ export function ReswebDashboardClient({
   const [result, setResult] = useState<{ name: string | null; apiKey: string | null; keyMasked: string | null; dashboardUrl: string; pin: string } | null>(null);
   const [showKey, setShowKey] = useState<Record<number, boolean>>({});
   const [copied, setCopied] = useState<string | null>(null);
+  const [search, setSearch] = useState(query);
   const selectedPackage = QUOTA_PACKAGES[packageCode as keyof typeof QUOTA_PACKAGES];
   const selectedQuotaPackage = QUOTA_PACKAGES[quotaPackageCode as keyof typeof QUOTA_PACKAGES];
+
+  /** Push query param baru (q/status) sambil reset ke halaman 1. */
+  function applyParams(next: { q?: string; status?: string }) {
+    const params = new URLSearchParams();
+    const q = next.q ?? query;
+    const st = next.status ?? statusFilter;
+    if (q.trim()) params.set("q", q.trim());
+    if (st !== "all") params.set("status", st);
+    router.push(`/res${params.toString() ? `?${params}` : ""}`);
+  }
+
+  // Debounce pencarian 400ms.
+  useEffect(() => {
+    if (search === query) return;
+    const timer = setTimeout(() => applyParams({ q: search }), 400);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   async function handleAdd() {
     setCreating(true);
@@ -111,7 +136,7 @@ export function ReswebDashboardClient({
       } else {
         setResult(data.member);
         setAddModal(false);
-        router.push("/res?page=1");
+        router.push(pageUrl(1));
         router.refresh();
       }
     } catch {
@@ -147,6 +172,15 @@ export function ReswebDashboardClient({
       setCopied(label);
       setTimeout(() => setCopied(null), 1500);
     } catch {}
+  }
+
+  /** URL halaman pagination yang membawa filter aktif. */
+  function pageUrl(p: number) {
+    const params = new URLSearchParams();
+    if (query.trim()) params.set("q", query.trim());
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    params.set("page", String(p));
+    return `/res?${params.toString()}`;
   }
 
   return (
@@ -271,14 +305,56 @@ export function ReswebDashboardClient({
 
       {/* Members */}
       <section className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <h2 className="text-lg font-extrabold">Token Member</h2>
           {totalMembers > 0 ? (
             <span className="text-xs font-bold text-base-ink/45">
-              {totalMembers.toLocaleString("id-ID")} member · hal. {page}/{totalPages}
+              {totalMembers.toLocaleString("id-ID")} member{totalPages > 1 ? ` · hal. ${page}/${totalPages}` : ""}
             </span>
           ) : null}
         </div>
+
+        {/* Search + filter status */}
+        <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+          <label className="flex h-11 items-center gap-2 rounded-neo border border-base-line bg-base-surface px-3 shadow-neo-sm focus-within:border-accent-terra">
+            <Search className="h-4 w-4 shrink-0 text-base-ink/45" strokeWidth={2.5} />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Cari nama member..."
+              className="h-full min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none placeholder:text-base-ink/35"
+            />
+            {search ? (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="shrink-0 text-xs font-bold text-base-ink/45 hover:text-base-ink"
+              >
+                Hapus
+              </button>
+            ) : null}
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { id: "all", label: "Semua" },
+              { id: "active", label: "Aktif" },
+              { id: "exceeded", label: "Exceed" },
+            ] as const).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => applyParams({ status: item.id })}
+                className={cn(
+                  "rounded-neo border border-base-line px-3 py-2 text-xs font-extrabold transition-all active:translate-y-0.5",
+                  statusFilter === item.id ? "bg-accent-sageSoft text-accent-sageDeep shadow-neo-sm" : "bg-base-surface hover:bg-accent-sky/20"
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {members.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
@@ -329,7 +405,21 @@ export function ReswebDashboardClient({
                               {(m.name || "M").charAt(0).toUpperCase()}
                             </span>
                             <div className="min-w-0">
-                              <p className="truncate text-sm font-black">{m.name || "Tanpa nama"}</p>
+                              <div className="flex items-center gap-1.5">
+                                <p className="truncate text-sm font-black">{m.name || "Tanpa nama"}</p>
+                                {m.status ? (
+                                  <span
+                                    className={cn(
+                                      "inline-flex shrink-0 items-center gap-1 rounded-full border border-base-line px-1.5 py-0.5 text-[8px] font-black uppercase",
+                                      m.status === "active" ? "bg-accent-sageSoft text-accent-sageDeep" : "bg-accent-terraSoft text-accent-terraDeep"
+                                    )}
+                                    title={m.status === "active" ? "Aktif" : "Kuota terlampaui"}
+                                  >
+                                    {m.status === "active" ? <Activity className="h-2.5 w-2.5" /> : <AlertTriangle className="h-2.5 w-2.5" />}
+                                    {m.status === "active" ? "Aktif" : "Exceed"}
+                                  </span>
+                                ) : null}
+                              </div>
                               <p className="font-mono text-[10px] text-base-ink/45">{formatTokens(m.tokens)} · {m.validDays}d</p>
                             </div>
                           </div>
@@ -378,7 +468,7 @@ export function ReswebDashboardClient({
                   variant="outline"
                   size="sm"
                   disabled={page <= 1}
-                  onClick={() => router.push(`/res?page=${page - 1}`)}
+                  onClick={() => router.push(pageUrl(page - 1))}
                 >
                   <ChevronLeft className="h-4 w-4" /> Sebelumnya
                 </Button>
@@ -392,7 +482,7 @@ export function ReswebDashboardClient({
                         ) : null}
                         <button
                           type="button"
-                          onClick={() => router.push(`/res?page=${p}`)}
+                          onClick={() => router.push(pageUrl(p))}
                           className={cn(
                             "h-8 w-8 rounded-neo border border-base-line text-xs font-black transition-colors",
                             p === page ? "bg-base-ink text-white shadow-neo-sm" : "bg-white hover:bg-accent-sky/40"
@@ -408,7 +498,7 @@ export function ReswebDashboardClient({
                   variant="outline"
                   size="sm"
                   disabled={page >= totalPages}
-                  onClick={() => router.push(`/res?page=${page + 1}`)}
+                  onClick={() => router.push(pageUrl(page + 1))}
                 >
                   Berikutnya <ChevronRight className="h-4 w-4" />
                 </Button>
