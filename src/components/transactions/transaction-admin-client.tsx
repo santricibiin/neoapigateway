@@ -53,6 +53,9 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
+  const [range, setRange] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [page, setPage] = useState(1);
   const [detail, setDetail] = useState<Transaction | null>(null);
   const [fulfillTarget, setFulfillTarget] = useState<Transaction | null>(null);
@@ -60,37 +63,78 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
   const [fulfillError, setFulfillError] = useState<string | null>(null);
   const [fulfillResult, setFulfillResult] = useState<string | null>(null);
 
+  // Batas rentang tanggal (awal hari - s.d. akhir hari, waktu lokal).
+  const dateBounds = useMemo(() => {
+    if (range !== "custom") return null;
+    const start = fromDate ? new Date(fromDate + "T00:00:00") : null;
+    const end = toDate ? new Date(toDate + "T23:59:59.999") : null;
+    if (start && isNaN(start.getTime())) return null;
+    if (end && isNaN(end.getTime())) return null;
+    return { start, end };
+  }, [range, fromDate, toDate]);
+
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
-    return initialTransactions.filter(
-      (item) =>
-        (status === "all" || item.status === status) &&
-        (!term ||
-          `${item.reference} ${item.buyerName} ${item.productName} ${item.productSku} ${item.source}`
-            .toLowerCase()
-            .includes(term))
-    );
-  }, [initialTransactions, query, status]);
+    const now = new Date();
+    const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const endOfToday = startOfDay(now) + 86_400_000 - 1;
+
+    let minTime = -Infinity;
+    let maxTime = Infinity;
+    if (range === "today") {
+      minTime = startOfDay(now);
+      maxTime = endOfToday;
+    } else if (range === "7d") {
+      minTime = endOfToday - 7 * 86_400_000 + 1;
+    } else if (range === "30d") {
+      minTime = endOfToday - 30 * 86_400_000 + 1;
+    } else if (range === "month") {
+      minTime = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    } else if (range === "custom" && dateBounds) {
+      minTime = dateBounds.start ? dateBounds.start.getTime() : -Infinity;
+      maxTime = dateBounds.end ? dateBounds.end.getTime() : Infinity;
+    }
+
+    return initialTransactions.filter((item) => {
+      if (status !== "all" && item.status !== status) return false;
+      const created = new Date(item.createdAt).getTime();
+      if (created < minTime || created > maxTime) return false;
+      if (!term) return true;
+      return `${item.reference} ${item.buyerName} ${item.productName} ${item.productSku} ${item.source}`
+        .toLowerCase()
+        .includes(term);
+    });
+  }, [initialTransactions, query, status, range, dateBounds]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  // Total mengikuti hasil filter (bukan seluruh data) supaya relevan.
   const totals = useMemo(
     () => ({
-      total: initialTransactions.length,
-      paid: initialTransactions.filter((item) => item.status === "paid").length,
-      pending: initialTransactions.filter((item) =>
+      total: filtered.length,
+      paid: filtered.filter((item) => item.status === "paid").length,
+      pending: filtered.filter((item) =>
         ["pending", "processing", "delivering"].includes(item.status)
       ).length,
-      revenue: initialTransactions
+      revenue: filtered
         .filter((item) => item.status === "paid")
         .reduce((sum, item) => sum + item.amount, 0),
     }),
-    [initialTransactions]
+    [filtered]
   );
 
   function filter(next: string) {
     setStatus(next);
+    setPage(1);
+  }
+
+  function filterRange(next: string) {
+    setRange(next);
+    if (next !== "custom") {
+      setFromDate("");
+      setToDate("");
+    }
     setPage(1);
   }
 
@@ -139,7 +183,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
         <Summary label="Pendapatan" value={`Rp ${totals.revenue.toLocaleString("id-ID")}`} color="bg-accent-lavender" />
       </div>
 
-      <div className="grid gap-2 lg:grid-cols-[1fr_220px]">
+      <div className="grid gap-2 lg:grid-cols-[1fr_220px_200px]">
         <label className="flex h-11 items-center gap-2 rounded-neo border border-base-line bg-white px-3 shadow-neo-sm">
           <Search className="h-4 w-4 text-base-ink/45" />
           <input
@@ -163,7 +207,66 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
             </option>
           ))}
         </select>
+        <select
+          value={range}
+          onChange={(event) => filterRange(event.target.value)}
+          className="rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm"
+        >
+          <option value="all">Semua tanggal</option>
+          <option value="today">Hari ini</option>
+          <option value="7d">7 hari terakhir</option>
+          <option value="30d">30 hari terakhir</option>
+          <option value="month">Bulan ini</option>
+          <option value="custom">Rentang kustom</option>
+        </select>
       </div>
+
+      {range === "custom" ? (
+        <div className="flex flex-wrap items-end gap-2 rounded-neo border border-dashed border-base-line bg-base-bg p-3">
+          <label className="flex flex-col gap-1 text-xs font-black uppercase text-base-ink/50">
+            Dari
+            <input
+              type="date"
+              value={fromDate}
+              max={toDate || undefined}
+              onChange={(event) => {
+                setFromDate(event.target.value);
+                setPage(1);
+              }}
+              className="h-10 rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm outline-none"
+            />
+          </label>
+          <span className="pb-3 text-sm font-bold text-base-ink/40">—</span>
+          <label className="flex flex-col gap-1 text-xs font-black uppercase text-base-ink/50">
+            Sampai
+            <input
+              type="date"
+              value={toDate}
+              min={fromDate || undefined}
+              onChange={(event) => {
+                setToDate(event.target.value);
+                setPage(1);
+              }}
+              className="h-10 rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm outline-none"
+            />
+          </label>
+          {(fromDate || toDate) ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mb-0.5"
+              onClick={() => {
+                setFromDate("");
+                setToDate("");
+                setPage(1);
+              }}
+            >
+              Reset tanggal
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo">
         <div className="overflow-x-auto">
