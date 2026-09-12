@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Wallet, Users, ShoppingBag, PlusCircle, Copy, Check, Loader2, Eye, EyeOff, ExternalLink, KeyRound, ShieldCheck, Zap, CirclePlus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Wallet, Users, ShoppingBag, PlusCircle, Copy, Check, Loader2, Eye, EyeOff, ExternalLink, KeyRound, ShieldCheck, Zap, CirclePlus, ChevronLeft, ChevronRight, TrendingUp, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,44 @@ function formatTokens(v: number) {
   if (v >= 1_000) return `${(v / 1_000).toFixed(0)}K`;
   return v.toLocaleString("id-ID");
 }
+
+/** Animasi angka naik (count-up) untuk stat card. */
+function useCountUp(target: number, duration = 900) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (target <= 0) {
+      setValue(0);
+      return;
+    }
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / duration);
+      // easeOutExpo
+      const eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
+      setValue(Math.round(target * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return value;
+}
+
+const stagger = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
+};
+
+const riseIn = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 320, damping: 24 } },
+};
+
+const rowIn = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+};
 
 export function ReswebDashboardClient({
   reseller,
@@ -73,7 +111,6 @@ export function ReswebDashboardClient({
       } else {
         setResult(data.member);
         setAddModal(false);
-        // Member baru selalu paling atas → kembali ke halaman 1 supaya terlihat.
         router.push("/res?page=1");
         router.refresh();
       }
@@ -114,27 +151,123 @@ export function ReswebDashboardClient({
 
   return (
     <div className="space-y-6">
-      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border border-base-line bg-accent-sky p-5 shadow-neo sm:p-7">
-        <motion.svg animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} viewBox="0 0 120 120" className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 text-white/30" aria-hidden><path d="M60 5 72 43 112 43 80 67 92 105 60 82 28 105 40 67 8 43 48 43Z" fill="currentColor" /></motion.svg>
+      {/* Hero */}
+      <motion.section
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="relative overflow-hidden rounded-neo border border-base-line bg-gradient-to-br from-accent-sky via-accent-sky to-accent-sage/60 p-5 shadow-neo sm:p-8"
+      >
+        {/* Dekorasi SVG berlapis */}
+        <motion.svg
+          animate={{ rotate: 360 }}
+          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+          viewBox="0 0 120 120"
+          className="pointer-events-none absolute -right-14 -top-14 h-48 w-48 text-white/25"
+          aria-hidden
+        >
+          <path d="M60 5 72 43 112 43 80 67 92 105 60 82 28 105 40 67 8 43 48 43Z" fill="currentColor" />
+        </motion.svg>
+        <motion.svg
+          animate={{ y: [0, -14, 0], rotate: [0, 10, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+          viewBox="0 0 100 100"
+          className="pointer-events-none absolute -bottom-10 -left-10 h-36 w-36 text-white/20"
+          aria-hidden
+        >
+          <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" strokeWidth="10" />
+          <circle cx="50" cy="50" r="16" fill="currentColor" />
+        </motion.svg>
+        <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute inset-0 h-full w-full text-base-ink/[0.04]">
+          <defs>
+            <pattern id="res-grid" width="28" height="28" patternUnits="userSpaceOnUse">
+              <path d="M28 0H0v28" fill="none" stroke="currentColor" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#res-grid)" />
+        </svg>
+
         <div className="relative flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Zap className="h-3 w-3" /> Reseller Center</span>
-            <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Kelola member, lebih cepat.</h1>
-            <p className="mt-1 text-sm font-bold text-base-ink/60">{reseller?.email}</p>
+            <motion.span
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 18 }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest shadow-neo-sm"
+            >
+              <Zap className="h-3 w-3 text-accent-terra" strokeWidth={2.5} /> Reseller Center
+            </motion.span>
+            <motion.h1
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.22, duration: 0.45 }}
+              className="mt-3 text-3xl font-black tracking-tight sm:text-4xl"
+            >
+              Kelola member, lebih cepat.
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mt-1 flex items-center gap-1.5 text-sm font-bold text-base-ink/60"
+            >
+              <span className={`inline-block h-2 w-2 rounded-full ${reseller?.active ? "bg-accent-sageDeep" : "bg-accent-terraDeep"}`} />
+              {reseller?.email}
+              {reseller?.active ? null : <span className="ml-1 text-accent-terraDeep">(nonaktif)</span>}
+            </motion.p>
           </div>
-          <Button variant="primary" onClick={() => { setError(null); setAddModal(true); }}>
-            <PlusCircle className="h-4 w-4" /> Buat Token Member
-          </Button>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button variant="primary" size="lg" onClick={() => { setError(null); setAddModal(true); }}>
+              <PlusCircle className="h-4 w-4" /> Buat Token Member
+            </Button>
+          </motion.div>
         </div>
       </motion.section>
 
-      {error && <div className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</div>}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold"
+        >
+          {error}
+        </motion.div>
+      )}
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Stat label="Saldo Token" value={formatTokens(reseller?.balance ?? 0)} icon={<Wallet className="h-5 w-5" />} color="bg-accent-mint" />
-        <Stat label="Total Member" value={totalMembers.toLocaleString("id-ID")} icon={<Users className="h-5 w-5" />} color="bg-accent-sky" />
-        <Stat label="Total Topup" value={paidTopups.toString()} icon={<ShoppingBag className="h-5 w-5" />} color="bg-accent-sun" />
-      </div>
+      {/* Stat cards */}
+      <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-3 sm:grid-cols-3">
+        <StatCard
+          label="Saldo Token"
+          raw={reseller?.balance ?? 0}
+          format={formatTokens}
+          icon={<Wallet className="h-5 w-5" strokeWidth={2.5} />}
+          color="bg-accent-sageSoft"
+          bar="bg-accent-sageDeep"
+          trend
+        />
+        <StatCard
+          label="Total Member"
+          raw={totalMembers}
+          format={(v) => v.toLocaleString("id-ID")}
+          icon={<Users className="h-5 w-5" strokeWidth={2.5} />}
+          color="bg-accent-skySoft"
+          bar="bg-accent-sageDeep"
+        />
+        <StatCard
+          label="Total Topup"
+          raw={paidTopups}
+          format={(v) => v.toLocaleString("id-ID")}
+          icon={<ShoppingBag className="h-5 w-5" strokeWidth={2.5} />}
+          color="bg-accent-sandSoft"
+          bar="bg-accent-terra"
+        />
+      </motion.div>
 
       {/* Members */}
       <section className="space-y-3">
@@ -147,59 +280,96 @@ export function ReswebDashboardClient({
           ) : null}
         </div>
         {members.length === 0 ? (
-          <div className="rounded-neo border border-dashed border-base-line bg-white py-12 text-center">
-            <Users className="mx-auto h-10 w-10 text-base-ink/20" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="rounded-neo border border-dashed border-base-line bg-white py-16 text-center"
+          >
+            <motion.svg
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              viewBox="0 0 24 24"
+              fill="none"
+              className="mx-auto h-12 w-12 text-base-ink/20"
+            >
+              <circle cx="9" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M3.5 19c.6-3 2.8-5 5.5-5s4.9 2 5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <circle cx="17" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M16 14c2.2 0 4 1.6 4.5 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </motion.svg>
             <p className="mt-3 font-bold text-base-ink/50">Belum ada member</p>
-          </div>
+            <p className="mt-1 text-xs font-semibold text-base-ink/40">Klik "Buat Token Member" untuk memulai.</p>
+          </motion.div>
         ) : (
           <>
-            <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[840px] text-left">
-                <thead className="bg-base-ink text-xs uppercase text-white">
-                  <tr>
-                    <th className="px-4 py-3">Member</th>
-                    <th className="px-4 py-3">Token</th>
-                    <th className="px-4 py-3">API Key</th>
-                    <th className="px-4 py-3">Dashboard</th>
-                    <th className="px-4 py-3">Dibuat</th>
-                    <th className="px-4 py-3">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-base-line">
-                  {members.map((m) => (
-                    <tr key={m.id} className="hover:bg-accent-sky/10">
-                      <td className="px-4 py-3">
-                        <p className="text-sm font-black">{m.name || "Tanpa nama"}</p>
-                        <p className="font-mono text-[10px] text-base-ink/45">{formatTokens(m.tokens)} · {m.validDays}d</p>
-                      </td>
-                      <td className="px-4 py-3 font-mono text-[10px] font-bold">
-                        {showKey[m.id] ? m.secretToken : "••••••••"}
-                        <button onClick={() => setShowKey((s) => ({ ...s, [m.id]: !s[m.id] }))} className="ml-2 text-base-ink/50 hover:text-base-ink">
-                          {showKey[m.id] ? <EyeOff className="inline h-3 w-3" /> : <Eye className="inline h-3 w-3" />}
-                        </button>
-                      </td>
-                      <td className="px-4 py-3 font-mono text-[10px] font-bold">
-                        {m.apiKey || m.keyMasked || "-"}
-                        {(m.apiKey || m.keyMasked) && (
-                          <button onClick={() => copy(`m${m.id}`, m.apiKey || m.keyMasked || "")} className="ml-2 text-base-ink/50 hover:text-base-ink">
-                            {copied === `m${m.id}` ? <Check className="inline h-3 w-3" /> : <Copy className="inline h-3 w-3" />}
-                          </button>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <a href={`/quota/member/${m.secretToken}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-accent-sky underline">
-                          Buka <ExternalLink className="h-3 w-3" />
-                        </a>
-                      </td>
-                      <td className="px-4 py-3 text-xs font-bold">{new Date(m.createdAt).toLocaleDateString("id-ID")}</td>
-                      <td className="px-4 py-3"><Button type="button" size="sm" variant="mint" onClick={() => { setQuotaPackageCode("1M"); setError(null); setQuotaTarget(m); }}><CirclePlus className="h-4 w-4" /> Add Quota</Button></td>
+            <motion.div
+              variants={stagger}
+              initial="hidden"
+              animate="show"
+              className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm"
+            >
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[840px] text-left">
+                  <thead className="bg-base-ink text-xs uppercase tracking-wide text-white">
+                    <tr>
+                      <th className="px-4 py-3">Member</th>
+                      <th className="px-4 py-3">Token</th>
+                      <th className="px-4 py-3">API Key</th>
+                      <th className="px-4 py-3">Dashboard</th>
+                      <th className="px-4 py-3">Dibuat</th>
+                      <th className="px-4 py-3">Aksi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-base-line">
+                    {members.map((m) => (
+                      <motion.tr key={m.id} variants={rowIn} className="transition-colors hover:bg-accent-sky/10">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-skySoft text-xs font-black">
+                              {(m.name || "M").charAt(0).toUpperCase()}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-black">{m.name || "Tanpa nama"}</p>
+                              <p className="font-mono text-[10px] text-base-ink/45">{formatTokens(m.tokens)} · {m.validDays}d</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 font-mono text-[10px] font-bold">
+                          {showKey[m.id] ? m.secretToken : "••••••••"}
+                          <button onClick={() => setShowKey((s) => ({ ...s, [m.id]: !s[m.id] }))} className="ml-2 text-base-ink/50 transition-colors hover:text-base-ink">
+                            {showKey[m.id] ? <EyeOff className="inline h-3 w-3" /> : <Eye className="inline h-3 w-3" />}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 font-mono text-[10px] font-bold">
+                          {m.apiKey || m.keyMasked || "-"}
+                          {(m.apiKey || m.keyMasked) && (
+                            <button onClick={() => copy(`m${m.id}`, m.apiKey || m.keyMasked || "")} className="ml-2 text-base-ink/50 transition-colors hover:text-base-ink">
+                              {copied === `m${m.id}` ? <Check className="inline h-3 w-3 text-accent-sageDeep" /> : <Copy className="inline h-3 w-3" />}
+                            </button>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <a href={`/quota/member/${m.secretToken}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-accent-terraDeep underline decoration-accent-terra/40 underline-offset-2 transition-colors hover:text-accent-terra">
+                            Buka <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-base-ink/60">
+                            <CalendarDays className="h-3 w-3 text-base-ink/35" />
+                            {new Date(m.createdAt).toLocaleDateString("id-ID")}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Button type="button" size="sm" variant="mint" onClick={() => { setQuotaPackageCode("1M"); setError(null); setQuotaTarget(m); }}>
+                            <CirclePlus className="h-4 w-4" /> Add Quota
+                          </Button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
 
             {totalPages > 1 ? (
               <div className="flex items-center justify-between gap-2 rounded-neo border border-base-line bg-white p-3 shadow-neo-sm">
@@ -225,7 +395,7 @@ export function ReswebDashboardClient({
                           onClick={() => router.push(`/res?page=${p}`)}
                           className={cn(
                             "h-8 w-8 rounded-neo border border-base-line text-xs font-black transition-colors",
-                            p === page ? "bg-base-ink text-white" : "bg-white hover:bg-accent-sky/40"
+                            p === page ? "bg-base-ink text-white shadow-neo-sm" : "bg-white hover:bg-accent-sky/40"
                           )}
                         >
                           {p}
@@ -260,8 +430,8 @@ export function ReswebDashboardClient({
                   type="button"
                   onClick={() => setPackageCode(p.code)}
                   className={cn(
-                    "rounded-neo border-2 p-2 text-center text-xs font-black transition-colors",
-                    packageCode === p.code ? "border-base-ink bg-accent-sky" : "border-base-ink bg-white hover:bg-accent-sky/30"
+                    "rounded-neo border border-base-line p-2 text-center text-xs font-black transition-all hover:-translate-y-0.5",
+                    packageCode === p.code ? "bg-accent-sageSoft shadow-neo-sm" : "bg-white hover:bg-accent-sky/20"
                   )}
                 >
                   {p.code}
@@ -284,10 +454,53 @@ export function ReswebDashboardClient({
 
       <Modal open={Boolean(quotaTarget)} onClose={() => { if (!addingQuota) setQuotaTarget(null); }} title="Tambah Kuota Member" className="max-h-[92vh] overflow-y-auto">
         {quotaTarget ? <div className="space-y-4">
-          <div className="relative overflow-hidden rounded-neo border border-base-line bg-accent-sky p-4 shadow-neo-sm"><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 text-white/35"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg><div className="relative"><p className="text-lg font-black">{quotaTarget.name || "Tanpa nama"}</p><p className="font-mono text-xs font-bold">Member #{quotaTarget.id}</p></div></div>
-          <div><label className="text-sm font-bold">Pilih paket token</label><div className="mt-2 grid grid-cols-3 gap-2">{QUOTA_PRESETS.map((pack) => <button key={pack.code} type="button" onClick={() => setQuotaPackageCode(pack.code)} className={cn("rounded-neo border border-base-line p-2 text-xs font-black", quotaPackageCode === pack.code ? "bg-accent-mint shadow-neo-sm" : "bg-white")} >{pack.code}<span className="block text-[9px] font-normal text-base-ink/60">{pack.validDays} hari</span></button>)}</div></div>
-          <div className="rounded-neo border border-base-line bg-base-bg p-3 text-xs font-bold">Saldo Anda: <span className="font-mono">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</span> · Dipakai: <span className="font-mono">{selectedQuotaPackage.tokens.toLocaleString("id-ID")}</span> · Masa aktif: {selectedQuotaPackage.validDays} hari{reseller && reseller.balance < selectedQuotaPackage.tokens ? <p className="mt-1 text-accent-terraDeep">Saldo tidak cukup. Silakan topup dulu.</p> : null}</div>
-          <Button type="button" className="w-full" disabled={addingQuota || !reseller || reseller.balance < selectedQuotaPackage.tokens} onClick={() => void handleAddQuota()}>{addingQuota ? <Loader2 className="h-4 w-4 animate-spin" /> : <CirclePlus className="h-4 w-4" />}{addingQuota ? "Menambahkan..." : "Konfirmasi Add Quota"}</Button>
+          <div className="relative overflow-hidden rounded-neo border border-base-line bg-accent-skySoft p-4 shadow-neo-sm">
+            <motion.svg
+              animate={{ rotate: 360 }}
+              transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
+              viewBox="0 0 100 100"
+              aria-hidden
+              className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 text-white/40"
+            >
+              <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" />
+            </motion.svg>
+            <div className="relative flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-neo border border-base-line bg-white text-base font-black">
+                {(quotaTarget.name || "M").charAt(0).toUpperCase()}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-lg font-black">{quotaTarget.name || "Tanpa nama"}</p>
+                <p className="font-mono text-xs font-bold text-base-ink/50">Member #{quotaTarget.id}</p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-bold">Pilih paket token</label>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {QUOTA_PRESETS.map((pack) => (
+                <button
+                  key={pack.code}
+                  type="button"
+                  onClick={() => setQuotaPackageCode(pack.code)}
+                  className={cn(
+                    "rounded-neo border border-base-line p-2 text-xs font-black transition-all hover:-translate-y-0.5",
+                    quotaPackageCode === pack.code ? "bg-accent-sageSoft shadow-neo-sm" : "bg-white"
+                  )}
+                >
+                  {pack.code}
+                  <span className="block text-[9px] font-normal text-base-ink/60">{pack.validDays} hari</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-neo border border-base-line bg-base-bg p-3 text-xs font-bold">
+            Saldo Anda: <span className="font-mono">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</span> · Dipakai: <span className="font-mono">{selectedQuotaPackage.tokens.toLocaleString("id-ID")}</span> · Masa aktif: {selectedQuotaPackage.validDays} hari
+            {reseller && reseller.balance < selectedQuotaPackage.tokens ? <p className="mt-1 text-accent-terraDeep">Saldo tidak cukup. Silakan topup dulu.</p> : null}
+          </div>
+          <Button type="button" className="w-full" disabled={addingQuota || !reseller || reseller.balance < selectedQuotaPackage.tokens} onClick={() => void handleAddQuota()}>
+            {addingQuota ? <Loader2 className="h-4 w-4 animate-spin" /> : <CirclePlus className="h-4 w-4" />}
+            {addingQuota ? "Menambahkan..." : "Konfirmasi Add Quota"}
+          </Button>
         </div> : null}
       </Modal>
 
@@ -295,10 +508,22 @@ export function ReswebDashboardClient({
       <Modal open={Boolean(result)} onClose={() => setResult(null)} title="Member Berhasil Dibuat">
         {result && (
           <div className="space-y-3">
-            <div className="rounded-neo border border-base-line bg-accent-mint p-4 text-center">
-              <KeyRound className="mx-auto h-8 w-8" />
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+              className="rounded-neo border border-base-line bg-accent-sageSoft p-4 text-center"
+            >
+              <motion.span
+                initial={{ rotate: -30, scale: 0 }}
+                animate={{ rotate: 0, scale: 1 }}
+                transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 14 }}
+                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-base-line bg-white"
+              >
+                <KeyRound className="h-6 w-6 text-accent-sageDeep" />
+              </motion.span>
               <p className="mt-1 font-extrabold">Token member siap</p>
-            </div>
+            </motion.div>
             {result.name && <p className="text-sm font-bold">Nama: {result.name}</p>}
             <div className="rounded-neo border border-base-line bg-base-bg p-3">
               <p className="mb-1 text-[10px] font-black uppercase text-base-ink/45">API Key</p>
@@ -310,10 +535,15 @@ export function ReswebDashboardClient({
             </div>
             <div className="rounded-neo border border-base-line bg-accent-sun p-3">
               <p className="mb-1 flex items-center gap-1 text-[10px] font-black uppercase text-base-ink/55"><ShieldCheck className="h-3.5 w-3.5" /> PIN Dashboard</p>
-              <div className="flex items-center justify-between gap-3"><p className="font-mono text-2xl font-black tracking-[0.25em]">{result.pin}</p><Button type="button" size="sm" variant="outline" onClick={() => copy("pin", result.pin)}>{copied === "pin" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} {copied === "pin" ? "Tersalin" : "Salin"}</Button></div>
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-mono text-2xl font-black tracking-[0.25em]">{result.pin}</p>
+                <Button type="button" size="sm" variant="outline" onClick={() => copy("pin", result.pin)}>
+                  {copied === "pin" ? <Check className="h-4 w-4 text-accent-sageDeep" /> : <Copy className="h-4 w-4" />} {copied === "pin" ? "Tersalin" : "Salin"}
+                </Button>
+              </div>
             </div>
             <a href={result.dashboardUrl} target="_blank" rel="noreferrer" className="block">
-              <Button variant="sky" className="w-full">
+              <Button variant="primary" className="w-full">
                 <ExternalLink className="h-4 w-4" /> Buka Dashboard Member
               </Button>
             </a>
@@ -325,14 +555,47 @@ export function ReswebDashboardClient({
   );
 }
 
-function Stat({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: string }) {
+function StatCard({
+  label,
+  raw,
+  format,
+  icon,
+  color,
+  bar,
+  trend,
+}: {
+  label: string;
+  raw: number;
+  format: (v: number) => string;
+  icon: React.ReactNode;
+  color: string;
+  bar: string;
+  trend?: boolean;
+}) {
+  const animated = useCountUp(raw);
   return (
-    <motion.div whileHover={{ y: -3 }} className={cn("rounded-neo border border-base-line p-4 shadow-neo-sm", color)}>
-      <div className="flex items-center justify-between">
+    <motion.div variants={riseIn} whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 350, damping: 22 }} className={cn("relative overflow-hidden rounded-neo border border-base-line p-4 shadow-neo-sm", color)}>
+      <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 text-base-ink/[0.05]">
+        <path d="M50 5 72 43 112 43 80 67 92 105 60 82 28 105 40 67 8 43 48 43Z" fill="currentColor" />
+      </svg>
+      <div className="relative flex items-center justify-between">
         <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">{label}</p>
-        {icon}
+        <span className="flex h-8 w-8 items-center justify-center rounded-neo border border-base-line bg-white/70">{icon}</span>
       </div>
-      <p className="mt-1 text-xl font-black">{value}</p>
+      <p className="relative mt-1 text-2xl font-black tabular-nums">{format(animated)}</p>
+      <div className="relative mt-2 h-1 overflow-hidden rounded-full bg-base-ink/10">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: raw > 0 ? "100%" : "0%" }}
+          transition={{ duration: 0.9, ease: "easeOut", delay: 0.2 }}
+          className={cn("h-full", bar)}
+        />
+      </div>
+      {trend && raw > 0 ? (
+        <p className="relative mt-1.5 flex items-center gap-1 text-[10px] font-bold text-base-ink/45">
+          <TrendingUp className="h-3 w-3" /> siap dipakai
+        </p>
+      ) : null}
     </motion.div>
   );
 }
