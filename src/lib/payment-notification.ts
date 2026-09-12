@@ -13,7 +13,7 @@ export type ForwardPayload = {
   [key: string]: unknown;
 };
 
-export type PaymentProvider = "neobank" | "dana" | "unknown";
+export type PaymentProvider = "neobank" | "dana" | "gopay" | "unknown";
 
 export type ParsedPayment = {
   provider: PaymentProvider;
@@ -32,6 +32,7 @@ export type ParsedPayment = {
 const PKG_PROVIDER: Record<string, PaymentProvider> = {
   "com.bnc.finance": "neobank",
   "id.dana": "dana",
+  "com.gojek.gopaymerchant": "gopay",
 };
 
 function str(v: unknown): string | null {
@@ -73,6 +74,7 @@ function detectProvider(pkg: string, name: string | null): PaymentProvider {
   const n = (name ?? "").toLowerCase();
   if (n.includes("neo") || n.includes("bnc")) return "neobank";
   if (n.includes("dana")) return "dana";
+  if (n.includes("gopay")) return "gopay";
   return "unknown";
 }
 
@@ -94,6 +96,9 @@ function isPaymentNotif(provider: PaymentProvider, title: string | null, text: s
       /diterima\s+dana/i.test(t) ||
       /rp\s*[\d.,]+\s+diterima/i.test(t)
     );
+  }
+  if (provider === "gopay") {
+    return /pembayaran\s+qris(?:\s+statis)?\s+diterima/i.test(t);
   }
   // unknown pkg: simpan jika ada Rp amount
   return parseRupiahAmount(t) != null;

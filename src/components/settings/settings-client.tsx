@@ -230,6 +230,7 @@ export function SettingsClient({
                   <select id="qrisProvider" name="qrisProvider" defaultValue={initialQrisProvider} className="w-full rounded-neo border-2 border-base-ink bg-base-surface px-4 py-2.5 text-base shadow-neo-sm outline-none focus:shadow-neo">
                     <option value="none">Nonaktif</option>
                     <option value="dana">DANA</option>
+                    <option value="gopay">GoPay Merchant</option>
                     <option value="nobu">Nobu/Neobank</option>
                   </select>
                 </div>

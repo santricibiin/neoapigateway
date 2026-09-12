@@ -5,7 +5,7 @@ import { parsePaymentNotification, makeEventKey } from "@/lib/payment-notificati
 import { claimPaymentEvent, fulfillOrder } from "@/lib/payment-matcher";
 import { claimReswebOrder } from "@/lib/resweb";
 
-const KNOWN = new Set(["com.bnc.finance", "id.dana"]);
+const KNOWN = new Set(["com.bnc.finance", "id.dana", "com.gojek.gopaymerchant"]);
 
 function checkSecret(value: unknown, secret: string): boolean {
   if (typeof value !== "string" || !value) return false;

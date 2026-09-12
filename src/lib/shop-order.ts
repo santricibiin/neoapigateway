@@ -12,6 +12,7 @@ export function invoiceCode() {
 export function providerLabel(p: string) {
   if (p === "dana") return "DANA";
   if (p === "nobu") return "Nobu/Neobank";
+  if (p === "gopay") return "GoPay Merchant";
   return p;
 }
 

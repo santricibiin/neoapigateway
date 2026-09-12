@@ -21,7 +21,7 @@ model Setting {
   id                Int      @id @default(1)
   secretKey         String?
   pin               String?
-  /// none | dana | nobu
+  /// none | dana | nobu | gopay
   qrisProvider      String   @default("none") @db.VarChar(20)
   /// Raw payload QRIS statis (EMVCo)
   qrisStatic        String?  @db.Text

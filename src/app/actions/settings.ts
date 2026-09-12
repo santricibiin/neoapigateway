@@ -7,7 +7,7 @@ import { readSettingsRaw } from "@/lib/settings-raw";
 import { verifyQrisCrc } from "@/lib/qris";
 import type { ActionResult } from "@/types";
 
-const VALID_PROVIDERS = ["none", "dana", "nobu"] as const;
+const VALID_PROVIDERS = ["none", "dana", "nobu", "gopay"] as const;
 const VALID_BACKUP_UNITS = ["minutes", "hours", "days"] as const;
 
 export async function getSettings() {
