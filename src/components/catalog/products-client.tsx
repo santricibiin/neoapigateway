@@ -211,7 +211,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
                 variants={grid}
                 initial="hidden"
                 animate="show"
-                className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                className="mx-auto grid w-full max-w-sm grid-cols-1 gap-3 min-[480px]:max-w-none min-[480px]:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               >
                 {grouped[category].map((product) => {
                   const { available, labelId, count } = getAvailability(product, resellerQuota);
@@ -285,18 +285,18 @@ export function ProductsClient({ products }: { products: Product[] }) {
                     return (
                       <div
                         key={product.id}
-                        className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1.5 px-4 py-3 transition-colors hover:bg-base-bg/60 sm:grid-cols-[1fr_auto_auto_auto] sm:items-center sm:gap-4"
+                        className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 px-4 py-3.5 transition-colors hover:bg-base-bg/60 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-center md:gap-4"
                       >
                         {/* Kiri: produk + model */}
-                        <div className="min-w-0 sm:pr-4">
+                        <div className="min-w-0 md:pr-4">
                           <p className="truncate font-extrabold" title={product.name}>
                             {product.name}
                           </p>
                           <p className="truncate font-mono text-xs font-bold text-base-ink/50">{product.model}</p>
                         </div>
 
-                        {/* Stok — HP: bawah nama; tablet/PC: kolom sendiri */}
-                        <div className="col-start-2 row-start-1 justify-self-end sm:col-start-2 sm:row-start-1 sm:justify-self-end">
+                        {/* Stok — HP: kanan atas; tablet/PC: kolom sendiri */}
+                        <div className="col-start-2 row-start-1 justify-self-end md:col-start-2 md:row-start-1">
                           <span
                             className={`inline-flex items-center gap-1.5 rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase ${
                               available ? "bg-accent-mint" : "bg-accent-terraSoft"
@@ -307,14 +307,14 @@ export function ProductsClient({ products }: { products: Product[] }) {
                           </span>
                         </div>
 
-                        {/* Harga — HP: baris kedua kiri; tablet/PC: kolom kanan */}
-                        <div className="col-start-1 row-start-2 items-center gap-1.5 sm:col-start-3 sm:row-start-1 sm:justify-self-end">
-                          <span className="text-[10px] font-black uppercase text-base-ink/40 sm:hidden">{t("Harga")}</span>
-                          <p className="text-sm font-extrabold sm:text-base">{formatRupiah(product.price)}</p>
+                        {/* Harga — HP: baris kedua; tablet/PC: kolom kanan */}
+                        <div className="col-start-1 row-start-2 items-baseline gap-1.5 md:col-start-3 md:row-start-1 md:justify-self-end">
+                          <span className="text-[10px] font-black uppercase text-base-ink/40 md:hidden">{t("Harga")}</span>
+                          <p className="text-sm font-extrabold md:text-base">{formatRupiah(product.price)}</p>
                         </div>
 
                         {/* Aksi — HP: baris kedua kanan; tablet/PC: kolom terakhir */}
-                        <div className="col-start-2 row-start-2 justify-self-end sm:col-start-4 sm:row-start-1">
+                        <div className="col-start-2 row-start-2 justify-self-end md:col-start-4 md:row-start-1">
                           {available ? (
                             <Link href={`/order/${product.id}`}>
                               <Button variant="primary" size="sm">

@@ -96,32 +96,34 @@ export function CategoryAdminClient({ initialCategories }: { initialCategories: 
             {filtered.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-col gap-2 px-4 py-3 transition-colors hover:bg-base-bg/60 sm:flex-row sm:items-center sm:gap-4"
+                className="flex flex-col gap-2.5 px-4 py-3.5 transition-colors hover:bg-base-bg/60 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
               >
                 <div className="min-w-0 sm:flex-1">
                   <p className="truncate font-extrabold">{item.name}</p>
                   <p className="text-xs font-bold text-base-ink/45">{item.productCount} produk · #{item.id}</p>
                 </div>
-                <span
-                  className={`inline-flex w-fit items-center gap-1.5 rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase ${
-                    item.active ? "bg-accent-sageSoft text-accent-sageDeep" : "bg-base-bg text-base-muted"
-                  }`}
-                >
-                  <span className={`h-1.5 w-1.5 rounded-full ${item.active ? "bg-accent-sageDeep" : "bg-stone-400"}`} />
-                  {item.active ? "Aktif" : "Nonaktif"}
-                </span>
-                <div className="flex items-center gap-2">
-                  <Button size="sm" variant="outline" onClick={() => show(item)}>
-                    <Pencil className="h-3.5 w-3.5" /> Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="hover:bg-accent-terraSoft hover:text-accent-terraDeep"
-                    onClick={() => { setError(null); setConfirming(item); }}
+                <div className="flex items-center justify-between gap-3 sm:justify-end">
+                  <span
+                    className={`inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase ${
+                      item.active ? "bg-accent-sageSoft text-accent-sageDeep" : "bg-base-bg text-base-muted"
+                    }`}
                   >
-                    <Trash2 className="h-3.5 w-3.5" /> Hapus
-                  </Button>
+                    <span className={`h-1.5 w-1.5 rounded-full ${item.active ? "bg-accent-sageDeep" : "bg-stone-400"}`} />
+                    {item.active ? "Aktif" : "Nonaktif"}
+                  </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Button size="sm" variant="outline" onClick={() => show(item)}>
+                      <Pencil className="h-3.5 w-3.5" /> Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="hover:bg-accent-terraSoft hover:text-accent-terraDeep"
+                      onClick={() => { setError(null); setConfirming(item); }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Hapus
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
