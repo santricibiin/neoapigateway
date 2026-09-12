@@ -38,7 +38,6 @@ const DICT: Record<string, string> = {
   // Navbar
   "Home": "Home",
   "Produk": "Products",
-  "Cek Kuota": "Check Quota",
   "Order Token": "Get Token",
   "Beranda": "Home",
   "Admin": "Admin",

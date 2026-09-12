@@ -6,7 +6,6 @@ import { useT } from "@/lib/lang";
 
 const footerLinks = [
   { href: "/", labelId: "Beranda" },
-  { href: "/cek-kuota", labelId: "Cek Kuota" },
   { href: "/login/admin", labelId: "Admin" },
 ];
 

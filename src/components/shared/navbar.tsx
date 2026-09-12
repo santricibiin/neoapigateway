@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Package, Gauge, Globe, Menu, X } from "lucide-react";
+import { Home, Package, Globe, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBrand } from "@/lib/use-brand";
 import { useLang, useT, type Lang } from "@/lib/lang";
@@ -11,7 +11,6 @@ import { useLang, useT, type Lang } from "@/lib/lang";
 const navLinks = [
   { href: "/", labelId: "Home", labelEn: "Home", icon: Home },
   { href: "/products", labelId: "Produk", labelEn: "Products", icon: Package },
-  { href: "/cek-kuota", labelId: "Cek Kuota", labelEn: "Check Quota", icon: Gauge },
 ];
 
 function LangToggle() {
