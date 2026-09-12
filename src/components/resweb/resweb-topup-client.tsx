@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import QRCode from "qrcode";
-import { Wallet, Sparkles, Loader2, Clock, CheckCircle2, XCircle, RefreshCw, Copy, Check, ReceiptText, ScanLine } from "lucide-react";
+import { Wallet, Sparkles, Loader2, Clock, CheckCircle2, XCircle, RefreshCw, Copy, Check, ReceiptText, ScanLine, Coins, CalendarDays, Ticket, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
@@ -29,23 +29,32 @@ function countdown(target: string) {
   return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
-const statusStyle: Record<string, string> = {
-  pending: "bg-accent-sun",
-  paid: "bg-accent-mint",
-  expired: "bg-orange-200",
-  failed: "bg-accent-terraSoft",
+const statusBadge: Record<string, string> = {
+  pending: "bg-accent-sandSoft text-base-ink/70",
+  paid: "bg-accent-sageSoft text-accent-sageDeep",
+  expired: "bg-accent-terraSoft text-accent-terraDeep",
+  failed: "bg-accent-terraSoft text-accent-terraDeep",
 };
+const statusLabel: Record<string, string> = {
+  pending: "Menunggu",
+  paid: "Lunas",
+  expired: "Kedaluwarsa",
+  failed: "Gagal",
+};
+
+const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
+const riseIn = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 320, damping: 24 } } };
 
 export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tier[]; orders: Order[] }) {
   const [creating, setCreating] = useState<number | null>(null);
   const [payment, setPayment] = useState<{ invoice: string; amount: number; qrisPayload: string; expiresAt: string } | null>(null);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<string>("pending");
-  const [now, setNow] = useState(Date.now());
   const [checking, setChecking] = useState(false);
   const [orders, setOrders] = useState(initialOrders);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [, setNowTick] = useState(0);
 
   async function create(tier: Tier) {
     setCreating(tier.id);
@@ -81,13 +90,10 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
       const data = await res.json();
       if (data.ok) {
         setStatus(data.status);
-        if (data.status === "paid" || data.status === "expired" || data.status === "failed") {
-          if (data.status === "paid") {
-            // refresh orders
-            const r2 = await fetch("/res/api/topup", { cache: "no-store" });
-            const d2 = await r2.json();
-            if (d2.ok) setOrders(d2.orders);
-          }
+        if (data.status === "paid") {
+          const r2 = await fetch("/res/api/topup", { cache: "no-store" });
+          const d2 = await r2.json();
+          if (d2.ok) setOrders(d2.orders);
         }
       }
     } catch {}
@@ -97,7 +103,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
   useEffect(() => {
     if (!payment) return;
     if (status === "paid" || status === "expired" || status === "failed") return;
-    const timer = setInterval(() => setNow(Date.now()), 1000);
+    const timer = setInterval(() => setNowTick((n) => n + 1), 1000);
     const poller = setInterval(() => void checkStatus(), 4000);
     return () => { clearInterval(timer); clearInterval(poller); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,40 +120,108 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
 
   const isPaid = status === "paid";
   const isExpired = status === "expired" || status === "failed";
+  const paidCount = orders.filter((o) => o.status === "paid").length;
 
   return (
     <div className="space-y-6">
-      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border border-base-line bg-accent-sun p-5 shadow-neo sm:p-7">
-        <motion.svg animate={{ rotate: [0, 8, 0] }} transition={{ duration: 5, repeat: Infinity }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 text-white/35"><path d="M50 5 60 38 94 39 67 58 76 91 50 72 24 91 33 58 6 39 40 38Z" fill="currentColor" /></motion.svg>
-        <div className="relative flex items-center gap-4"><span className="flex h-12 w-12 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm"><ScanLine className="h-6 w-6" /></span><div><p className="text-[10px] font-black uppercase tracking-[0.2em]">QRIS Instant</p><h1 className="text-3xl font-black sm:text-4xl">Isi saldo token.</h1><p className="mt-1 text-sm font-bold text-base-ink/60">Pilih paket, scan, saldo masuk otomatis.</p></div></div>
+      {/* Hero */}
+      <motion.section
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="relative overflow-hidden rounded-neo border border-base-line bg-gradient-to-br from-accent-sand via-accent-sandSoft to-accent-sageSoft/70 p-5 shadow-neo sm:p-8"
+      >
+        <motion.svg
+          animate={{ rotate: 360 }}
+          transition={{ duration: 36, repeat: Infinity, ease: "linear" }}
+          viewBox="0 0 120 120"
+          className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 text-white/40"
+          aria-hidden
+        >
+          <path d="M60 8 71 42 108 42 79 63 90 99 60 78 30 99 41 63 12 42 49 42Z" fill="currentColor" />
+        </motion.svg>
+        <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute inset-0 h-full w-full text-base-ink/[0.04]">
+          <defs>
+            <pattern id="topup-grid" width="30" height="30" patternUnits="userSpaceOnUse">
+              <path d="M30 0H0v30" fill="none" stroke="currentColor" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#topup-grid)" />
+        </svg>
+        <div className="relative flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+          <motion.span
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.15, type: "spring", stiffness: 280, damping: 16 }}
+            className="flex h-14 w-14 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm"
+          >
+            <ScanLine className="h-7 w-7 text-accent-terra" strokeWidth={2.5} />
+          </motion.span>
+          <div>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-base-ink/55">
+              <Sparkles className="h-3 w-3 text-accent-terra" /> QRIS Instant
+            </motion.p>
+            <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="text-3xl font-black tracking-tight sm:text-4xl">
+              Isi saldo token.
+            </motion.h1>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.32 }} className="mt-1 text-sm font-bold text-base-ink/60">
+              Pilih paket, scan, saldo masuk otomatis.
+            </motion.p>
+          </div>
+          {paidCount > 0 ? (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 }}
+              className="ml-auto hidden items-center gap-1.5 rounded-full border border-base-line bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-wider shadow-neo-sm sm:inline-flex"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5 text-accent-sageDeep" /> {paidCount} topup lunas
+            </motion.span>
+          ) : null}
+        </div>
       </motion.section>
 
-      {error && <div className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</div>}
+      {error && (
+        <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">
+          {error}
+        </motion.div>
+      )}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {/* Kartu paket */}
+      <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {tiers.map((t) => (
           <motion.div
             key={t.id}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: Math.min(t.sortOrder, 8) * 0.04 }}
-            whileHover={{ y: -6, rotate: -0.4 }}
-            className="relative overflow-hidden rounded-neo border border-base-line bg-white p-5 shadow-neo-sm"
+            variants={riseIn}
+            whileHover={{ y: -5 }}
+            transition={{ type: "spring", stiffness: 350, damping: 22 }}
+            className="group relative overflow-hidden rounded-neo border border-base-line bg-white p-5 shadow-neo-sm transition-shadow hover:shadow-neo"
           >
-            <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -bottom-12 -right-10 h-32 w-32 text-accent-mint/25"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg>
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-3xl font-black">{t.label}</p>
-                <p className="text-xs font-bold text-base-ink/45">{formatTokens(t.tokens)} token · {t.validDays} hari</p>
+            <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -bottom-12 -right-10 h-32 w-32 text-accent-sage/20">
+              <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" />
+            </svg>
+            <div className="relative flex items-start justify-between gap-2">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-neo border border-base-line bg-accent-sageSoft">
+                  <Coins className="h-5 w-5 text-accent-sageDeep" strokeWidth={2.5} />
+                </span>
+                <div>
+                  <p className="text-2xl font-black leading-tight">{t.label}</p>
+                  <p className="text-xs font-bold text-base-ink/45">{formatTokens(t.tokens)} token · {t.validDays} hari</p>
+                </div>
               </div>
-              <Sparkles className="h-5 w-5 text-amber-500" />
+              <Sparkles className="h-5 w-5 text-accent-terra/60 transition-transform group-hover:rotate-12" strokeWidth={2.5} />
             </div>
-            <div className="my-4 border-y-2 border-dashed border-base-ink/20 py-3">
-              <p className="text-2xl font-black">{money(t.price)}</p>
+            <div className="relative my-4 flex items-end justify-between border-y border-dashed border-base-line py-3">
+              <p className="text-2xl font-black tabular-nums">{money(t.price)}</p>
+              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-base-ink/40">
+                <Ticket className="h-3 w-3" /> {t.code}
+              </span>
             </div>
             <Button variant="primary" className="relative w-full" disabled={creating !== null} onClick={() => void create(t)}>
               {creating === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
-              Pilih Paket
+              {creating === t.id ? "Menyiapkan..." : "Pilih Paket"}
+              {creating !== t.id ? <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /> : null}
             </Button>
           </motion.div>
         ))}
@@ -157,29 +231,41 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
             <p className="mt-3 font-black">Belum ada paket topup aktif</p>
           </div>
         )}
-      </div>
+      </motion.div>
 
+      {/* Modal pembayaran */}
       <Modal open={Boolean(payment)} onClose={() => { if (!checking) setPayment(null); }} title={isPaid ? "Pembayaran Berhasil" : isExpired ? "Invoice Kedaluwarsa" : "Scan QRIS"} className="max-w-md">
         {payment && (
           <div className="flex flex-col items-center gap-4">
             {!isPaid && !isExpired && (
               <>
-                <div className="w-full rounded-neo border border-base-line bg-accent-sun p-3 text-center">
-                  <div className="text-[10px] font-black uppercase text-base-ink/60">No. Invoice</div>
+                <div className="w-full rounded-neo border border-base-line bg-accent-sandSoft p-3 text-center">
+                  <div className="text-[10px] font-black uppercase text-base-ink/55">No. Invoice</div>
                   <div className="mt-0.5 break-all font-mono text-sm font-extrabold">{payment.invoice}</div>
                 </div>
-                <div className="rounded-neo border border-base-line bg-white p-3">
-                  {qrUrl ? <img src={qrUrl} alt="QRIS" className="h-56 w-56" /> : <Loader2 className="h-8 w-8 animate-spin" />}
+                <div className="rounded-neo border border-base-line bg-white p-4 shadow-neo-sm">
+                  {qrUrl ? (
+                    <motion.img
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      src={qrUrl}
+                      alt="QRIS"
+                      className="h-60 w-60"
+                    />
+                  ) : (
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                  )}
                 </div>
                 <div className="w-full rounded-neo border border-base-line bg-base-bg p-4 text-center">
                   <div className="text-xs font-bold uppercase text-base-ink/50">Total Bayar</div>
-                  <div className="mt-1 text-2xl font-extrabold">{money(payment.amount)}</div>
-                  <button onClick={copyAmount} className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-accent-sky">
+                  <div className="mt-1 text-2xl font-extrabold tabular-nums">{money(payment.amount)}</div>
+                  <button onClick={copyAmount} className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-accent-terraDeep hover:underline">
                     {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />} {copied ? "Tersalin" : "Salin nominal"}
                   </button>
                 </div>
-                <div className="flex items-center gap-2 text-sm font-bold text-base-ink/70">
-                  <Clock className="h-4 w-4" /> Berlaku {countdown(payment.expiresAt)}
+                <div className="flex items-center gap-2 rounded-neo border border-base-line bg-base-bg px-4 py-2 text-sm font-bold">
+                  <Clock className="h-4 w-4 text-accent-terraDeep" /> Berlaku
+                  <span className="font-mono text-base font-black tabular-nums">{countdown(payment.expiresAt)}</span>
                 </div>
                 <p className="text-center text-xs text-base-ink/55">Bayar tepat sesuai nominal. Status dicek otomatis.</p>
                 <div className="flex items-center gap-2 text-xs font-bold text-base-ink/50">
@@ -188,16 +274,28 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
               </>
             )}
             {isPaid && (
-              <div className="flex w-full flex-col items-center gap-3 rounded-neo border border-base-line bg-accent-mint p-6 text-center">
-                <CheckCircle2 className="h-12 w-12 text-accent-sageDeep" />
+              <motion.div
+                initial={{ scale: 0.92, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 280, damping: 20 }}
+                className="flex w-full flex-col items-center gap-3 rounded-neo border border-base-line bg-accent-sageSoft p-6 text-center"
+              >
+                <motion.span
+                  initial={{ scale: 0, rotate: -30 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 14 }}
+                  className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-base-line bg-white"
+                >
+                  <CheckCircle2 className="h-8 w-8 text-accent-sageDeep" />
+                </motion.span>
                 <h3 className="text-xl font-extrabold">Pembayaran Berhasil!</h3>
                 <p className="text-sm text-base-ink/70">Saldo token telah ditambahkan ke akun Anda.</p>
                 <Button variant="primary" className="w-full" onClick={() => { setPayment(null); setQrUrl(null); }}>Tutup</Button>
-              </div>
+              </motion.div>
             )}
             {isExpired && (
-              <div className="flex w-full flex-col items-center gap-3 rounded-neo border border-base-line bg-accent-sun p-6 text-center">
-                <XCircle className="h-12 w-12 text-red-500" />
+              <div className="flex w-full flex-col items-center gap-3 rounded-neo border border-base-line bg-accent-sandSoft p-6 text-center">
+                <XCircle className="h-12 w-12 text-accent-terraDeep" />
                 <h3 className="text-xl font-extrabold">Invoice Kedaluwarsa</h3>
                 <p className="text-sm text-base-ink/70">Silakan buat topup baru.</p>
                 <Button variant="outline" className="w-full" onClick={() => { setPayment(null); setQrUrl(null); }}>Tutup</Button>
@@ -209,15 +307,41 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
 
       {/* Riwayat */}
       <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm">
-        <div className="flex items-center gap-2 border-b border-base-line bg-accent-lavender p-4">
-          <ReceiptText className="h-5 w-5" /><h2 className="font-extrabold">Riwayat Topup</h2>
+        <div className="flex items-center justify-between gap-2 border-b border-base-line bg-base-bg p-4">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-neo border border-base-line bg-accent-skySoft">
+              <ReceiptText className="h-4 w-4" strokeWidth={2.5} />
+            </span>
+            <h2 className="font-extrabold">Riwayat Topup</h2>
+          </div>
+          <span className="text-xs font-bold text-base-ink/45">{orders.length} transaksi</span>
         </div>
-        <div className="divide-y divide-base-line/10 sm:hidden">
-          {orders.length === 0 ? <p className="p-8 text-center text-sm font-bold text-base-ink/40">Belum ada topup</p> : orders.map((o) => <article key={o.id} className="space-y-2 p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-black">{o.tierLabel} <span className="text-xs text-base-ink/45">{formatTokens(o.tokens)}</span></p><p className="font-mono text-[10px] font-bold text-base-ink/45">{o.invoice}</p></div><span className={cn("rounded-full border border-base-line px-2 py-0.5 text-[9px] font-black uppercase", statusStyle[o.status] || "bg-base-bg")}>{o.status}</span></div><div className="flex justify-between text-xs font-bold"><span>{money(o.amount)}</span><span className="text-base-ink/45">{new Date(o.createdAt).toLocaleDateString("id-ID")}</span></div></article>)}
+        <div className="divide-y divide-base-line sm:hidden">
+          {orders.length === 0 ? (
+            <p className="p-8 text-center text-sm font-bold text-base-ink/40">Belum ada topup</p>
+          ) : (
+            orders.map((o) => (
+              <article key={o.id} className="space-y-2 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-black">{o.tierLabel} <span className="text-xs text-base-ink/45">{formatTokens(o.tokens)}</span></p>
+                    <p className="font-mono text-[10px] font-bold text-base-ink/45">{o.invoice}</p>
+                  </div>
+                  <span className={cn("rounded-full border border-base-line px-2 py-0.5 text-[9px] font-black uppercase", statusBadge[o.status] || "bg-base-bg")}>
+                    {statusLabel[o.status] || o.status}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs font-bold">
+                  <span className="tabular-nums">{money(o.amount)}</span>
+                  <span className="text-base-ink/45">{new Date(o.createdAt).toLocaleDateString("id-ID")}</span>
+                </div>
+              </article>
+            ))
+          )}
         </div>
         <div className="hidden overflow-x-auto sm:block">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="bg-base-ink text-xs uppercase text-white">
+            <thead className="bg-base-ink text-xs uppercase tracking-wide text-white">
               <tr>
                 <th className="px-4 py-3">Invoice</th>
                 <th className="px-4 py-3">Paket</th>
@@ -229,17 +353,27 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
             <tbody className="divide-y divide-base-line">
               {orders.length === 0 ? (
                 <tr><td colSpan={5} className="px-4 py-8 text-center font-bold text-base-ink/40">Belum ada topup</td></tr>
-              ) : orders.map((o) => (
-                <tr key={o.id}>
-                  <td className="px-4 py-3 font-mono text-[10px] font-bold">{o.invoice}</td>
-                  <td className="px-4 py-3 font-bold">{o.tierLabel} <span className="text-[10px] text-base-ink/45">{formatTokens(o.tokens)}</span></td>
-                  <td className="px-4 py-3 font-bold">{money(o.amount)}</td>
-                  <td className="px-4 py-3">
-                    <span className={cn("inline-flex rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase", statusStyle[o.status] || "bg-base-bg")}>{o.status}</span>
-                  </td>
-                  <td className="px-4 py-3 text-xs font-bold">{new Date(o.createdAt).toLocaleString("id-ID")}</td>
-                </tr>
-              ))}
+              ) : (
+                orders.map((o) => (
+                  <tr key={o.id} className="transition-colors hover:bg-accent-sky/10">
+                    <td className="px-4 py-3 font-mono text-[10px] font-bold">{o.invoice}</td>
+                    <td className="px-4 py-3 font-bold">{o.tierLabel} <span className="text-[10px] text-base-ink/45">{formatTokens(o.tokens)}</span></td>
+                    <td className="px-4 py-3 font-bold tabular-nums">{money(o.amount)}</td>
+                    <td className="px-4 py-3">
+                      <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase", statusBadge[o.status] || "bg-base-bg")}>
+                        <span className={cn("h-1.5 w-1.5 rounded-full", o.status === "paid" ? "bg-accent-sageDeep" : o.status === "pending" ? "bg-accent-terra" : "bg-stone-400")} />
+                        {statusLabel[o.status] || o.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-base-ink/60">
+                        <CalendarDays className="h-3 w-3 text-base-ink/35" />
+                        {new Date(o.createdAt).toLocaleString("id-ID")}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

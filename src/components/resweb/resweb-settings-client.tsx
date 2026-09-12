@@ -57,11 +57,42 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
 
   return (
     <div className="space-y-6">
-      <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border border-base-line bg-accent-lavender p-5 shadow-neo sm:p-7">
+      <motion.section
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="relative overflow-hidden rounded-neo border border-base-line bg-gradient-to-br from-accent-skySoft via-base-surface to-accent-sandSoft/60 p-5 shadow-neo sm:p-8"
+      >
+        <motion.svg
+          animate={{ rotate: 360 }}
+          transition={{ duration: 38, repeat: Infinity, ease: "linear" }}
+          viewBox="0 0 120 120"
+          className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 text-white/40"
+          aria-hidden
+        >
+          <circle cx="60" cy="60" r="42" fill="none" stroke="currentColor" strokeWidth="10" />
+          <circle cx="60" cy="60" r="18" fill="currentColor" />
+        </motion.svg>
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Sparkles className="h-3 w-3" /> Pengaturan</span>
-          <h1 className="mt-3 text-3xl font-black sm:text-4xl">Pengaturan Akun</h1>
-          <p className="mt-1 text-sm font-bold text-base-ink/60">{reseller?.email}</p>
+          <motion.span
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 18 }}
+            className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest shadow-neo-sm"
+          >
+            <Sparkles className="h-3 w-3 text-accent-terra" /> Pengaturan
+          </motion.span>
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.22 }}
+            className="mt-3 text-3xl font-black tracking-tight sm:text-4xl"
+          >
+            Pengaturan Akun
+          </motion.h1>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-1 text-sm font-bold text-base-ink/60">
+            {reseller?.email}
+          </motion.p>
         </div>
       </motion.section>
 
