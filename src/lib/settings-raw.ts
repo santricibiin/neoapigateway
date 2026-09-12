@@ -18,5 +18,7 @@ export async function readSettingsRaw() {
     telegramChatId: setting?.telegramChatId ?? "",
     siteName: setting?.siteName ?? "",
     logoPath: setting?.logoPath ?? "",
+    csTelegram: setting?.csTelegram ?? "",
+    csWhatsapp: setting?.csWhatsapp ?? "",
   };
 }

@@ -32,6 +32,8 @@ export async function saveSettings(
   const telegramBotToken = formData.get("telegramBotToken")?.toString().trim() ?? "";
   const telegramChatId = formData.get("telegramChatId")?.toString().trim() ?? "";
   const siteName = formData.get("siteName")?.toString().trim() ?? "";
+  const csTelegram = (formData.get("csTelegram")?.toString().trim() ?? "").replace(/^@/, "");
+  const csWhatsapp = formData.get("csWhatsapp")?.toString().replace(/[^0-9]/g, "");
 
   // Preserve existing values jika field kosong (memungkinkan update section lain tanpa re-input)
   const existing = await prisma.setting.findUnique({ where: { id: 1 } });
@@ -41,6 +43,13 @@ export async function saveSettings(
   const finalTelegramBotToken = telegramBotToken || existing?.telegramBotToken || "";
   const finalTelegramChatId = telegramChatId || existing?.telegramChatId || "";
   const finalSiteName = siteName || existing?.siteName || "";
+
+  if (csTelegram && !/^[A-Za-z0-9_]{4,64}$/.test(csTelegram)) {
+    return { ok: false, error: "Username Telegram tidak valid (4-64 karakter: huruf, angka, underscore)" };
+  }
+  if (csWhatsapp && !/^62[0-9]{8,13}$/.test(csWhatsapp)) {
+    return { ok: false, error: "Nomor WhatsApp harus format 62xxxxxxxxxx" };
+  }
 
   if (!finalSecretKey && !finalPin) {
     return { ok: false, error: "Secret Key dan PIN tidak boleh kosong" };
@@ -95,6 +104,8 @@ export async function saveSettings(
         telegramBotToken: finalTelegramBotToken,
         telegramChatId: finalTelegramChatId,
         siteName: finalSiteName,
+        csTelegram: csTelegram || null,
+        csWhatsapp: csWhatsapp || null,
       },
       create: {
         id: 1,
@@ -111,6 +122,8 @@ export async function saveSettings(
         telegramBotToken: finalTelegramBotToken,
         telegramChatId: finalTelegramChatId,
         siteName: finalSiteName,
+        csTelegram: csTelegram || null,
+        csWhatsapp: csWhatsapp || null,
       },
     });
     revalidatePath("/dashboard/settings");

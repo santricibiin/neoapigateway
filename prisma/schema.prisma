@@ -68,6 +68,10 @@ model Setting {
   forceJoinOn       Boolean  @default(false)
   forceJoinLink     String?  @db.VarChar(300)
   forceJoinChatId   String?  @db.VarChar(120)
+  /// Kontak CS landing: username Telegram (tanpa @)
+  csTelegram        String?  @db.VarChar(64)
+  /// Kontak CS landing: nomor WhatsApp (format 62xxx)
+  csWhatsapp        String?  @db.VarChar(20)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

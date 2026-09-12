@@ -199,6 +199,36 @@ const DICT: Record<string, string> = {
   "Batalkan": "Cancel",
   "Membatalkan...": "Cancelling...",
 
+  // Contact page
+  "Kontak": "Contact",
+  "Hubungi Kami": "Get in Touch",
+  "Ada pertanyaan sebelum membeli, atau butuh bantuan dengan pesanan Anda? Tim kami siap membantu.":
+    "Have questions before buying, or need help with your order? Our team is ready to help.",
+  "Respon cepat untuk pertanyaan produk & pembelian.":
+    "Fast response for product & purchase questions.",
+  "Chat langsung untuk bantuan pesanan & kendala teknis.":
+    "Direct chat for order help & technical issues.",
+  "Chat Sekarang": "Chat Now",
+  "Belum tersedia.": "Not available yet.",
+  "Jam Operasional": "Business Hours",
+  "Setiap hari, 08.00 - 22.00 WIB": "Every day, 08:00 - 22:00 (GMT+7)",
+  "Respon Cepat": "Fast Response",
+  "Balasan rata-rata di bawah 15 menit": "Average reply under 15 minutes",
+  "Transaksi terpantau otomatis 24 jam": "Transactions monitored automatically 24/7",
+  "Pertanyaan Umum": "Frequently Asked Questions",
+  "Berapa lama produk dikirim setelah pembayaran?": "How long does delivery take after payment?",
+  "Produk terkirim otomatis dalam hitungan detik setelah pembayaran terdeteksi — 24 jam.":
+    "Products are delivered automatically within seconds after payment is detected — 24/7.",
+  "Pembayaran apa saja yang diterima?": "What payment methods are accepted?",
+  "QRIS — bisa dibayar dari semua e-wallet dan m-banking (DANA, GoPay, OVO, BCA, dll).":
+    "QRIS — payable from any e-wallet and mobile banking (DANA, GoPay, OVO, BCA, etc).",
+  "Bagaimana cara cek status pesanan?": "How do I check my order status?",
+  "Buka halaman Cek Pesanan dan masukkan nomor invoice Anda.":
+    "Open the Track Order page and enter your invoice number.",
+  "Masih ada pertanyaan? Jangan ragu menghubungi kami di atas.":
+    "Still have questions? Don't hesitate to reach out above.",
+  "atau lihat produknya dulu": "or browse the products first",
+
   // Pay success state
   "Simpan data di atas — ini kunci akses produk Anda.":
     "Save the data above — it's the access key to your product.",

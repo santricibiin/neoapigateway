@@ -19,6 +19,8 @@ export default async function SettingsPage() {
       initialTelegramBotToken={settings.telegramBotToken}
       initialTelegramChatId={settings.telegramChatId}
       initialSiteName={settings.siteName}
+      initialCsTelegram={settings.csTelegram}
+      initialCsWhatsapp={settings.csWhatsapp}
       hasLogo={Boolean(settings.logoPath)}
     />
   );

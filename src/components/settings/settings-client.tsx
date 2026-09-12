@@ -47,6 +47,8 @@ export function SettingsClient({
   initialTelegramBotToken,
   initialTelegramChatId,
   initialSiteName,
+  initialCsTelegram,
+  initialCsWhatsapp,
   hasLogo,
 }: {
   initialSecretKey: string;
@@ -62,6 +64,8 @@ export function SettingsClient({
   initialTelegramBotToken: string;
   initialTelegramChatId: string;
   initialSiteName: string;
+  initialCsTelegram: string;
+  initialCsWhatsapp: string;
   hasLogo: boolean;
 }) {
   const [showKey, setShowKey] = useState(false);
@@ -156,6 +160,13 @@ export function SettingsClient({
             </div>
             <div className="space-y-4 p-4 sm:p-5">
               <Input name="siteName" label="Nama Website" defaultValue={initialSiteName} placeholder="Neo API Gateway" maxLength={100} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input name="csTelegram" label="CS Telegram (username, tanpa @)" defaultValue={initialCsTelegram} placeholder="cskamu" maxLength={64} />
+                <Input name="csWhatsapp" label="CS WhatsApp (format 62xxx)" defaultValue={initialCsWhatsapp} placeholder="6281234567890" maxLength={15} />
+              </div>
+              <p className="text-xs font-semibold text-base-ink/50">
+                Kontak CS tampil di halaman Kontak landing page.
+              </p>
               <div>
                 <label className="mb-1.5 block text-sm font-bold">Logo Website</label>
                 <div className="flex items-center gap-4">
