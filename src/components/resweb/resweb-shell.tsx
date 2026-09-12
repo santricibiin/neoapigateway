@@ -67,39 +67,44 @@ export function ReswebShell({
       <svg viewBox="0 0 200 200" aria-hidden className="pointer-events-none fixed -bottom-20 -right-20 h-72 w-72 text-accent-sand/15"><path d="M100 18 183 172H17Z" fill="currentColor" /></svg>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-base-line bg-base-surface/95 shadow-neo-sm backdrop-blur">
+      <header className="sticky top-0 z-50 border-b border-base-line bg-base-surface/90 shadow-neo-sm backdrop-blur-md">
         <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.94 }}
               onClick={toggle}
-              className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-base-surface text-base-ink/60 shadow-neo-sm transition-colors hover:text-base-ink lg:inline-flex"
+              className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-base-surface text-base-ink/55 shadow-neo-sm transition-colors hover:border-stone-400 hover:text-base-ink lg:inline-flex"
               aria-label={collapsed ? "Buka sidebar" : "Tutup sidebar"}
               title={collapsed ? "Buka sidebar" : "Tutup sidebar"}
             >
               {collapsed ? <PanelLeftOpen className="h-4 w-4" strokeWidth={2.5} /> : <PanelLeftClose className="h-4 w-4" strokeWidth={2.5} />}
             </motion.button>
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-terra shadow-neo-sm">
-              <Sparkles className="h-4 w-4 text-white" strokeWidth={2.5} />
-            </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-black">{reseller?.name ?? "Reseller"}</p>
-              <p className="flex items-center gap-1.5 text-[10px] font-bold text-base-ink/50">
-                <span className={`inline-block h-1.5 w-1.5 rounded-full ${reseller?.active ? "bg-accent-sageDeep" : "bg-accent-terraDeep"}`} />
-                Reseller Web{reseller?.active ? "" : " (nonaktif)"}
-              </p>
+            {/* Brand dalam kotak menyatu */}
+            <div className="flex min-w-0 items-center gap-2.5 rounded-neo border border-base-line bg-base-bg px-3 py-1.5 shadow-neo-sm">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo bg-gradient-to-br from-accent-terra to-accent-terraDeep shadow-neo-sm">
+                <Sparkles className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black leading-tight">{reseller?.name ?? "Reseller"}</p>
+                <p className="flex items-center gap-1 text-[10px] font-bold leading-tight text-base-ink/50">
+                  <span className={`inline-block h-1.5 w-1.5 rounded-full ${reseller?.active ? "bg-accent-sageDeep" : "bg-accent-terraDeep"}`} />
+                  Reseller Web{reseller?.active ? "" : " (nonaktif)"}
+                </p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-2 rounded-neo border border-base-line bg-accent-sageSoft px-3 py-1.5 sm:flex">
-              <TrendingUp className="h-4 w-4 text-accent-sageDeep" strokeWidth={2.5} />
-              <div className="text-right">
-                <p className="text-[9px] font-black uppercase text-base-ink/50">Saldo Token</p>
-                <p className="font-mono text-sm font-black tabular-nums">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</p>
+            <div className="hidden items-center gap-2.5 rounded-neo border border-base-line bg-base-bg px-3 py-1.5 shadow-neo-sm sm:flex">
+              <span className="flex h-7 w-7 items-center justify-center rounded-neo bg-accent-sageSoft">
+                <TrendingUp className="h-4 w-4 text-accent-sageDeep" strokeWidth={2.5} />
+              </span>
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-wider text-base-ink/45">Saldo Token</p>
+                <p className="font-mono text-sm font-black leading-tight tabular-nums">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 rounded-neo border border-base-line bg-base-bg px-2.5 py-1.5 sm:hidden">
+            <div className="flex items-center gap-2 rounded-neo border border-base-line bg-base-bg px-2.5 py-1.5 shadow-neo-sm sm:hidden">
               <Wallet className="h-4 w-4 text-accent-sageDeep" strokeWidth={2.5} />
               <p className="font-mono text-sm font-black tabular-nums">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</p>
             </div>
