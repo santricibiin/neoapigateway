@@ -376,37 +376,76 @@ export function ProductAdminClient({
       </Modal>
 
       <Modal open={Boolean(confirming)} onClose={() => setConfirming(null)} title="Hapus Produk">
-        <div className="space-y-4">
-          <div className="flex items-start gap-3 rounded-neo border border-base-line bg-accent-terraSoft p-4">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border border-base-line bg-white">
-              <AlertTriangle className="h-5 w-5" strokeWidth={2.5} />
-            </span>
-            <div className="min-w-0">
-              <p className="font-black">
-                Hapus <span className="font-mono">{confirming?.sku}</span> — {confirming?.name}?
-              </p>
-              <p className="mt-1 text-sm font-semibold text-base-ink/60">
-                Produk tanpa riwayat transaksi dihapus permanen. Produk dengan riwayat transaksi hanya diarsipkan (nonaktif) supaya data penjualan tetap utuh.
-              </p>
+        {confirming ? (
+          <div className="space-y-4">
+            {/* Kartu konteks produk */}
+            <div className="rounded-neo border border-base-line bg-base-bg p-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="truncate font-extrabold">{confirming.name}</p>
+                <span className="shrink-0 rounded-neo border border-base-line bg-white px-2 py-0.5 font-mono text-[10px] font-bold text-base-muted">
+                  {confirming.sku}
+                </span>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <span className="rounded-neo border border-base-line bg-white px-1.5 py-0.5 text-[10px] font-bold text-base-ink/60">
+                  {confirming.categoryName} · {confirming.model}
+                </span>
+                <span className="rounded-neo border border-base-line bg-white px-1.5 py-0.5 text-[10px] font-bold text-base-ink/60">
+                  Rp {confirming.price.toLocaleString("id-ID")}
+                </span>
+                <span
+                  className={`rounded-neo border border-base-line px-1.5 py-0.5 text-[10px] font-bold ${
+                    confirming.transactionCount > 0 ? "bg-accent-sandSoft text-base-ink/70" : "bg-accent-sageSoft text-accent-sageDeep"
+                  }`}
+                >
+                  {confirming.transactionCount > 0 ? `${confirming.transactionCount} transaksi` : "tanpa transaksi"}
+                </span>
+              </div>
+            </div>
+
+            {/* Peringatan sesuai jenis aksi */}
+            <div className="flex items-start gap-3 rounded-neo border border-base-line bg-accent-terraSoft p-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white">
+                <AlertTriangle className="h-5 w-5 text-accent-terraDeep" strokeWidth={2.5} />
+              </span>
+              <div className="min-w-0">
+                <p className="font-black">
+                  {confirming.transactionCount > 0
+                    ? "Produk punya riwayat transaksi — akan diarsipkan (nonaktif), bukan dihapus."
+                    : "Produk akan dihapus permanen. Tindakan ini tidak bisa dibatalkan."}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-base-ink/60">
+                  {confirming.transactionCount > 0
+                    ? "SKU lama otomatis dibebaskan supaya bisa dipakai produk baru. Data penjualan tetap utuh."
+                    : "Data produk, harga, dan stok ikut terhapus dari sistem."}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" onClick={() => setConfirming(null)} disabled={deleting}>
+                Batal
+              </Button>
+              <motion.button
+                type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ y: 0 }}
+                onClick={() => void remove()}
+                disabled={deleting}
+                className="inline-flex items-center justify-center gap-2 rounded-neo bg-accent-terraDeep px-4 py-2.5 text-sm font-extrabold text-white shadow-neo-sm transition-colors hover:bg-accent-terra disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {deleting ? (
+                  <LoaderIcon />
+                ) : confirming.transactionCount > 0 ? (
+                  <Archive className="h-4 w-4" strokeWidth={2.5} />
+                ) : (
+                  <Trash2 className="h-4 w-4" strokeWidth={2.5} />
+                )}
+                {deleting ? "Memproses..." : confirming.transactionCount > 0 ? "Arsipkan Produk" : "Hapus Permanen"}
+              </motion.button>
             </div>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setConfirming(null)} disabled={deleting}>
-              Batal
-            </Button>
-            <motion.button
-              type="button"
-              whileHover={{ y: -2 }}
-              whileTap={{ y: 1 }}
-              onClick={() => void remove()}
-              disabled={deleting}
-              className="inline-flex items-center gap-2 rounded-neo border border-base-line bg-[#B4522E] px-4 py-2.5 text-sm font-extrabold text-white shadow-neo transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {deleting ? <LoaderIcon /> : confirming && confirming.transactionCount > 0 ? <Archive className="h-4 w-4" strokeWidth={2.5} /> : <Trash2 className="h-4 w-4" strokeWidth={2.5} />}
-              {deleting ? "Menghapus..." : confirming && confirming.transactionCount > 0 ? "Arsipkan" : "Hapus Permanen"}
-            </motion.button>
-          </div>
-        </div>
+        ) : null}
       </Modal>
     </div>
   );
