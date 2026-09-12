@@ -91,22 +91,24 @@ export function PayClient({ order: initialOrder }: { order: PayOrder }) {
       .catch(() => setQrUrl(null));
   }, [order.qrisPayload]);
 
+  const expiresAt = order.expiresAt;
+  const invoice = order.invoice;
   useEffect(() => {
     if (!isPending) return;
 
-    const expires = new Date(order.expiresAt);
+    const expires = new Date(expiresAt);
     setCountdown(formatCountdown(expires));
     const timer = setInterval(() => setCountdown(formatCountdown(expires)), 1000);
 
     const poll = async () => {
       try {
-        const r = await fetch(`/api/payment/status/${order.invoice}`, { cache: "no-store" });
+        const r = await fetch(`/api/payment/status/${invoice}`, { cache: "no-store" });
         const data = await r.json();
         if (data.ok) {
           setOrder((prev) => {
             if (prev.status === data.status) return prev;
             // Sinkronkan riwayat localStorage (badge Lunas/Kedaluwarsa di page order).
-            updateOrderHistory(order.invoice, data.status, data.delivered || undefined);
+            updateOrderHistory(invoice, data.status, data.delivered || undefined);
             return {
               ...prev,
               status: data.status,
@@ -124,7 +126,7 @@ export function PayClient({ order: initialOrder }: { order: PayOrder }) {
       clearInterval(timer);
       clearInterval(poller);
     };
-  }, [order.invoice, isPending]);
+  }, [invoice, expiresAt, isPending]);
 
   async function copyValue(label: string, value: string) {
     await copyText(value);
