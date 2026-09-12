@@ -4,22 +4,35 @@ import { ReswebDashboardClient } from "@/components/resweb/resweb-dashboard-clie
 
 export const dynamic = "force-dynamic";
 
-export default async function ResDashboardPage() {
+export const MEMBERS_PER_PAGE = 10;
+
+export default async function ResDashboardPage({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
   const session = getResWebSession();
   if (!session) return null;
 
-  const [reseller, members, paidTopups] = await Promise.all([
+  const page = Math.max(1, Number.parseInt(searchParams?.page ?? "1", 10) || 1);
+
+  const [reseller, totalMembers, members, paidTopups] = await Promise.all([
     prisma.resellerWeb.findUnique({
       where: { id: session.id },
       select: { id: true, name: true, email: true, balance: true, active: true, createdAt: true },
     }),
+    prisma.member.count({ where: { resellerId: session.id } }),
     prisma.member.findMany({
       where: { resellerId: session.id },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: MEMBERS_PER_PAGE,
+      skip: (page - 1) * MEMBERS_PER_PAGE,
     }),
     prisma.resellerWebOrder.count({ where: { resellerId: session.id, status: "paid" } }),
   ]);
+
+  const totalPages = Math.max(1, Math.ceil(totalMembers / MEMBERS_PER_PAGE));
+  const safePage = Math.min(page, totalPages);
 
   return (
     <ReswebDashboardClient
@@ -35,6 +48,9 @@ export default async function ResDashboardPage() {
         createdAt: m.createdAt.toISOString(),
       }))}
       paidTopups={paidTopups}
+      totalMembers={totalMembers}
+      page={safePage}
+      totalPages={totalPages}
     />
   );
 }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Wallet, Users, ShoppingBag, PlusCircle, Copy, Check, Loader2, Eye, EyeOff, ExternalLink, KeyRound, ShieldCheck, Zap, CirclePlus } from "lucide-react";
+import { Wallet, Users, ShoppingBag, PlusCircle, Copy, Check, Loader2, Eye, EyeOff, ExternalLink, KeyRound, ShieldCheck, Zap, CirclePlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
@@ -33,10 +33,16 @@ export function ReswebDashboardClient({
   reseller,
   members,
   paidTopups,
+  totalMembers,
+  page,
+  totalPages,
 }: {
   reseller: Reseller | null;
   members: Member[];
   paidTopups: number;
+  totalMembers: number;
+  page: number;
+  totalPages: number;
 }) {
   const router = useRouter();
   const [addModal, setAddModal] = useState(false);
@@ -67,6 +73,8 @@ export function ReswebDashboardClient({
       } else {
         setResult(data.member);
         setAddModal(false);
+        // Member baru selalu paling atas → kembali ke halaman 1 supaya terlihat.
+        router.push("/res?page=1");
         router.refresh();
       }
     } catch {
@@ -124,20 +132,28 @@ export function ReswebDashboardClient({
 
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Saldo Token" value={formatTokens(reseller?.balance ?? 0)} icon={<Wallet className="h-5 w-5" />} color="bg-accent-mint" />
-        <Stat label="Total Member" value={members.length.toString()} icon={<Users className="h-5 w-5" />} color="bg-accent-sky" />
+        <Stat label="Total Member" value={totalMembers.toLocaleString("id-ID")} icon={<Users className="h-5 w-5" />} color="bg-accent-sky" />
         <Stat label="Total Topup" value={paidTopups.toString()} icon={<ShoppingBag className="h-5 w-5" />} color="bg-accent-sun" />
       </div>
 
       {/* Members */}
       <section className="space-y-3">
-        <h2 className="text-lg font-extrabold">Token Member</h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-lg font-extrabold">Token Member</h2>
+          {totalMembers > 0 ? (
+            <span className="text-xs font-bold text-base-ink/45">
+              {totalMembers.toLocaleString("id-ID")} member · hal. {page}/{totalPages}
+            </span>
+          ) : null}
+        </div>
         {members.length === 0 ? (
           <div className="rounded-neo border-2 border-dashed border-base-ink bg-white py-12 text-center">
             <Users className="mx-auto h-10 w-10 text-base-ink/20" />
             <p className="mt-3 font-bold text-base-ink/50">Belum ada member</p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-neo border-2 border-base-ink bg-white shadow-neo-sm">
+          <>
+            <div className="overflow-hidden rounded-neo border-2 border-base-ink bg-white shadow-neo-sm">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[840px] text-left">
                 <thead className="bg-base-ink text-xs uppercase text-white">
@@ -184,6 +200,51 @@ export function ReswebDashboardClient({
               </table>
             </div>
           </div>
+
+            {totalPages > 1 ? (
+              <div className="flex items-center justify-between gap-2 rounded-neo border-2 border-base-ink bg-white p-3 shadow-neo-sm">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => router.push(`/res?page=${page - 1}`)}
+                >
+                  <ChevronLeft className="h-4 w-4" /> Sebelumnya
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                    .map((p, idx, arr) => (
+                      <span key={p} className="flex items-center">
+                        {idx > 0 && arr[idx - 1] !== p - 1 ? (
+                          <span className="px-1 text-xs font-bold text-base-ink/40">…</span>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/res?page=${p}`)}
+                          className={cn(
+                            "h-8 w-8 rounded-neo border-2 border-base-ink text-xs font-black transition-colors",
+                            p === page ? "bg-base-ink text-white" : "bg-white hover:bg-accent-sky/40"
+                          )}
+                        >
+                          {p}
+                        </button>
+                      </span>
+                    ))}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= totalPages}
+                  onClick={() => router.push(`/res?page=${page + 1}`)}
+                >
+                  Berikutnya <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : null}
+          </>
         )}
       </section>
 
