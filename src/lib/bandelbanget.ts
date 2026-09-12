@@ -230,17 +230,76 @@ export async function fetchCustomerActivity(
   return (data.logs || []) as ResellerActivity[];
 }
 
-export async function fetchResellerKeys(
-  secretKey: string
+async function fetchResellerKeysPage(
+  secretKey: string,
+  page: number
 ): Promise<{ keys: ResellerKey[]; resellerApiKey?: string; resellerQuota?: number }> {
   const url = new URL(`${BASE_URL}/api/public/reseller/keys`);
   url.searchParams.set("token", secretKey);
+  if (page > 1) url.searchParams.set("page", String(page));
   const res = await fetch(url.toString(), { cache: "no-store" });
   const data = await res.json();
   if (!res.ok) {
     throw new Error(data.error || "Gagal mengambil daftar key");
   }
   return data as { keys: ResellerKey[]; resellerApiKey?: string; resellerQuota?: number };
+}
+
+/**
+ * Ambil SEMUA key reseller. Upstream membatasi 10 key per halaman (param
+ * page), jadi loop halaman 1..N (paralel per batch) sampai respons
+ * kembali < 10 key atau kosong, lalu gabungkan + dedup by id.
+ */
+export async function fetchResellerKeys(
+  secretKey: string
+): Promise<{ keys: ResellerKey[]; resellerApiKey?: string; resellerQuota?: number }> {
+  const PAGE_SIZE = 10;
+  const BATCH = 8;
+
+  const first = await fetchResellerKeysPage(secretKey, 1);
+  const firstKeys = Array.isArray(first.keys) ? first.keys : [];
+  if (firstKeys.length < PAGE_SIZE) return first;
+
+  const all = [...firstKeys];
+  let next = 2;
+  let done = false;
+
+  while (!done) {
+    const pages = Array.from({ length: BATCH }, (_, i) => next + i);
+    const results = await Promise.all(
+      pages.map((p) => fetchResellerKeysPage(secretKey, p).catch(() => null))
+    );
+    for (const r of results) {
+      if (!r) {
+        done = true;
+        break;
+      }
+      const keys = Array.isArray(r.keys) ? r.keys : [];
+      if (keys.length === 0) {
+        done = true;
+        break;
+      }
+      for (const k of keys) all.push(k);
+      if (keys.length < PAGE_SIZE) {
+        done = true;
+        break;
+      }
+    }
+    next += BATCH;
+    if (next > 1000) done = true; // safety: maks 1000 halaman (= 10.000 key)
+  }
+
+  // Dedup by id — halaman bisa bergeser antar request.
+  const seen = new Set<string | number>();
+  const deduped = all.filter((k) => {
+    const id = (k as { id?: unknown })?.id;
+    const key = typeof id === "number" || typeof id === "string" ? id : null;
+    if (key === null || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return { ...first, keys: deduped };
 }
 
 export async function fetchResellerActivity(
