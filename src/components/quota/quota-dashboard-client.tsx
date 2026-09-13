@@ -1078,7 +1078,7 @@ function ContactCs({ resellerCs }: { resellerCs: { name: string; waNumber: strin
         {waHref || tgHref ? (
           <>
             <p className="mb-4 text-sm font-semibold text-base-ink/60">
-              Butuh bantuan? Hubungi reseller Anda: <span className="font-black">{resellerCs?.name}</span>
+              Butuh bantuan? Hubungi: <span className="font-black">{resellerCs?.name}</span>
             </p>
             {waHref ? (
               <a href={waHref} target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 rounded-neo border border-base-line bg-accent-mint px-4 py-3 font-extrabold shadow-neo-sm">
