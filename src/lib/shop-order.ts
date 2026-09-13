@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { qrisStaticToDynamic } from "@/lib/qris";
 import { QUOTA_PACKAGES, fetchResellerKeys } from "@/lib/bandelbanget";
+import { checkPendingByTelegram, MAX_PENDING_ORDERS } from "@/lib/order-limit";
 import { getBinanceConfig, uniqueUsdtAmountCents, baseUsdtCents, binanceQrContent } from "@/lib/binance-order";
 import type { UsdtNetwork } from "@/lib/binance";
 
@@ -240,6 +241,14 @@ export async function createBotOrder(opts: {
   const setting = await prisma.setting.findUnique({ where: { id: 1 } });
   if (!setting || setting.qrisProvider === "none" || !setting.qrisStatic) {
     return { ok: false, error: "Pembayaran QRIS belum aktif. Hubungi admin." };
+  }
+
+  // Rate limit server-side: maks 3 order pending per user Telegram.
+  if (!(await checkPendingByTelegram(opts.telegramUserId))) {
+    return {
+      ok: false,
+      error: `Anda punya ${MAX_PENDING_ORDERS} pesanan belum dibayar. Selesaikan atau tunggu kedaluwarsa sebelum membuat pesanan baru.`,
+    };
   }
 
   if (!Number.isInteger(opts.qty) || opts.qty < 1) {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createShopOrder } from "@/lib/shop-order";
 import { QUOTA_PACKAGES, fetchResellerKeys } from "@/lib/bandelbanget";
+import { checkPendingByBuyerToken, MAX_PENDING_ORDERS } from "@/lib/order-limit";
 import { availableBinanceMethods } from "@/lib/binance-order";
 import type { UsdtNetwork } from "@/lib/binance";
 
@@ -74,6 +75,18 @@ export async function POST(
   if (!setting?.secretKey) {
     return NextResponse.json({ ok: false, error: "Pembelian belum dikonfigurasi" }, { status: 503 });
   }
+
+  // Rate limit server-side: maks 3 order pending per member (buyerQuotaToken).
+  if (!(await checkPendingByBuyerToken(params.token))) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `Anda punya ${MAX_PENDING_ORDERS} pesanan belum dibayar. Selesaikan atau tunggu kedaluwarsa sebelum membuat pesanan baru.`,
+      },
+      { status: 429 }
+    );
+  }
+
   try {
     const keys = await fetchResellerKeys(setting.secretKey);
     const member = keys.keys.find((k) => k.secretToken === params.token);
