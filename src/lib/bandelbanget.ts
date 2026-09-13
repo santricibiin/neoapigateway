@@ -1,6 +1,29 @@
 import { bandelUpstreamBase, publicApiBase } from "@/lib/bandel-upstream";
+import { prisma } from "@/lib/prisma";
 
 const BASE_URL = bandelUpstreamBase();
+
+/**
+ * Fetch helper: parse JSON, lempar Error dengan property `status` (HTTP code)
+ * supaya retry 401 di withBandelAuth bisa mendeteksi token expire.
+ */
+async function bandelFetch(url: string, init?: RequestInit): Promise<Record<string, unknown>> {
+  const res = await fetch(url, { cache: "no-store", ...init });
+  let data: Record<string, unknown> = {};
+  try {
+    data = (await res.json()) as Record<string, unknown>;
+  } catch {
+    data = {};
+  }
+  if (!res.ok) {
+    const message =
+      (typeof data.error === "string" && data.error) ||
+      (typeof data.message === "string" && data.message) ||
+      `Bandel error (${res.status})`;
+    throw Object.assign(new Error(message), { status: res.status });
+  }
+  return data;
+}
 
 export interface ResellerData {
   id?: string;
@@ -140,17 +163,17 @@ export async function addCustomerQuota(
   secretKey: string,
   targetKeyId: number,
   addTokens: number,
-  validDays: number
+  validDays: number,
+  pin?: string
 ) {
-  const res = await fetch(`${BASE_URL}/api/public/reseller/add-quota`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ secretToken: secretKey, targetKeyId, addTokens, validDays }),
-    cache: "no-store",
+  return withBandelAuth(secretKey, pin, async (accessToken) => {
+    const data = await bandelFetch(`${BASE_URL}/api/public/reseller/add-quota`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json", ...bearerHeaders(accessToken) },
+      body: JSON.stringify({ secretToken: secretKey, targetKeyId, addTokens, validDays }),
+    });
+    return data as unknown as { success?: boolean; remainingQuota?: number; key?: ResellerKey };
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || `Tambah kuota gagal (${res.status})`);
-  return data as { success?: boolean; remainingQuota?: number; key?: ResellerKey };
 }
 
 export interface QuotaMeta {
@@ -169,7 +192,7 @@ export interface PinVerification {
 }
 
 export async function verifyPin(secretKey: string, pin: string): Promise<PinVerification> {
-  const res = await fetch(
+  const data = await bandelFetch(
     `${BASE_URL}/api/public/quota/${encodeURIComponent(secretKey)}/verify-pin`,
     {
       method: "POST",
@@ -177,37 +200,103 @@ export async function verifyPin(secretKey: string, pin: string): Promise<PinVeri
       body: JSON.stringify({ pin }),
     }
   );
-  const data = await res.json();
-  if (!res.ok || !data.accessToken) {
-    throw new Error(data.error || "Gagal verifikasi PIN");
+  if (typeof data.accessToken !== "string" || !data.accessToken) {
+    throw new Error("Gagal verifikasi PIN: accessToken kosong");
   }
-  return data as PinVerification;
+  return data as unknown as PinVerification;
+}
+
+// ===== Bearer auth untuk endpoint /api/public/reseller/* =====
+// Upstream kini mewajibkan Authorization: Bearer <accessToken> (hasil verify-pin,
+// expire 2 jam). Token di-cache in-memory 90 menit (< 2 jam supaya token expired
+// tak pernah terpakai) + auto force-refresh & retry 1x saat 401.
+
+const BANDEL_TOKEN_TTL_MS = 90 * 60 * 1000;
+const bandelTokenCache = new Map<string, { token: string; expiresAt: number }>();
+
+/** PIN reseller: param eksplisit → env BB_PIN → kolom Setting.pin di DB. */
+async function resolveResellerPin(pin?: string): Promise<string | undefined> {
+  if (pin) return pin;
+  const envPin = process.env.BB_PIN?.trim();
+  if (envPin) return envPin;
+  const setting = await prisma.setting.findUnique({ where: { id: 1 }, select: { pin: true } });
+  return setting?.pin || undefined;
+}
+
+/** Ambil accessToken reseller (verify-pin + cache TTL 90 menit). */
+export async function bandelAccessToken(
+  secretKey: string,
+  pin?: string,
+  forceRefresh = false
+): Promise<string> {
+  const cached = bandelTokenCache.get(secretKey);
+  if (!forceRefresh && cached && cached.expiresAt > Date.now()) return cached.token;
+  const resolvedPin = await resolveResellerPin(pin);
+  if (!resolvedPin) {
+    if (cached?.token) return cached.token;
+    throw new Error("PIN reseller belum diatur (isi PIN di menu Pengaturan atau env BB_PIN)");
+  }
+  const { accessToken, expiresIn } = await verifyPin(secretKey, resolvedPin);
+  const ttl = Math.max(60_000, Math.min(BANDEL_TOKEN_TTL_MS, (expiresIn ?? BANDEL_TOKEN_TTL_MS)));
+  bandelTokenCache.set(secretKey, { token: accessToken, expiresAt: Date.now() + ttl });
+  return accessToken;
+}
+
+/** Hapus accessToken reseller dari cache. */
+export function bandelClearAccessToken(secretKey: string) {
+  bandelTokenCache.delete(secretKey);
+}
+
+function isBandelAuthError(e: unknown): boolean {
+  const status = (e as { status?: number } | null)?.status;
+  const msg = e instanceof Error ? e.message : String(e);
+  return status === 401 || /pin_required|PIN verification/i.test(msg);
+}
+
+/**
+ * Jalankan call dengan Bearer accessToken; kalau 401 / pin_required,
+ * force-refresh token lalu retry 1x. Semua endpoint reseller dibungkus ini.
+ */
+async function withBandelAuth<T>(
+  secretKey: string,
+  pin: string | undefined,
+  call: (accessToken: string) => Promise<T>
+): Promise<T> {
+  const accessToken = await bandelAccessToken(secretKey, pin);
+  try {
+    return await call(accessToken);
+  } catch (e) {
+    if (isBandelAuthError(e)) {
+      bandelTokenCache.delete(secretKey);
+      const fresh = await bandelAccessToken(secretKey, pin, true);
+      return call(fresh);
+    }
+    throw e;
+  }
+}
+
+function bearerHeaders(accessToken: string): Record<string, string> {
+  return { Authorization: `Bearer ${accessToken}` };
 }
 
 export async function fetchQuotaMeta(secretKey: string): Promise<QuotaMeta> {
-  const res = await fetch(`${BASE_URL}/api/public/quota/${encodeURIComponent(secretKey)}`, {
-    cache: "no-store",
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Gagal mengambil data dashboard");
-  return data as QuotaMeta;
+  const data = await bandelFetch(`${BASE_URL}/api/public/quota/${encodeURIComponent(secretKey)}`);
+  return data as unknown as QuotaMeta;
 }
 
 export async function fetchQuotaData(secretKey: string, accessToken: string): Promise<ResellerData> {
-  const res = await fetch(`${BASE_URL}/api/public/quota/${encodeURIComponent(secretKey)}/data`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    cache: "no-store",
+  const data = await bandelFetch(`${BASE_URL}/api/public/quota/${encodeURIComponent(secretKey)}/data`, {
+    headers: bearerHeaders(accessToken),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Gagal mengambil data dashboard");
-  return data as ResellerData;
+  return data as unknown as ResellerData;
 }
 
 export async function fetchResellerData(
   secretKey: string,
   pin: string
 ): Promise<ResellerData> {
-  const { accessToken } = await verifyPin(secretKey, pin);
+  // Pakai bandelAccessToken supaya verify-pin cukup sekali per 90 menit (cache).
+  const accessToken = await bandelAccessToken(secretKey, pin);
   return fetchQuotaData(secretKey, accessToken);
 }
 
@@ -219,30 +308,22 @@ export async function fetchCustomerActivity(
   const { accessToken } = await verifyPin(secretKey, pin);
   const url = new URL(`${BASE_URL}/api/public/quota/${secretKey}/activity`);
   if (type) url.searchParams.set("type", type);
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    cache: "no-store",
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error || "Gagal mengambil history penggunaan");
-  }
+  const data = await bandelFetch(url.toString(), { headers: bearerHeaders(accessToken) });
   return (data.logs || []) as ResellerActivity[];
 }
 
 async function fetchResellerKeysPage(
   secretKey: string,
-  page: number
+  page: number,
+  pin?: string
 ): Promise<{ keys: ResellerKey[]; resellerApiKey?: string; resellerQuota?: number }> {
-  const url = new URL(`${BASE_URL}/api/public/reseller/keys`);
-  url.searchParams.set("token", secretKey);
-  if (page > 1) url.searchParams.set("page", String(page));
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error || "Gagal mengambil daftar key");
-  }
-  return data as { keys: ResellerKey[]; resellerApiKey?: string; resellerQuota?: number };
+  return withBandelAuth(secretKey, pin, async (accessToken) => {
+    const url = new URL(`${BASE_URL}/api/public/reseller/keys`);
+    url.searchParams.set("token", secretKey);
+    if (page > 1) url.searchParams.set("page", String(page));
+    const data = await bandelFetch(url.toString(), { headers: bearerHeaders(accessToken) });
+    return data as unknown as { keys: ResellerKey[]; resellerApiKey?: string; resellerQuota?: number };
+  });
 }
 
 /**
@@ -251,12 +332,13 @@ async function fetchResellerKeysPage(
  * kembali < 10 key atau kosong, lalu gabungkan + dedup by id.
  */
 export async function fetchResellerKeys(
-  secretKey: string
+  secretKey: string,
+  pin?: string
 ): Promise<{ keys: ResellerKey[]; resellerApiKey?: string; resellerQuota?: number }> {
   const PAGE_SIZE = 10;
   const BATCH = 8;
 
-  const first = await fetchResellerKeysPage(secretKey, 1);
+  const first = await fetchResellerKeysPage(secretKey, 1, pin);
   const firstKeys = Array.isArray(first.keys) ? first.keys : [];
   if (firstKeys.length < PAGE_SIZE) return first;
 
@@ -267,7 +349,7 @@ export async function fetchResellerKeys(
   while (!done) {
     const pages = Array.from({ length: BATCH }, (_, i) => next + i);
     const results = await Promise.all(
-      pages.map((p) => fetchResellerKeysPage(secretKey, p).catch(() => null))
+      pages.map((p) => fetchResellerKeysPage(secretKey, p, pin).catch(() => null))
     );
     for (const r of results) {
       if (!r) {
@@ -304,23 +386,20 @@ export async function fetchResellerKeys(
 
 export async function fetchResellerActivity(
   secretKey: string,
-  type?: string
+  type?: string,
+  pin?: string
 ): Promise<ResellerActivity[]> {
-  const url = new URL(`${BASE_URL}/api/public/reseller/activity`);
-  url.searchParams.set("token", secretKey);
-  if (type) url.searchParams.set("type", type);
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error || "Gagal mengambil aktivitas");
-  }
-  return (data.logs || []) as ResellerActivity[];
+  return withBandelAuth(secretKey, pin, async (accessToken) => {
+    const url = new URL(`${BASE_URL}/api/public/reseller/activity`);
+    url.searchParams.set("token", secretKey);
+    if (type) url.searchParams.set("type", type);
+    const data = await bandelFetch(url.toString(), { headers: bearerHeaders(accessToken) });
+    return (data.logs || []) as ResellerActivity[];
+  });
 }
 
 export async function fetchTopupTiers(): Promise<{ tiers: TopupTier[]; flashSaleEnabled: boolean }> {
-  const res = await fetch(`${BASE_URL}/api/pricing`, { cache: "no-store" });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Gagal mengambil paket topup");
+  const data = await bandelFetch(`${BASE_URL}/api/pricing`);
   return {
     flashSaleEnabled: Boolean(data.flashSaleEnabled),
     tiers: ((data.tiers || []) as TopupTier[])
@@ -329,34 +408,37 @@ export async function fetchTopupTiers(): Promise<{ tiers: TopupTier[]; flashSale
   };
 }
 
-export async function fetchTopupHistory(secretKey: string): Promise<TopupTransaction[]> {
-  const url = new URL(`${BASE_URL}/api/public/reseller/topup`);
-  url.searchParams.set("token", secretKey);
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  const data = await res.json();
-  if (!res.ok || data.success === false) throw new Error(data.error || "Gagal mengambil riwayat topup");
-  return (data.transactions || []) as TopupTransaction[];
-}
-
-export async function createTopup(secretKey: string, tierId: string): Promise<CreatedTopup> {
-  const res = await fetch(`${BASE_URL}/api/public/reseller/topup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ secretToken: secretKey, tierId }),
+export async function fetchTopupHistory(secretKey: string, pin?: string): Promise<TopupTransaction[]> {
+  return withBandelAuth(secretKey, pin, async (accessToken) => {
+    const url = new URL(`${BASE_URL}/api/public/reseller/topup`);
+    url.searchParams.set("token", secretKey);
+    const data = await bandelFetch(url.toString(), { headers: bearerHeaders(accessToken) });
+    if (data.success === false) throw new Error(String(data.error || "Gagal mengambil riwayat topup"));
+    return (data.transactions || []) as TopupTransaction[];
   });
-  const data = await res.json();
-  if (!res.ok || data.success === false) throw new Error(data.error || "Gagal membuat pembayaran topup");
-  return data as CreatedTopup;
 }
 
-export async function fetchTopupStatus(secretKey: string, orderId: string): Promise<Record<string, unknown>> {
-  const url = new URL(`${BASE_URL}/api/public/reseller/topup/status`);
-  url.searchParams.set("token", secretKey);
-  url.searchParams.set("orderId", orderId);
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  const data = await res.json();
-  if (!res.ok || data.success === false) throw new Error(data.error || "Gagal mengecek status topup");
-  return data as Record<string, unknown>;
+export async function createTopup(secretKey: string, tierId: string, pin?: string): Promise<CreatedTopup> {
+  return withBandelAuth(secretKey, pin, async (accessToken) => {
+    const data = await bandelFetch(`${BASE_URL}/api/public/reseller/topup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...bearerHeaders(accessToken) },
+      body: JSON.stringify({ secretToken: secretKey, tierId }),
+    });
+    if (data.success === false) throw new Error(String(data.error || "Gagal membuat pembayaran topup"));
+    return data as unknown as CreatedTopup;
+  });
+}
+
+export async function fetchTopupStatus(secretKey: string, orderId: string, pin?: string): Promise<Record<string, unknown>> {
+  return withBandelAuth(secretKey, pin, async (accessToken) => {
+    const url = new URL(`${BASE_URL}/api/public/reseller/topup/status`);
+    url.searchParams.set("token", secretKey);
+    url.searchParams.set("orderId", orderId);
+    const data = await bandelFetch(url.toString(), { headers: bearerHeaders(accessToken) });
+    if (data.success === false) throw new Error(String(data.error || "Gagal mengecek status topup"));
+    return data;
+  });
 }
 
 export const BANDEL_DEFAULT_MEMBER_PIN = "111111";
@@ -416,55 +498,65 @@ function parseCreateKeyResponse(json: unknown): BandelCreatedKey {
 export async function createCustomerKey(
   secretKey: string,
   maxTokens: number,
-  validDays: number
+  validDays: number,
+  pin?: string
 ): Promise<BandelCreatedKey> {
-  const res = await fetch(`${BASE_URL}/api/public/reseller/create-key`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ secretToken: secretKey, maxTokens, validDays }),
-    cache: "no-store",
+  return withBandelAuth(secretKey, pin, async (accessToken) => {
+    const json = await bandelFetch(`${BASE_URL}/api/public/reseller/create-key`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json", ...bearerHeaders(accessToken) },
+      body: JSON.stringify({ secretToken: secretKey, maxTokens, validDays }),
+    });
+    const parsed = parseCreateKeyResponse(json);
+    if (parsed.error) throw new Error(parsed.error);
+    if (!parsed.dashboardUrl && !parsed.secretToken) {
+      throw new Error("Create key OK tapi dashboardUrl kosong");
+    }
+    return parsed;
   });
-  const json = await res.json();
-  const parsed = parseCreateKeyResponse(json);
-  if (!res.ok || parsed.error) {
-    throw new Error(parsed.error || `Create key gagal (${res.status})`);
-  }
-  if (!parsed.dashboardUrl && !parsed.secretToken) {
-    throw new Error("Create key OK tapi dashboardUrl kosong");
-  }
-  return parsed;
 }
 
 export async function setupCustomerPin(
   customerSecretToken: string,
   pin: string = BANDEL_DEFAULT_MEMBER_PIN
 ): Promise<{ accessToken: string; expiresIn?: number }> {
-  const res = await fetch(
-    `${BASE_URL}/api/public/quota/${encodeURIComponent(customerSecretToken)}/setup-pin`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ pin, confirmPin: pin }),
-      cache: "no-store",
-    }
-  );
-  const data = await res.json();
-  if (!res.ok || !data?.accessToken) {
-    if (res.status === 400 || res.status === 409 || res.status === 422) {
+  let data: Record<string, unknown>;
+  try {
+    data = await bandelFetch(
+      `${BASE_URL}/api/public/quota/${encodeURIComponent(customerSecretToken)}/setup-pin`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ pin, confirmPin: pin }),
+      }
+    );
+  } catch (e) {
+    const status = (e as { status?: number } | null)?.status;
+    if (status === 400 || status === 409 || status === 422) {
       return verifyPin(customerSecretToken, pin);
     }
-    throw new Error(data.error || `Setup PIN gagal (${res.status})`);
+    throw e;
   }
-  return { accessToken: data.accessToken, expiresIn: data.expiresIn };
+  if (typeof data.accessToken !== "string" || !data.accessToken) {
+    return verifyPin(customerSecretToken, pin);
+  }
+  return { accessToken: data.accessToken, expiresIn: data.expiresIn as number | undefined };
 }
 
+/**
+ * Provision key member baru. Param `memberPin` = PIN key customer baru
+ * (default BANDEL_DEFAULT_MEMBER_PIN), param `resellerPin` = PIN reseller
+ * untuk Bearer di endpoint create-key — JANGAN tertukar.
+ * resellerPin opsional; kalau kosong di-resolve otomatis dari Setting.pin / env BB_PIN.
+ */
 export async function provisionCustomerKey(
   resellerSecretKey: string,
   maxTokens: number,
   validDays: number,
-  pin: string = BANDEL_DEFAULT_MEMBER_PIN
+  memberPin: string = BANDEL_DEFAULT_MEMBER_PIN,
+  resellerPin?: string
 ): Promise<BandelCreatedKey> {
-  const created = await createCustomerKey(resellerSecretKey, maxTokens, validDays);
+  const created = await createCustomerKey(resellerSecretKey, maxTokens, validDays, resellerPin);
   const customerToken = created.secretToken;
   if (!customerToken) {
     throw new Error("create-key tanpa secretToken customer");
@@ -472,7 +564,7 @@ export async function provisionCustomerKey(
 
   let apiKey = created.apiKey;
   try {
-    const { accessToken } = await setupCustomerPin(customerToken, pin);
+    const { accessToken } = await setupCustomerPin(customerToken, memberPin);
     const data = await fetchQuotaData(customerToken, accessToken);
     if (typeof data.key === "string" && data.key.startsWith("sk-")) {
       apiKey = data.key;
@@ -487,7 +579,7 @@ export async function provisionCustomerKey(
     console.error("[bandel] setup-pin/data setelah create-key:", e instanceof Error ? e.message : e);
   }
 
-  return { ...created, secretToken: customerToken, apiKey, pin };
+  return { ...created, secretToken: customerToken, apiKey, pin: memberPin };
 }
 
 export function formatBandelDelivery(result: BandelCreatedKey, code: string) {
