@@ -312,6 +312,32 @@ export async function fetchCustomerActivity(
   return (data.logs || []) as ResellerActivity[];
 }
 
+/** Ganti PIN member (butuh accessToken hasil verify-pin). Body upstream: oldPin/newPin/confirmNewPin. */
+export async function changeQuotaPin(
+  secretKey: string,
+  accessToken: string,
+  oldPin: string,
+  newPin: string
+): Promise<Record<string, unknown>> {
+  return bandelFetch(`${BASE_URL}/api/public/quota/${encodeURIComponent(secretKey)}/change-pin`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...bearerHeaders(accessToken) },
+    body: JSON.stringify({ oldPin, newPin, confirmNewPin: newPin }),
+  });
+}
+
+/** Rotasi API key member (butuh accessToken; upstream cooldown 60 menit → 429). */
+export async function regenerateQuotaKey(
+  secretKey: string,
+  accessToken: string
+): Promise<{ success?: boolean; keyMasked?: string; keyRegeneratedAt?: string; cooldownAt?: string }> {
+  return bandelFetch(`${BASE_URL}/api/public/quota/${encodeURIComponent(secretKey)}/regenerate-key`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...bearerHeaders(accessToken) },
+    body: JSON.stringify({}),
+  }) as Promise<{ success?: boolean; keyMasked?: string; keyRegeneratedAt?: string; cooldownAt?: string }>;
+}
+
 async function fetchResellerKeysPage(
   secretKey: string,
   page: number,

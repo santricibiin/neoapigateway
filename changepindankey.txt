@@ -1,0 +1,225 @@
+KESIMPULAN: FITUR CHANGE PIN + CHANGE API KEY DI DASHBOARD QUOTA MEMBER
+========================================================================
+Tanggal: 2026-09-13
+Lokasi perubahan: src/lib/bandelbanget.ts, src/app/api/public/quota/[token]/change-pin/,
+src/app/api/public/quota/[token]/regenerate-key/, src/components/quota/quota-dashboard-client.tsx
+
+-------------------------------------------------------------------------------
+1. LATAR BELAKANG
+-------------------------------------------------------------------------------
+Dashboard kuota member (admin & resweb) sebelumnya hanya bisa LIHAT data
+(kuota, API key, base URL, usage, model). Fitur keamanan member — ganti PIN
+dan rotasi API key — hanya ada di dashboard upstream bandelbanget.xyz,
+tidak ada di gateway ini.
+
+Reverse engineering endpoint upstream (dari bundle JS resmi
+/js/pages/public/QuotaDashboardPage.js + probe langsung):
+
+  POST /api/public/quota/{token}/change-pin
+    Header : Authorization: Bearer <accessToken>
+    Body   : { "oldPin": "......", "newPin": "......", "confirmNewPin": "......" }
+    Catatan: FIELD WAJIB PERSIS BEGINI. "currentPin"/"confirmPin" DITOLAK
+             dengan error menyesatkan ("Current PIN is incorrect" /
+             "New PIN does not match confirmation").
+    Sukses : 200 { "success": true, "pinChangedAt": "...", "cooldownAt": "..." }
+    Error  : 400 PIN tidak cocok / 401 oldPin salah / 429 cooldown 60 menit
+             (response: { "error": "PIN change cooldown active...",
+                          "retryAfterMs": ..., "cooldownAt": "..." })
+
+  POST /api/public/quota/{token}/regenerate-key
+    Header : Authorization: Bearer <accessToken>
+    Body   : {} (body kosong cukup)
+    Sukses : 200 { "success": true, "keyMasked": "sk-...",
+                   "keyRegeneratedAt": "...", "cooldownAt": "..." }
+    Error  : 429 cooldown 60 menit ("Key regeneration cooldown active...")
+             401 tanpa Bearer
+
+  Auth model:
+    1. POST /api/public/quota/{token}/verify-pin { "pin": "......" }
+       → { "accessToken": "...", "expiresIn": 7200000 }  (2 jam)
+    2. Semua endpoint data/mutasi pakai header Authorization: Bearer <accessToken>
+
+  Cooldown keduanya: 60 menit PER AKSI (pin & key terpisah, tidak share).
+
+-------------------------------------------------------------------------------
+2. ARSITEKTUR IMPLEMENTASI (pattern proxy, konsisten dengan fitur lain)
+-------------------------------------------------------------------------------
+Browser member TIDAK pernah contact bandelbanget.xyz langsung untuk mutasi.
+Alur: Client → API route gateway (localhost/domain sendiri) → upstream.
+
+Kenapa proxy (bukan langsung dari browser ke upstream)?
+  - Konsisten dengan semua route lain (data, verify-pin, buy, products).
+  - Client gateway tetap satu origin, tidak kena CORS/kebocoran token.
+  -accessToken tetap hidup hanya di sesi browser member, upstream URL
+   tidak bocor ke client.
+
+Lapisan:
+
+  a) LIB — src/lib/bandelbanget.ts
+     changeQuotaPin(secretKey, accessToken, oldPin, newPin)
+       → POST upstream /change-pin, body { oldPin, newPin, confirmNewPin: newPin }
+         (confirmNewPin diisi otomatis = newPin, client cukup kirim 2 field)
+     regenerateQuotaKey(secretKey, accessToken)
+       → POST upstream /regenerate-key, body {}
+     Keduanya lewat bandelFetch() → error membawa property status HTTP
+     (401/429/400) supaya route bisa map status code dengan benar.
+
+  b) ROUTE — src/app/api/public/quota/[token]/change-pin/route.ts
+     - Validasi: token >= 16 char, Bearer wajib, oldPin & newPin 6 digit,
+       newPin tidak boleh sama dengan oldPin.
+     - Proxy ke changeQuotaPin().
+     - SETELAH SUKSES: auto verify-pin dengan PIN BARU → kirim accessToken
+       fresh ke client (sesi tidak hangus, member tidak perlu re-login).
+     - Map status: upstream 401→401, 429→429, 400→400, lainnya→502.
+
+  c) ROUTE — src/app/api/public/quota/[token]/regenerate-key/route.ts
+     - Validasi sama (token + Bearer), proxy ke regenerateQuotaKey().
+     - 429 (cooldown) diteruskan apa adanya + pesan error upstream.
+
+  d) UI — src/components/quota/quota-dashboard-client.tsx
+     Kartu "Keamanan" BARU di tab Kuota (kolom kanan, di bawah kartu
+     API Key & Base URL). Component: SecurityCard({token, onSession, onDataChanged}).
+
+     Form Ganti PIN:
+       - 3 input: PIN lama, PIN baru, ulangi PIN baru (semua 6 digit,
+         input difilter \D, maxLength 6).
+       - Validasi client: ulangan harus sama → submit.
+       - Body: { oldPin, newPin } ke route gateway.
+       - Sukses: accessToken baru disimpan ke sessionStorage
+         (key: quota_at_<token>, sama seperti unlock), form direset.
+       - Error ditampilkan inline (merah), sukses hijau.
+
+     Tombol Ganti API Key:
+       - window.confirm() dulu (aksi destruktif: key lama LANGSUNG mati,
+         semua aplikasi member harus update).
+       - POST ke route gateway → sukses: reload data dashboard
+         (onDataChanged → loadData ulang, key masked baru muncul),
+         tampilkan keyMasked baru + jam cooldown.
+       - 429 cooldown → pesan error dari upstream.
+
+     accessToken diambil dari sessionStorage — SAMA dengan mekanisme
+     unlock dashboard (tidak ada state baru, tidak ada token di URL).
+
+-------------------------------------------------------------------------------
+3. CARA MENAMBAHKAN FITUR SERUPA (resep umum)
+-------------------------------------------------------------------------------
+LANGKAH 1 — Reverse engineer endpoint upstream
+  a. Login dashboard resmi, buka DevTools → Network, jalankan aksinya
+     (ganti PIN / regen key), copy request persisnya (method, path, body).
+  b. ATAU bedah bundle JS: halaman SPA → src JS → cari "fetch(" + nama aksi.
+     Contoh nyata: bandelbanget.xyz/js/pages/public/QuotaDashboardPage.js
+     → ketemu body: { oldPin, newPin, confirmNewPin }.
+  c. Probe manual untuk konfirmasi (curl):
+     - Body kosong → error validasi = petunjuk field wajib.
+     - Field salah → error spesifik ("...does not match confirmation").
+  d. Catat: auth header, field body PERSIS, response sukses, response error,
+     rate limit/cooldown, dan status code tiap kasus.
+
+LANGKAH 2 — Tambah fungsi di src/lib/bandelbanget.ts
+  Pattern: async function X(secretKey, accessToken, ...) {
+    return bandelFetch(`${BASE_URL}/api/public/quota/${encodeURIComponent(secretKey)}/<endpoint>`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...bearerHeaders(accessToken) },
+      body: JSON.stringify({ ... }),
+    });
+  }
+  bandelFetch otomatis: parse JSON, lempar Error ber-property status HTTP.
+
+LANGKAH 3 — Buat route proxy src/app/api/public/quota/[token]/<aksi>/route.ts
+  Wajib:
+  - export const dynamic = "force-dynamic";
+  - Validasi token (>= 16 char) + ambil Bearer dari header request.
+  - Validasi body (misal PIN 6 digit) SEBELUM proxy.
+  - Map status upstream → response gateway (401/429/400/502).
+  - Side effect pasca-sukses (misal: verify-pin ulang → accessToken fresh).
+
+LANGKAH 4 — UI di quota-dashboard-client.tsx
+  - Kartu/section baru di tab yang relevan.
+  - Ambil accessToken dari sessionStorage (`quota_at_${token}`).
+  - fetch ke route gateway SENDIRI (bukan upstream), bawa Bearer.
+  - Sukses → update state + reload data kalau perlu.
+  - Error → tampilkan body.error (pesan upstream sudah bagus).
+
+LANGKAH 5 — Verifikasi
+  - npx tsc --noEmit → bersih.
+  - npx next lint --file <file baru> → bersih.
+  - Tes live lewat dev server (port sementara, matikan setelah selesai):
+      a. verify-pin → dapat accessToken.
+      b. Route baru dengan input SALAH → error upstream harus muncul
+         dengan status code benar (bukti mapping jalan).
+      c. Route baru tanpa Bearer → 401.
+      d. Aksi nyata → 200 + verifikasi hasil (verify-pin PIN baru / data
+         key masked baru).
+      e. Ulangi aksi → 429 cooldown (bukti rate limit diteruskan).
+  - HATI-HATI: regenerate-key BENAR-BENAR merotasi key saat dites, dan
+    cooldown 60 menit memblokir tes lanjutan. Gunakan token test khusus.
+
+-------------------------------------------------------------------------------
+4. JEBALGAN / LESSONS LEARNED
+-------------------------------------------------------------------------------
+1. Nama field body upstream TIDAK bisa ditebak — "currentPin" vs "oldPin"
+   memberi error menyesatkan yang terlihat seperti PIN salah, padahal
+   field-nya tidak dikenali. SELALU bedah bundle JS resmi atau DevTools.
+2. Error upstream bisa MENIPU: currentPin salah → "Current PIN is incorrect"
+   (padahal field tak dikenal); oldPin tanpa konfirmasi → "New PIN does not
+   match confirmation". Diferensiasi error = satu-satunya cara konfirmasi
+   schema tanpa dokumentasi.
+3. verify-pin bisa SUKSES dengan PIN "salah"?? — TIDAK: kasus nyata di atas
+   (verify 111111 OK tapi change-pin oldPin 111111 ditolak) terjadi karena
+   format field salah, bukan PIN salah. Jangan simpulkan PIN salah hanya
+   dari satu endpoint.
+4. Cooldown 60 menit PER AKSI terpisah: change-pin & regenerate-key punya
+   cooldown sendiri-sendiri. Tes live harus memperhitungkan ini.
+5. regenerate-key dengan body kosong LANGSUNG dieksekusi (tidak ada
+   konfirmasi) — saat probing, JANGAN POST endpoint mutasi dengan body
+   kosong sekalipun; gunakan body invalid untuk aman.
+6. Setelah change-pin sukses, accessToken lama masih valid (expire 2 jam),
+   tapi lebih baik verify-pin ulang dengan PIN baru → sesi fresh.
+
+-------------------------------------------------------------------------------
+5. FILE YANG BERUBAH / DITAMBAH
+-------------------------------------------------------------------------------
+PRODUKSI:
+- src/lib/bandelbanget.ts
+    + changeQuotaPin() — proxy change-pin (oldPin/newPin/confirmNewPin)
+    + regenerateQuotaKey() — proxy regenerate-key
+- src/app/api/public/quota/[token]/change-pin/route.ts (BARU)
+    Validasi + proxy + auto re-verify PIN baru (accessToken fresh).
+- src/app/api/public/quota/[token]/regenerate-key/route.ts (BARU)
+    Validasi + proxy + teruskan 429 cooldown.
+- src/components/quota/quota-dashboard-client.tsx
+    + SecurityCard() — kartu Keamanan (form ganti PIN + tombol rotasi key)
+      dipasang di tab Kuota, kolom kanan bawah.
+
+TIDAK berubah: verify-pin route, data route, unlock flow, sessionStorage
+key scheme — semua backward compatible.
+
+-------------------------------------------------------------------------------
+6. STATUS VERIFIKASI
+-------------------------------------------------------------------------------
+- npx tsc --noEmit → bersih.
+- Lint → bersih (warning <img> pre-existing di file lain, bukan kode baru).
+- Live test (member KambojaJawa2):
+    verify-pin 111111 ......... 200 accessToken
+    change-pin currentPin ..... 401 "Current PIN is incorrect" (field salah)
+    change-pin oldPin+3field .. 200 {"success":true,"pinChangedAt":...}
+    verify-pin 040506 (baru) .. 200 accessToken
+    verify-pin 111111 (lama) .. 401 "Incorrect PIN", attemptsLeft:4
+    regenerate-key (cooldown) . 429 "Key regeneration cooldown active"
+    change-pin tanpa Bearer ... 401 "Sesi berakhir, masukkan PIN lagi"
+- PIN member b5c7817e... (KambojaJawa2) sudah diganti 111111 → 040506
+  atas permintaan owner (cooldown change-pin sampai 07:56 UTC).
+
+-------------------------------------------------------------------------------
+7. POLA UMUM (referensi lain kali)
+-------------------------------------------------------------------------------
+Menambah fitur mutasi member apapun (ganti nama, setting default model,
+transfer kuota, dll):
+1. Bedah bundle JS resmi → dapat field body + endpoint PERSIS.
+2. Fungsi lib via bandelFetch + bearerHeaders (error bawa status).
+3. Route proxy: validasi input → proxy → map status → side effect.
+4. UI: accessToken dari sessionStorage, fetch route sendiri, feedback
+   inline (sukses hijau / error merah), confirm dialog untuk aksi destruktif.
+5. Tes live: happy path + semua error path + rate limit + tanpa Bearer.
+6. Cooldown/rate limit upstream → desain UI yang informatif (tampilkan
+   jam boleh coba lagi), jangan biarkan user mengulang blind.

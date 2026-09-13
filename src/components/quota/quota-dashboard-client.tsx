@@ -298,6 +298,16 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
                   <p className="mt-3 break-all text-xs font-bold text-base-ink/50">{data.baseUrl}/models · {data.baseUrl}/chat/completions</p>
                 </CardContent>
               </Card>
+              <SecurityCard
+                token={token}
+                onSession={(accessToken) => {
+                  sessionStorage.setItem(storageKey, accessToken);
+                }}
+                onDataChanged={async () => {
+                  const saved = sessionStorage.getItem(storageKey);
+                  if (saved) await loadData(saved);
+                }}
+              />
             </div>
           </div>
         </motion.div>
@@ -1065,8 +1075,153 @@ function FaqSection() {
   );
 }
 
-function ContactCs({ resellerCs }: { resellerCs: { name: string; waNumber: string | null; telegram: string | null } | null }) {
-  const wa = resellerCs?.waNumber;
+/**
+ * Kartu Keamanan: ganti PIN + rotasi API key.
+ * accessToken dibaca dari sessionStorage (key `quota_at_<token>`, sama seperti unlock).
+ */
+function SecurityCard({
+  token,
+  onSession,
+  onDataChanged,
+}: {
+  token: string;
+  onSession: (accessToken: string) => void;
+  onDataChanged: () => Promise<void> | void;
+}) {
+  const t = useT();
+  const storageKey = `quota_at_${token}`;
+  const [oldPin, setOldPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [pinBusy, setPinBusy] = useState(false);
+  const [pinMsg, setPinMsg] = useState<string | null>(null);
+  const [pinErr, setPinErr] = useState<string | null>(null);
+  const [regenBusy, setRegenBusy] = useState(false);
+  const [regenMsg, setRegenMsg] = useState<string | null>(null);
+  const [regenErr, setRegenErr] = useState<string | null>(null);
+
+  function authHeaders(): Record<string, string> {
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${sessionStorage.getItem(storageKey) || ""}`,
+    };
+  }
+
+  async function submitChangePin(event: React.FormEvent) {
+    event.preventDefault();
+    setPinErr(null);
+    setPinMsg(null);
+    if (newPin !== confirmPin) {
+      setPinErr(t("PIN baru dan ulanginya tidak sama"));
+      return;
+    }
+    setPinBusy(true);
+    try {
+      const res = await fetch(`/api/public/quota/${encodeURIComponent(token)}/change-pin`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ oldPin, newPin }),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.ok) throw new Error(body.error || "Gagal mengganti PIN");
+      if (typeof body.accessToken === "string" && body.accessToken) onSession(body.accessToken);
+      setOldPin("");
+      setNewPin("");
+      setConfirmPin("");
+      setPinMsg(t("PIN berhasil diganti"));
+    } catch (e) {
+      setPinErr(e instanceof Error ? e.message : "Gagal mengganti PIN");
+    } finally {
+      setPinBusy(false);
+    }
+  }
+
+  async function regenerateKey() {
+    if (!window.confirm(t("Ganti API key? Key lama langsung tidak bisa dipakai — semua aplikasi harus update ke key baru."))) return;
+    setRegenErr(null);
+    setRegenMsg(null);
+    setRegenBusy(true);
+    try {
+      const res = await fetch(`/api/public/quota/${encodeURIComponent(token)}/regenerate-key`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({}),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.ok) throw new Error(body.error || "Gagal mengganti API key");
+      await onDataChanged();
+      const until = body.cooldownAt ? ` · ${t("ganti lagi")} ${new Date(body.cooldownAt).toLocaleTimeString("id-ID")}` : "";
+      setRegenMsg(t("API key baru dibuat") + (body.keyMasked ? `: ${body.keyMasked}` : "") + until);
+    } catch (e) {
+      setRegenErr(e instanceof Error ? e.message : "Gagal mengganti API key");
+    } finally {
+      setRegenBusy(false);
+    }
+  }
+
+  return (
+    <Card className="flex flex-col">
+      <CardHeader><CardTitle className="flex items-center gap-2"><LockKeyhole className="h-5 w-5" /> {t("Keamanan")}</CardTitle></CardHeader>
+      <CardContent className="flex flex-1 flex-col gap-4">
+        <form onSubmit={submitChangePin} className="space-y-2">
+          <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">{t("Ganti PIN")}</p>
+          <Input
+            type="password"
+            inputMode="numeric"
+            pattern="\d{6}"
+            maxLength={6}
+            placeholder={t("PIN lama")}
+            value={oldPin}
+            onChange={(event) => setOldPin(event.target.value.replace(/\D/g, "").slice(0, 6))}
+            required
+          />
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              type="password"
+              inputMode="numeric"
+              pattern="\d{6}"
+              maxLength={6}
+              placeholder={t("PIN baru")}
+              value={newPin}
+              onChange={(event) => setNewPin(event.target.value.replace(/\D/g, "").slice(0, 6))}
+              required
+            />
+            <Input
+              type="password"
+              inputMode="numeric"
+              pattern="\d{6}"
+              maxLength={6}
+              placeholder={t("Ulangi PIN baru")}
+              value={confirmPin}
+              onChange={(event) => setConfirmPin(event.target.value.replace(/\D/g, "").slice(0, 6))}
+              required
+            />
+          </div>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={pinBusy || oldPin.length !== 6 || newPin.length !== 6 || confirmPin.length !== 6}
+          >
+            {pinBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LockKeyhole className="h-4 w-4" />} {t("Ganti PIN")}
+          </Button>
+          {pinMsg ? <p className="text-xs font-bold text-emerald-600">{pinMsg}</p> : null}
+          {pinErr ? <p className="text-xs font-bold text-red-600">{pinErr}</p> : null}
+        </form>
+        <div className="border-t border-base-line pt-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">{t("Ganti API Key")}</p>
+          <p className="mt-1 text-xs font-semibold text-base-ink/60">{t("Rotasi API key jadi yang baru. Key lama langsung mati.")}</p>
+          <Button type="button" size="sm" variant="outline" className="mt-2" disabled={regenBusy} onClick={regenerateKey}>
+            {regenBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />} {t("Ganti API Key")}
+          </Button>
+          {regenMsg ? <p className="mt-2 break-all text-xs font-bold text-emerald-600">{regenMsg}</p> : null}
+          {regenErr ? <p className="mt-2 text-xs font-bold text-red-600">{regenErr}</p> : null}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ContactCs({ resellerCs }: { resellerCs: { name: string; waNumber: string | null; telegram: string | null } | null }) {  const wa = resellerCs?.waNumber;
   const tg = resellerCs?.telegram;
   const waHref = wa ? `https://wa.me/${wa}?text=${encodeURIComponent("Halo, saya butuh bantuan soal kuota API saya.")}` : null;
   const tgHref = tg ? `https://t.me/${tg}` : null;
