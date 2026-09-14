@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { QUOTA_PACKAGES, provisionCustomerKey, formatBandelDelivery, addCustomerQuota, fetchResellerKeys } from "@/lib/bandelbanget";
+import { QUOTA_PACKAGES, provisionCustomerKey, formatBandelDelivery, addCustomerQuota, fetchResellerKeys, generateMemberPin } from "@/lib/bandelbanget";
 import { notifyOrderPaid } from "@/lib/telegram-notify";
 import type { ActionResult } from "@/types";
 
@@ -132,6 +132,7 @@ export async function fulfillOrder(orderId: string): Promise<ActionResult<{ deli
           setting.secretKey,
           pack.tokens * order.qty,
           pack.validDays,
+          generateMemberPin(),
           setting.pin || undefined
         );
         delivered = formatBandelDelivery(created, code);

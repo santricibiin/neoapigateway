@@ -143,7 +143,6 @@ export function ReswebDashboardClient({
       } else {
         setResult(data.member);
         setAddModal(false);
-        window.location.assign(pageUrl(1));
         router.refresh();
       }
     } catch {

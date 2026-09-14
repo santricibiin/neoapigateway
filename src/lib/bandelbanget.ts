@@ -469,6 +469,10 @@ export async function fetchTopupStatus(secretKey: string, orderId: string, pin?:
 
 export const BANDEL_DEFAULT_MEMBER_PIN = "111111";
 
+export function generateMemberPin() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
 export type BandelCreatedKey = {
   success?: boolean;
   remainingQuota?: number;
