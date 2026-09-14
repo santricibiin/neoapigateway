@@ -1,0 +1,209 @@
+KESIMPULAN: FIX "Gagal fetch status (jaringan)" + "PIN verification required"
+=============================================================================
+Tanggal: 2026-09-13
+Lokasi: fitur tambahan BandelAPI (src/features/bandel + src/lib/bandelbanget.ts)
+
+---------------------------------------------------------------------------
+1. GEJALA
+---------------------------------------------------------------------------
+- Panel "Fitur tambahan" muncul error: "Gagal fetch status (jaringan)"
+- API upstream bandelbanget.xyz balas 401: {"error":"PIN verification required","code":"pin_required"}
+- Error berantai ke semua fitur: status reseller, list member key,
+  buat token, add quota, topup Midtrans, cek stok di bot Telegram.
+
+---------------------------------------------------------------------------
+2. AKAR MASALAH
+---------------------------------------------------------------------------
+Upstream BandelBanget mengubah aturan auth: semua endpoint
+/api/public/reseller/* kini WAJIB header:
+
+    Authorization: Bearer <accessToken>
+
+accessToken didapat dari POST /api/public/quota/{secretToken}/verify-pin
+dengan body {"pin": "..."}. Response: {"accessToken": "...", "expiresIn": 7200000}
+(2 jam).
+
+Kode lama hanya kirim secretToken via query param / body TANPA Bearer
+→ upstream tolak 401 pin_required → API route 502 → UI catch fetch →
+"Gagal fetch status (jaringan)".
+
+Kredensial di DB (tabel User):
+- bandelSecretToken = 6589ae91...485255 (64 char)
+- bandelPin         = 111111
+- bandelBaseUrl     = https://bandelbanget.xyz
+
+Bukti (tes langsung ke upstream):
+- /api/public/quota/{token}                      → 200 OK (tanpa PIN)
+- /api/public/quota/{token}/verify-pin {111111}  → 200 OK + accessToken
+- /api/public/reseller/keys?token=...            → 401 pin_required
+- /api/public/reseller/keys + Bearer             → 200 OK (926 key)
+- /api/pricing                                   → 200 OK (tanpa PIN)
+Kesimpulan: hanya endpoint reseller/* yang butuh Bearer.
+
+---------------------------------------------------------------------------
+3. SOLUSI (src/lib/bandelbanget.ts)
+---------------------------------------------------------------------------
+a) bandelVerifyPin() — sudah ada, dipakai ulang (tidak diubah).
+
+b) BARU: bandelAccessToken(secretToken, pin, baseUrl, forceRefresh)
+   - verify-pin → simpan accessToken di cache in-memory (Map)
+   - TTL cache 90 menit (< expire 2 jam → token expired tak pernah terpakai)
+   - param forceRefresh untuk paksa ambil token baru
+
+c) BARU: withBandelAuth(secretToken, pin, baseUrl, call)
+   - wrapper retry 401 otomatis:
+     1. ambil accessToken (dari cache / verify-pin)
+     2. jalankan request
+     3. kalau 401 / pin_required / PIN verification:
+        hapus cache → verify-pin ulang → retry 1x
+   - semua endpoint reseller dibungkus ini:
+     keys, create-key, add-quota, delete-key, topup, topup/status
+
+d) Semua fungsi endpoint reseller dapat param pin (opsional):
+   bandelGetKeys, bandelResellerQuota, bandelCreateKey, bandelAddQuota,
+   bandelDeleteKey, bandelCreateTopup, bandelTopupStatus,
+   bandelProvisionMemberKey (param resellerPin, jangan tertukar dengan
+   pin member baru = 123456)
+
+---------------------------------------------------------------------------
+4. PERUBAHAN DI CALLER (pass pin dari DB)
+---------------------------------------------------------------------------
+Semua caller kini select bandelPin dari DB dan pass ke lib
+(kredensial full otomatis dari DB, tanpa input manual):
+
+- src/app/api/bandel/keys/route.ts
+- src/app/api/bandel/status/route.ts          (sudah ada dari awal)
+- src/app/api/bandel/create-key/route.ts
+- src/app/api/bandel/add-quota/route.ts
+- src/app/api/bandel/topup/route.ts
+- src/app/api/bandel/topup/status/route.ts
+- src/app/api/public/quota/[token]/topup/route.ts
+- src/lib/quota-check.ts
+- src/lib/shop-order.ts
+- src/features/telegram/actions/transaction.ts
+- scripts/poll-bot.ts (getOwnerBandel + cachedResellerQuota)
+
+Catatan: sisa error di UI (bukan bug kode):
+meta.status = "exceeded" = key reseller sendiri habis — normal,
+tidak mengganggu fitur panel.
+
+---------------------------------------------------------------------------
+5. PENANGANAN TOKEN EXPIRE 2 JAM
+---------------------------------------------------------------------------
+- Cache 90 menit → sebelum 2 jam sudah verify-pin ulang otomatis.
+- Kalau tetap 401 (PIN diganti upstream / clock skew):
+  withBandelAuth auto-refresh + retry 1x.
+- Kalau PIN reseller benar-benar diganti di dashboard Bandel:
+  HARUS update PIN di panel Fitur tambahan (disimpan ke DB) —
+  retry hanya menolong kalau PIN di DB masih benar.
+
+---------------------------------------------------------------------------
+6. CARA MEMPERBAIKI SCRIPT LAIN (resep umum)
+---------------------------------------------------------------------------
+Kalau ada script/file lain yang masih error "PIN verification required"
+atau 401 dari endpoint /api/public/reseller/*, perbaiki dengan urutan ini:
+
+LANGKAH 1 — Pastikan PIN tersedia
+   Ambil PIN dari DB (kolom bandelPin tabel User) atau env BB_PIN,
+   jangan hardcode:
+     const u = await prisma.user.findFirst({
+       where: { bandelSecretToken: { not: null } },
+       select: { bandelSecretToken: true, bandelPin: true, bandelBaseUrl: true },
+     });
+
+LANGKAH 2A — Script yang pakai lib @/lib/bandelbanget (DIREKOMENDASIKAN)
+   Cukup pass pin sebagai parameter TERAKHIR (opsional, semua fungsi sudah
+   retro-compatible):
+     bandelGetKeys(token, baseUrl, pin)
+     bandelResellerQuota(token, baseUrl, pin)
+     bandelCreateKey(token, maxTokens, validDays, baseUrl, pin)
+     bandelAddQuota(token, targetKeyId, addTokens, validDays, baseUrl, pin)
+     bandelDeleteKey(token, targetKeyId, baseUrl, pin)
+     bandelCreateTopup(token, tierId, baseUrl, pin)
+     bandelTopupStatus(token, orderId, baseUrl, pin)
+     bandelGetStatus(token, pin, baseUrl)   // urutan beda: pin dulu!
+     bandelProvisionMemberKey(token, maxTokens, validDays, baseUrl,
+                              memberPin, resellerPin)
+       // memberPin = PIN key customer baru (default "123456")
+       // resellerPin = PIN reseller dari DB — JANGAN tertukar
+   Lib otomatis: verify-pin → cache accessToken 90 menit → retry 401.
+   Tidak perlu urus Bearer manual.
+
+LANGKAH 2B — Script yang fetch langsung ke upstream (raw fetch)
+   Wajib urus Bearer sendiri:
+     a. POST /api/public/quota/{secretToken}/verify-pin
+        body: {"pin":"111111"} → simpan accessToken (expire 2 jam)
+     b. Tiap request ke /api/public/reseller/* tambah header:
+        Authorization: Bearer <accessToken>
+     c. Endpoint /api/public/quota/{token} (meta), /api/pricing,
+        /api/public/quota/{token}/setup-pin TIDAK butuh Bearer.
+     d. Kalau 401 pin_required di tengah jalan: verify-pin ulang,
+        refresh accessToken, retry 1x.
+   Contoh pattern retry (implementasi asli: withBandelAuth di
+   src/lib/bandelbanget.ts:197):
+     async function withAuth(call) {
+       let at = await getAccessToken();           // cache 90 menit
+       try { return await call(at); }
+       catch (e) {
+         if (/401|pin_required|PIN verification/i.test(e.message)) {
+           at = await getAccessToken(true);       // force refresh
+           return call(at);
+         }
+         throw e;
+       }
+     }
+
+SCRIPT YANG SUDAH DIPERBAIKI (semua):
+   PRODUKSI:
+   - src/lib/bandelbanget.ts ........ inti fix (bandelAccessToken +
+                                      withBandelAuth + Bearer di semua
+                                      endpoint reseller)
+   - src/app/api/bandel/keys/route.ts
+   - src/app/api/bandel/status/route.ts
+   - src/app/api/bandel/create-key/route.ts
+   - src/app/api/bandel/add-quota/route.ts
+   - src/app/api/bandel/topup/route.ts
+   - src/app/api/bandel/topup/status/route.ts
+   - src/app/api/public/quota/[token]/topup/route.ts
+   - src/lib/quota-check.ts
+   - src/lib/shop-order.ts
+   - src/features/telegram/actions/transaction.ts
+   - scripts/poll-bot.ts
+   SCRIPT TEST/DIAGNOSTIK:
+   - scripts/test-bandel-stock.ts ..... creds.pin sudah di-pass ke
+                                       bandelGetKeys/bandelResellerQuota/
+                                       bandelCreateKey/bandelDeleteKey
+   - scripts/test-bandelbanget-reseller.ts ... /reseller/keys kini pakai
+                                       bearer: at (verifyPin() dulu)
+   - scripts/test-bandel-pin-fix.ts ... script verifikasi fix (baru)
+
+CEK SCRIPT BELUM DIPERBAIKI (kalau nambah script baru):
+   grep -n "reseller/" <file>            → endpoint reseller?
+   grep -n "bandelGetKeys\|bandelCreateKey\|bandelAddQuota\|bandelDeleteKey\|bandelCreateTopup\|bandelTopupStatus\|bandelResellerQuota" <file>
+       → panggilan tanpa arg pin terakhir = belum fix
+   grep -n "bandelSecretToken" <file>    → pastikan select bandelPin juga
+
+---------------------------------------------------------------------------
+7. VERIFIKASI
+---------------------------------------------------------------------------
+- npx tsc --noEmit → bersih
+- npx eslint src/lib/bandelbanget.ts + scripts test → bersih
+- Tes live (scripts/test-bandel-pin-fix.ts) dengan kredensial DB:
+  bandelGetStatus      OK (meta + reseller quota 14.19B + 19 tier + 37 model)
+  bandelGetKeys        OK (926 member key)
+  bandelResellerQuota  OK (14.193.000.002)
+- Tes stock flow (scripts/test-bandel-stock.ts --from-db): keys, quota,
+  create-key, delete-key — semua lewat Bearer.
+- Restart "npm run dev" setelah fix agar perubahan ke-load.
+
+---------------------------------------------------------------------------
+8. POLA UMUM (buat referensi lain kali)
+---------------------------------------------------------------------------
+Kalau provider upstream tiba-tiba tambah requirement auth:
+1. Tes endpoint satu-satu langsung (curl/node) — identifikasi mana yang
+   berubah, mana yang tidak. Jangan asumsi semua ikut berubah.
+2. Isolasi penanganan di 1 lib (single source of truth).
+3. Cache token dengan TTL < expire provider.
+4. Retry 401 dengan force-refresh — murah dan menutup edge case.
+5. Ambil kredensial dari DB, jangan hardcode.
+6. Tes live pakai kredensial asli dari DB sebelum dinyatakan selesai.

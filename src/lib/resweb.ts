@@ -4,6 +4,7 @@ import { addCustomerQuota, generateMemberPin, provisionCustomerKey } from "@/lib
 import { BANDEL_DEFAULT_MEMBER_PIN, fetchQuotaMeta, fetchResellerKeys, QUOTA_PACKAGES } from "@/lib/bandelbanget";
 import { publicApiBase } from "@/lib/bandel-upstream";
 import { notifyTopupPaid } from "@/lib/telegram-notify";
+import { GOPAY2_PROVIDER, gopay2Configured, gopay2CreateQris } from "@/lib/gopay-merchant2";
 
 function invoiceCode() {
   return `RW${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -27,7 +28,15 @@ export type ReswebTopupResult =
 
 export async function createReswebTopup(resellerId: number, tierId: number): Promise<ReswebTopupResult> {
   const setting = await prisma.setting.findUnique({ where: { id: 1 } });
-  if (!setting || setting.qrisProvider === "none" || !setting.qrisStatic) {
+  if (!setting || setting.qrisProvider === "none") {
+    return { ok: false, error: "Pembayaran QRIS belum aktif. Hubungi admin." };
+  }
+  const useGopay2 = setting.qrisProvider === GOPAY2_PROVIDER;
+  if (useGopay2) {
+    if (!gopay2Configured({ baseUrl: setting.gopay2BaseUrl, apiKey: setting.gopay2ApiKey })) {
+      return { ok: false, error: "Gateway GoPay Merchant 2 belum dikonfigurasi. Hubungi admin." };
+    }
+  } else if (!setting.qrisStatic) {
     return { ok: false, error: "Pembayaran QRIS belum aktif. Hubungi admin." };
   }
 
@@ -78,14 +87,26 @@ export async function createReswebTopup(resellerId: number, tierId: number): Pro
   }
 
   let qrisPayload: string;
-  try {
-    qrisPayload = qrisStaticToDynamic(setting.qrisStatic, { amount });
-  } catch {
-    return { ok: false, error: "QRIS statis tidak valid. Hubungi admin." };
+  let gopayTrxId: string | null = null;
+  if (useGopay2) {
+    try {
+      const qris = await gopay2CreateQris(amount, { baseUrl: setting.gopay2BaseUrl, apiKey: setting.gopay2ApiKey });
+      qrisPayload = qris.qris_code;
+      gopayTrxId = qris.trx_id;
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? `Gateway GoPay: ${e.message}` : "Gateway GoPay gagal membuat QRIS." };
+    }
+  } else {
+    try {
+      qrisPayload = qrisStaticToDynamic(setting.qrisStatic!, { amount });
+    } catch {
+      return { ok: false, error: "QRIS statis tidak valid. Hubungi admin." };
+    }
   }
 
   const invoice = invoiceCode();
-  const ttlMinutes = Math.max(1, Math.min(120, setting.qrisTtlMinutes ?? 5));
+  // Gateway gopaymerchant2: expired QR fix 5 menit (hardcoded gateway) — TTL diabaikan
+  const ttlMinutes = useGopay2 ? 5 : Math.max(1, Math.min(120, setting.qrisTtlMinutes ?? 5));
   const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
 
   await prisma.resellerWebOrder.create({
@@ -100,6 +121,7 @@ export async function createReswebTopup(resellerId: number, tierId: number): Pro
       unitCost: tier.costPrice,
       qrisProvider: setting.qrisProvider,
       qrisPayload,
+      gopayTrxId,
       expiresAt,
     },
   });
@@ -130,6 +152,8 @@ export async function claimReswebOrder(eventId: string) {
     const order = await tx.resellerWebOrder.findFirst({
       where: {
         status: "pending",
+        // Order gopaymerchant2 diclaim poller gateway (scope trx_id), bukan notif APK.
+        qrisProvider: { not: "gopaymerchant2" },
         amount: event.amount,
         expiresAt: { gt: new Date(Date.now() - EXPIRE_GRACE_MS) },
         createdAt: { lte: event.createdAt },

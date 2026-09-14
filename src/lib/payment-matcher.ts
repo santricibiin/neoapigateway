@@ -20,6 +20,8 @@ export async function claimPaymentEvent(eventId: string) {
         status: "pending",
         // Event forwarder QRIS hanya boleh match order IDR (order USDT diclaim poller Binance).
         currency: "idr",
+        // Order gopaymerchant2 diclaim poller gateway (scope trx_id), bukan notif APK.
+        qrisProvider: { not: "gopaymerchant2" },
         amount: event.amount,
         // Grace period: order lewat TTL masih bisa diclaim (notifikasi telat)
         expiresAt: { gt: new Date(Date.now() - 10 * 60 * 1000) },

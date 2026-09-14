@@ -45,6 +45,7 @@ export function SettingsClient({
   initialCsTelegram,
   initialCsWhatsapp,
   initialBinance,
+  initialGopay2,
   hasLogo,
 }: {
   initialSecretKey: string;
@@ -58,15 +59,19 @@ export function SettingsClient({
   initialCsTelegram: string;
   initialCsWhatsapp: string;
   initialBinance: { enabled: boolean; uid: string; addresses: Record<string, string>; rate: number };
+  initialGopay2: { baseUrl: string; apiKey: string; qrisStatic: string };
   hasLogo: boolean;
 }) {
   const [showKey, setShowKey] = useState(false);
   const [showPin, setShowPin] = useState(false);
   const [showForwarder, setShowForwarder] = useState(false);
+  const [showGopay2Key, setShowGopay2Key] = useState(false);
+  const [qrisProvider, setQrisProvider] = useState(initialQrisProvider);
+  const useGopay2 = qrisProvider === "gopaymerchant2";
   const [forwarderSecret, setForwarderSecret] = useState(initialForwarderSecret || generateSecret());
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoUrl, setLogoUrl] = useState(hasLogo ? "/api/brand/logo" : null);
@@ -74,13 +79,13 @@ export function SettingsClient({
 
   async function handleSubmit(formData: FormData) {
     setSaving(true);
-    setSuccess(false);
+    setSuccess(null);
     setError(null);
     const res = await saveSettings(formData);
     setSaving(false);
     if (res.ok) {
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      setSuccess(res.message || "Pengaturan berhasil disimpan.");
+      setTimeout(() => setSuccess(null), 5000);
     } else {
       setError(res.error ?? "Terjadi kesalahan");
     }
@@ -239,22 +244,47 @@ export function SettingsClient({
               <div className="grid gap-4 sm:grid-cols-[1fr_180px]">
                 <div>
                   <label htmlFor="qrisProvider" className="mb-1.5 block text-sm font-bold">Provider</label>
-                  <select id="qrisProvider" name="qrisProvider" defaultValue={initialQrisProvider} className="w-full rounded-neo border border-base-line bg-base-surface px-4 py-2.5 text-base shadow-neo-sm outline-none focus:shadow-neo">
+                  <select id="qrisProvider" name="qrisProvider" value={qrisProvider} onChange={(e) => setQrisProvider(e.target.value)} className="w-full rounded-neo border border-base-line bg-base-surface px-4 py-2.5 text-base shadow-neo-sm outline-none focus:shadow-neo">
                     <option value="none">Nonaktif</option>
                     <option value="dana">DANA</option>
                     <option value="gopay">GoPay Merchant</option>
+                    <option value="gopaymerchant2">GoPay Merchant 2 (Gateway)</option>
                     <option value="nobu">Nobu/Neobank</option>
                   </select>
                 </div>
                 <div>
                   <label htmlFor="qrisTtlMinutes" className="mb-1.5 flex items-center gap-2 text-sm font-bold"><Clock className="h-4 w-4" /> Berlaku (menit)</label>
-                  <Input id="qrisTtlMinutes" name="qrisTtlMinutes" type="number" min={1} max={120} defaultValue={initialQrisTtlMinutes} />
+                  <Input id="qrisTtlMinutes" name="qrisTtlMinutes" type="number" min={1} max={120} defaultValue={initialQrisTtlMinutes} disabled={useGopay2} />
+                  {useGopay2 && <p className="mt-1 text-xs font-semibold text-base-ink/50">Gateway fix 5 menit.</p>}
                 </div>
               </div>
               <div>
-                <label htmlFor="qrisStatic" className="mb-1.5 block text-sm font-bold">QRIS Statis</label>
+                <label htmlFor="qrisStatic" className="mb-1.5 block text-sm font-bold">QRIS Statis {useGopay2 && <span className="font-semibold text-base-ink/50">(tidak dipakai provider ini)</span>}</label>
                 <textarea id="qrisStatic" name="qrisStatic" defaultValue={initialQrisStatic} placeholder="00020101021126...6304ABCD" rows={5} className="w-full resize-y rounded-neo border border-base-line bg-base-surface px-4 py-3 font-mono text-xs leading-relaxed shadow-neo-sm outline-none focus:shadow-neo sm:text-sm" />
               </div>
+
+              {useGopay2 && (
+                <div className="space-y-4 rounded-neo border border-base-line bg-base-bg p-3 sm:p-4">
+                  <div className="text-xs font-black uppercase tracking-wider text-base-ink/55">GoPay Merchant 2 — Gateway</div>
+                  <Input name="gopay2BaseUrl" label="URL Gateway" defaultValue={initialGopay2.baseUrl} placeholder="http://127.0.0.1:3005" autoComplete="off" className="font-mono" />
+                  <div>
+                    <label htmlFor="gopay2ApiKey" className="mb-1.5 block text-sm font-bold">API Key Gateway</label>
+                    <div className="relative">
+                      <Input id="gopay2ApiKey" name="gopay2ApiKey" type={showGopay2Key ? "text" : "password"} defaultValue={initialGopay2.apiKey} placeholder="API key gateway (kosong = pertahankan lama)" autoComplete="off" className="pr-11 font-mono" />
+                      <button type="button" onClick={() => setShowGopay2Key((v) => !v)} className="absolute right-1 top-1 flex h-9 w-9 items-center justify-center rounded-md text-base-ink/55 hover:bg-base-surface hover:text-base-ink" aria-label={showGopay2Key ? "Sembunyikan" : "Tampilkan"}>
+                        {showGopay2Key ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="gopay2QrisStatic" className="mb-1.5 block text-sm font-bold">QRIS Statis GoBiz</label>
+                    <textarea id="gopay2QrisStatic" name="gopay2QrisStatic" defaultValue={initialGopay2.qrisStatic} placeholder="00020101021126...6304ABCD (dari GoBiz, di-push ke gateway saat simpan)" rows={4} className="w-full resize-y rounded-neo border border-base-line bg-base-surface px-4 py-3 font-mono text-xs leading-relaxed shadow-neo-sm outline-none focus:shadow-neo" />
+                  </div>
+                  <p className="text-xs leading-relaxed text-base-ink/60">
+                    QRIS dinamis dibuat per order oleh gateway; lunas terdeteksi otomatis ≤ 15 detik. Saat simpan, QRIS statis GoBiz otomatis di-push ke gateway.
+                  </p>
+                </div>
+              )}
               <label className="flex cursor-pointer items-start gap-3 rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold sm:items-center">
                 <input type="checkbox" name="uniqueCodeEnabled" defaultChecked={initialUniqueCodeEnabled} className="mt-0.5 h-5 w-5 shrink-0 accent-black sm:mt-0" />
                 <span>Aktifkan kode unik 3 digit pada nominal QRIS</span>
@@ -347,8 +377,8 @@ export function SettingsClient({
 
           {error && <div className="rounded-neo border border-base-line bg-accent-terraSoft px-4 py-3 text-sm font-semibold text-accent-terraDeep">{error}</div>}
           {success && (
-            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 rounded-neo border border-base-line bg-accent-mint px-4 py-3 text-sm font-semibold">
-              <CheckCircle2 className="h-4 w-4 shrink-0" strokeWidth={2.5} /> Pengaturan berhasil disimpan.
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-start gap-2 rounded-neo border border-base-line bg-accent-mint px-4 py-3 text-sm font-semibold">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.5} /> {success}
             </motion.div>
           )}
           <Button type="submit" variant="primary" size="lg" disabled={saving} className="w-full text-base sm:text-lg">

@@ -3,6 +3,7 @@ import { qrisStaticToDynamic } from "@/lib/qris";
 import { QUOTA_PACKAGES, fetchResellerKeys } from "@/lib/bandelbanget";
 import { checkPendingByTelegram, MAX_PENDING_ORDERS } from "@/lib/order-limit";
 import { getBinanceConfig, uniqueUsdtAmountCents, baseUsdtCents, binanceQrContent } from "@/lib/binance-order";
+import { GOPAY2_PROVIDER, gopay2Configured, gopay2CreateQris } from "@/lib/gopay-merchant2";
 import type { UsdtNetwork } from "@/lib/binance";
 
 export function invoiceCode() {
@@ -16,6 +17,7 @@ export function providerLabel(p: string) {
   if (p === "dana") return "DANA";
   if (p === "nobu") return "Nobu/Neobank";
   if (p === "gopay") return "GoPay Merchant";
+  if (p === GOPAY2_PROVIDER) return "GoPay Merchant 2";
   return p;
 }
 
@@ -51,8 +53,12 @@ export async function createShopOrder(opts: {
   const payMethod = opts.payMethod ?? "qris";
   const setting = await prisma.setting.findUnique({ where: { id: 1 } });
   if (!setting) return { ok: false, error: "Pengaturan belum tersedia." };
-  if (payMethod === "qris" && (setting.qrisProvider === "none" || !setting.qrisStatic)) {
+  const useGopay2 = setting.qrisProvider === GOPAY2_PROVIDER;
+  if (payMethod === "qris" && !useGopay2 && (setting.qrisProvider === "none" || !setting.qrisStatic)) {
     return { ok: false, error: "Pembayaran QRIS belum aktif. Hubungi admin." };
+  }
+  if (payMethod === "qris" && useGopay2 && !gopay2Configured({ baseUrl: setting.gopay2BaseUrl, apiKey: setting.gopay2ApiKey })) {
+    return { ok: false, error: "Gateway GoPay Merchant 2 belum dikonfigurasi. Hubungi admin." };
   }
 
   const rawQty = opts.qty ?? 1;
@@ -101,6 +107,7 @@ export async function createShopOrder(opts: {
   let currency: "idr" | "usdt" = "idr";
   let qrisPayload = "";
   let provider = "";
+  let gopayTrxId: string | null = null;
 
   if (payMethod === "binancepay" || payMethod === "usdt") {
     // ===== Pembayaran Binance: amount = USDT cents + kode unik =====
@@ -124,7 +131,7 @@ export async function createShopOrder(opts: {
     provider = payMethod === "binancepay" ? "Binance Pay" : `USDT ${opts.network}`;
   } else {
     // ===== QRIS: amount IDR + kode unik 500–999 =====
-    if (!setting.qrisStatic) {
+    if (!useGopay2 && !setting.qrisStatic) {
       return { ok: false, error: "Pembayaran QRIS belum aktif. Hubungi admin." };
     }
     if (setting.uniqueCodeEnabled) {
@@ -161,16 +168,27 @@ export async function createShopOrder(opts: {
         return { ok: false, error: "Nominal pembayaran sedang penuh. Coba lagi." };
       }
     }
-    try {
-      qrisPayload = qrisStaticToDynamic(setting.qrisStatic, { amount });
-    } catch {
-      return { ok: false, error: "QRIS statis tidak valid. Hubungi admin." };
+    if (useGopay2) {
+      try {
+        const qris = await gopay2CreateQris(amount, { baseUrl: setting.gopay2BaseUrl, apiKey: setting.gopay2ApiKey });
+        qrisPayload = qris.qris_code;
+        gopayTrxId = qris.trx_id;
+      } catch (e) {
+        return { ok: false, error: e instanceof Error ? `Gateway GoPay: ${e.message}` : "Gateway GoPay gagal membuat QRIS." };
+      }
+    } else {
+      try {
+        qrisPayload = qrisStaticToDynamic(setting.qrisStatic!, { amount });
+      } catch {
+        return { ok: false, error: "QRIS statis tidak valid. Hubungi admin." };
+      }
     }
     provider = providerLabel(setting.qrisProvider);
   }
 
   const invoice = invoiceCode();
-  const ttlMinutes = Math.max(1, Math.min(120, setting.qrisTtlMinutes ?? 5));
+  // Gateway gopaymerchant2: expired QR fix 5 menit (hardcoded gateway) — TTL diabaikan
+  const ttlMinutes = useGopay2 && payMethod === "qris" ? 5 : Math.max(1, Math.min(120, setting.qrisTtlMinutes ?? 5));
   const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
 
   await prisma.paymentOrder.create({
@@ -190,6 +208,7 @@ export async function createShopOrder(opts: {
       buyerQuotaToken: opts.buyerQuotaToken || null,
       qrisProvider: payMethod === "qris" ? setting.qrisProvider : payMethod,
       qrisPayload,
+      gopayTrxId,
       expiresAt,
       tokenId: product.id,
     },
@@ -239,7 +258,15 @@ export async function createBotOrder(opts: {
   detailMessageId?: number;
 }): Promise<CreateBotOrderResult> {
   const setting = await prisma.setting.findUnique({ where: { id: 1 } });
-  if (!setting || setting.qrisProvider === "none" || !setting.qrisStatic) {
+  if (!setting || setting.qrisProvider === "none") {
+    return { ok: false, error: "Pembayaran QRIS belum aktif. Hubungi admin." };
+  }
+  const useGopay2 = setting.qrisProvider === GOPAY2_PROVIDER;
+  if (useGopay2) {
+    if (!gopay2Configured({ baseUrl: setting.gopay2BaseUrl, apiKey: setting.gopay2ApiKey })) {
+      return { ok: false, error: "Gateway GoPay Merchant 2 belum dikonfigurasi. Hubungi admin." };
+    }
+  } else if (!setting.qrisStatic) {
     return { ok: false, error: "Pembayaran QRIS belum aktif. Hubungi admin." };
   }
 
@@ -317,14 +344,26 @@ export async function createBotOrder(opts: {
   }
 
   let qrisPayload: string;
-  try {
-    qrisPayload = qrisStaticToDynamic(setting.qrisStatic, { amount });
-  } catch {
-    return { ok: false, error: "QRIS statis tidak valid. Hubungi admin." };
+  let gopayTrxId: string | null = null;
+  if (useGopay2) {
+    try {
+      const qris = await gopay2CreateQris(amount, { baseUrl: setting.gopay2BaseUrl, apiKey: setting.gopay2ApiKey });
+      qrisPayload = qris.qris_code;
+      gopayTrxId = qris.trx_id;
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? `Gateway GoPay: ${e.message}` : "Gateway GoPay gagal membuat QRIS." };
+    }
+  } else {
+    try {
+      qrisPayload = qrisStaticToDynamic(setting.qrisStatic!, { amount });
+    } catch {
+      return { ok: false, error: "QRIS statis tidak valid. Hubungi admin." };
+    }
   }
 
   const invoice = invoiceCode();
-  const ttlMinutes = Math.max(1, Math.min(120, setting.qrisTtlMinutes ?? 5));
+  // Gateway gopaymerchant2: expired QR fix 5 menit (hardcoded gateway) — TTL diabaikan
+  const ttlMinutes = useGopay2 ? 5 : Math.max(1, Math.min(120, setting.qrisTtlMinutes ?? 5));
   const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
 
   await prisma.paymentOrder.create({
@@ -342,6 +381,7 @@ export async function createBotOrder(opts: {
       detailMessageId: opts.detailMessageId ?? null,
       qrisProvider: setting.qrisProvider,
       qrisPayload,
+      gopayTrxId,
       expiresAt,
       tokenId: product.id,
     },

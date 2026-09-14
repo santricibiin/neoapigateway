@@ -25,5 +25,8 @@ export async function readSettingsRaw() {
     binanceUid: setting?.binanceUid ?? "",
     binanceUsdtAddresses: setting?.binanceUsdtAddresses ?? "{}",
     binanceUsdtRate: setting?.binanceUsdtRate ?? 16000,
+    gopay2BaseUrl: setting?.gopay2BaseUrl ?? "",
+    gopay2ApiKey: setting?.gopay2ApiKey ?? "",
+    gopay2QrisStatic: setting?.gopay2QrisStatic ?? "",
   };
 }

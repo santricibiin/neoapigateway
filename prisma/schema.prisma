@@ -73,7 +73,13 @@ model Setting {
   /// Kontak CS landing: nomor WhatsApp (format 62xxx)
   csWhatsapp        String?  @db.VarChar(20)
   /// Pembayaran Binance aktif
-  binanceEnabled    Boolean  @default(false)
+  binanceEnabled    Boolean @default(false)
+  /// GoPay Merchant 2 (gopay-api-gateway): URL gateway
+  gopay2BaseUrl     String? @db.VarChar(255)
+  /// GoPay Merchant 2: API key gateway
+  gopay2ApiKey      String? @db.VarChar(191)
+  /// GoPay Merchant 2: arsip QRIS statis GoBiz (di-push ke gateway saat simpan)
+  gopay2QrisStatic  String? @db.Text
   /// API key Binance (SAPI, read-only)
   binanceApiKey     String?  @db.VarChar(200)
   /// API secret Binance
@@ -215,6 +221,8 @@ model PaymentOrder {
   telegramNotifiedAt DateTime?
   qrisProvider    String        @db.VarChar(20)
   qrisPayload     String        @db.Text
+  /// TRX-ID dari gateway gopaymerchant2 — scope klaim pembayaran
+  gopayTrxId      String?       @db.VarChar(64)
   tokenId         Int
   token           Token         @relation(fields: [tokenId], references: [id], onDelete: Restrict)
   paymentEventId  String?       @unique
@@ -331,6 +339,8 @@ model ResellerWebOrder {
   unitCost     Int             @default(0)
   qrisProvider String          @db.VarChar(20)
   qrisPayload  String          @db.Text
+  /// TRX-ID dari gateway gopaymerchant2 — scope klaim pembayaran
+  gopayTrxId   String?         @db.VarChar(64)
   expiresAt    DateTime
   paidAt       DateTime?
   createdAt    DateTime        @default(now())

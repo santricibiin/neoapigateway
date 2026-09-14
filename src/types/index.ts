@@ -30,6 +30,7 @@ export interface ActionResult<T = unknown> {
   ok: boolean;
   data?: T;
   error?: string;
+  message?: string;
 }
 
 declare global {

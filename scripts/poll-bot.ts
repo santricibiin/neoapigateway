@@ -6,6 +6,7 @@ import { DEFAULT_FX, DEFAULT_MESSAGES } from "../src/lib/bot-messages";
 import { maskInvoice } from "../src/lib/mask-invoice";
 import { QUOTA_PACKAGES, fetchResellerKeys } from "../src/lib/bandelbanget";
 import { createBotOrder } from "../src/lib/shop-order";
+import { matchGopayMerchant2Payments } from "../src/lib/gopay-merchant2";
 
 const prisma = new PrismaClient();
 const idr = new Intl.NumberFormat("id-ID");
@@ -349,6 +350,8 @@ async function syncBot() {
       await expireBotOrders(running.bot, setting);
       await notifyPaidBotOrders(running.bot, setting);
       await failStuckBotOrders(running.bot);
+      // Order gopaymerchant2 bot Telegram: poll gateway (guard interval internal)
+      await matchGopayMerchant2Payments().catch((e) => console.error("[gopay2] poll:", e));
       return;
     }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { pollBinancePayments } from "@/lib/binance-order";
+import { matchGopayMerchant2Payments } from "@/lib/gopay-merchant2";
 
 export async function GET(
   _request: Request,
@@ -27,6 +28,22 @@ export async function GET(
   // Kalau ada match → order langsung difulfill di dalam poller.
   if (order.currency === "usdt" && (order.status === "pending" || order.status === "expired")) {
     await pollBinancePayments();
+    order = (await prisma.paymentOrder.findUnique({
+      where: { invoice },
+      select: {
+        invoice: true,
+        status: true,
+        paidAt: true,
+        expiresAt: true,
+        delivered: true,
+        currency: true,
+      },
+    })) ?? order;
+  }
+
+  // Order gopaymerchant2: poll gateway (guard interval internal), fulfill di dalam poller.
+  if (order.status === "pending" || order.status === "expired") {
+    await matchGopayMerchant2Payments();
     order = (await prisma.paymentOrder.findUnique({
       where: { invoice },
       select: {

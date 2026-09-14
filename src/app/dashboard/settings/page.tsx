@@ -28,6 +28,11 @@ export default async function SettingsPage() {
           }
         })(),
       }}
+      initialGopay2={{
+        baseUrl: settings.gopay2BaseUrl,
+        apiKey: settings.gopay2ApiKey,
+        qrisStatic: settings.gopay2QrisStatic,
+      }}
       hasLogo={Boolean(settings.logoPath)}
     />
   );

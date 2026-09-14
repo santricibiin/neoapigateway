@@ -5,9 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { readSettingsRaw } from "@/lib/settings-raw";
 import { verifyQrisCrc } from "@/lib/qris";
+import { GOPAY2_PROVIDER, gopay2PushQrisStatic, validateGopay2Fields } from "@/lib/gopay-merchant2";
 import type { ActionResult } from "@/types";
 
-const VALID_PROVIDERS = ["none", "dana", "nobu", "gopay"] as const;
+const VALID_PROVIDERS = ["none", "dana", "nobu", "gopay", GOPAY2_PROVIDER] as const;
 const VALID_BACKUP_UNITS = ["minutes", "hours", "days"] as const;
 
 export async function getSettings() {
@@ -102,8 +103,19 @@ export async function saveSettings(
     return { ok: false, error: "Bot Token dan Chat ID Telegram wajib diisi jika backup aktif" };
   }
 
-  if (qrisProvider !== "none" && !qrisStatic) {
+  if (qrisProvider !== "none" && qrisProvider !== GOPAY2_PROVIDER && !qrisStatic) {
     return { ok: false, error: "QRIS statis wajib diisi jika provider aktif" };
+  }
+
+  // ===== GoPay Merchant 2 (gateway) =====
+  const hasGopay2Fields = formData.has("gopay2BaseUrl") || formData.has("gopay2ApiKey");
+  const gopay2BaseUrlRaw = hasGopay2Fields ? formData.get("gopay2BaseUrl")?.toString().trim() ?? "" : existing?.gopay2BaseUrl ?? "";
+  const gopay2ApiKeyRaw = hasGopay2Fields ? formData.get("gopay2ApiKey")?.toString().trim() ?? "" : existing?.gopay2ApiKey ?? "";
+  const gopay2QrisStaticRaw = hasGopay2Fields ? formData.get("gopay2QrisStatic")?.toString().trim() ?? "" : existing?.gopay2QrisStatic ?? "";
+  const gopay2Invalid = validateGopay2Fields(gopay2BaseUrlRaw, gopay2ApiKeyRaw, gopay2QrisStaticRaw);
+  if (gopay2Invalid) return { ok: false, error: gopay2Invalid };
+  if (qrisProvider === GOPAY2_PROVIDER && !(gopay2BaseUrlRaw && gopay2ApiKeyRaw)) {
+    return { ok: false, error: "URL Gateway & API Key GoPay Merchant 2 wajib diisi" };
   }
 
   if (qrisStatic && !verifyQrisCrc(qrisStatic)) {
@@ -151,6 +163,13 @@ export async function saveSettings(
     : (existing?.binanceUsdtAddresses ?? null);
 
   try {
+    // Push QRIS statis GoBiz ke gateway (aktif tanpa restart) — best effort.
+    let gopay2PushInfo = "";
+    if (qrisProvider === GOPAY2_PROVIDER && gopay2QrisStaticRaw) {
+      const pushed = await gopay2PushQrisStatic(gopay2QrisStaticRaw, { baseUrl: gopay2BaseUrlRaw, apiKey: gopay2ApiKeyRaw });
+      gopay2PushInfo = pushed.ok ? " · QRIS statis ter-push ke gateway ✓" : ` · Gagal push QRIS ke gateway: ${pushed.error ?? "unknown"}`;
+    }
+
     await prisma.setting.upsert({
       where: { id: 1 },
       update: {
@@ -176,6 +195,9 @@ export async function saveSettings(
         siteName: finalSiteName,
         csTelegram: csTelegram || null,
         csWhatsapp: csWhatsapp || null,
+        gopay2BaseUrl: gopay2BaseUrlRaw || null,
+        gopay2ApiKey: gopay2ApiKeyRaw || null,
+        gopay2QrisStatic: gopay2QrisStaticRaw || null,
       },
       create: {
         id: 1,
@@ -201,10 +223,13 @@ export async function saveSettings(
         siteName: finalSiteName,
         csTelegram: csTelegram || null,
         csWhatsapp: csWhatsapp || null,
+        gopay2BaseUrl: gopay2BaseUrlRaw || null,
+        gopay2ApiKey: gopay2ApiKeyRaw || null,
+        gopay2QrisStatic: gopay2QrisStaticRaw || null,
       },
     });
     revalidatePath("/dashboard/settings");
-    return { ok: true };
+    return { ok: true, message: `Pengaturan tersimpan${gopay2PushInfo}` };
   } catch (err) {
     console.error("saveSettings error:", err);
     return { ok: false, error: "Gagal menyimpan pengaturan" };
