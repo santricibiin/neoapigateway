@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { PayClient } from "./pay-client";
+import { INVOICE_SCOPE, checkIpAllowed, clientIp, recordInvoiceHit, recordInvoiceMiss } from "@/lib/ip-rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -8,12 +10,20 @@ export default async function PayPage({ params }: { params: { invoice: string } 
   const invoice = params.invoice.trim().toUpperCase();
   if (!invoice) notFound();
 
+  // Anti brute-force: IP terkunci setelah 3x invoice tidak ditemukan.
+  const ip = clientIp(headers());
+  if (!checkIpAllowed(INVOICE_SCOPE, ip).ok) notFound();
+
   const order = await prisma.paymentOrder.findUnique({
     where: { invoice },
     include: { token: true },
   });
 
-  if (!order) notFound();
+  if (!order) {
+    recordInvoiceMiss(INVOICE_SCOPE, ip);
+    notFound();
+  }
+  recordInvoiceHit(INVOICE_SCOPE, ip);
 
   return (
     <PayClient

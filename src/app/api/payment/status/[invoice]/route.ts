@@ -2,12 +2,25 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { pollBinancePayments } from "@/lib/binance-order";
 import { matchGopayMerchant2Payments } from "@/lib/gopay-merchant2";
+import { INVOICE_SCOPE, checkIpAllowed, clientIp, recordInvoiceHit, recordInvoiceMiss } from "@/lib/ip-rate-limit";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: { invoice: string } }
 ) {
   const invoice = params.invoice;
+
+  // Anti brute-force: IP terkunci setelah 3x invoice tidak ditemukan (15 menit).
+  // Lookup invoice valid tidak dihitung — polling status tiap 5 detik tetap aman.
+  const ip = clientIp(request.headers);
+  const allowed = checkIpAllowed(INVOICE_SCOPE, ip);
+  if (!allowed.ok) {
+    return NextResponse.json(
+      { ok: false, error: "Terlalu banyak percobaan. Coba lagi nanti." },
+      { status: 429, headers: { "Retry-After": String(allowed.retryAfterSec) } }
+    );
+  }
+
   let order = await prisma.paymentOrder.findUnique({
     where: { invoice },
     select: {
@@ -21,8 +34,10 @@ export async function GET(
   });
 
   if (!order) {
+    recordInvoiceMiss(INVOICE_SCOPE, ip);
     return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
   }
+  recordInvoiceHit(INVOICE_SCOPE, ip);
 
   // Order USDT: cek transaksi masuk di Binance (poll API, guard interval internal).
   // Kalau ada match → order langsung difulfill di dalam poller.

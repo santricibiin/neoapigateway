@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { qrisStaticToDynamic } from "@/lib/qris";
 import { QUOTA_PACKAGES, fetchResellerKeys } from "@/lib/bandelbanget";
@@ -7,10 +8,7 @@ import { GOPAY2_PROVIDER, gopay2Configured, gopay2CreateQris } from "@/lib/gopay
 import type { UsdtNetwork } from "@/lib/binance";
 
 export function invoiceCode() {
-  return `INV${Date.now().toString(36).toUpperCase()}${Math.random()
-    .toString(36)
-    .slice(2, 6)
-    .toUpperCase()}`;
+  return `INV-${randomBytes(12).toString("hex").toUpperCase()}`;
 }
 
 export function providerLabel(p: string) {

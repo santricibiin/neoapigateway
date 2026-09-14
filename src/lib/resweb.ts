@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { qrisStaticToDynamic } from "@/lib/qris";
 import { addCustomerQuota, generateMemberPin, provisionCustomerKey } from "@/lib/bandelbanget";
@@ -7,7 +8,7 @@ import { notifyTopupPaid } from "@/lib/telegram-notify";
 import { GOPAY2_PROVIDER, gopay2Configured, gopay2CreateQris } from "@/lib/gopay-merchant2";
 
 function invoiceCode() {
-  return `RW${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+  return `RW-${randomBytes(12).toString("hex").toUpperCase()}`;
 }
 
 /** Cek sisa kuota reseller admin (dari bandel upstream). */
