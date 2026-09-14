@@ -79,9 +79,15 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
 
   useEffect(() => {
     if (!isPending) return;
+    let interval: ReturnType<typeof setInterval> | null = null;
     const poll = async () => {
       try {
         const r = await fetch(`/api/payment/status/${order.invoice}`, { cache: "no-store" });
+        if (r.status === 429) {
+          // IP terkunci rate limit — hentikan polling biar tidak spam.
+          if (interval) clearInterval(interval);
+          return;
+        }
         const data = await r.json();
         if (data.ok) {
           setOrder((prev) => {
@@ -98,8 +104,10 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
       } catch {}
     };
     poll();
-    const interval = setInterval(poll, 5000);
-    return () => clearInterval(interval);
+    interval = setInterval(poll, 5000);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [order.invoice, isPending]);
 
   async function copyValue(label: string, value: string) {

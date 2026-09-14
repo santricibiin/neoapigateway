@@ -1,19 +1,43 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FloatingShapes } from "@/components/shared/floating-shapes";
 import { useT } from "@/lib/lang";
-import { Search, Receipt, ShieldCheck, Clock, Zap } from "lucide-react";
+import { Search, Receipt, ShieldCheck, Clock, Zap, ShieldAlert } from "lucide-react";
 
 export default function TrackPage() {
+  return (
+    <Suspense>
+      <TrackPageInner />
+    </Suspense>
+  );
+}
+
+function TrackPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const t = useT();
   const [invoice, setInvoice] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const lockedSec = Number(searchParams.get("locked")) || 0;
+  const [lockedBanner, setLockedBanner] = useState(lockedSec > 0);
+  const [lockedMin, setLockedMin] = useState(Math.ceil(lockedSec / 60));
+
+  useEffect(() => {
+    if (!lockedSec) return;
+    // Simpan dulu sebelum URL dibersihkan (router.replace memicu re-render
+    // yang menghapus searchParams dan men-set lockedSec jadi 0).
+    setLockedBanner(true);
+    setLockedMin(Math.max(1, Math.ceil(lockedSec / 60)));
+    router.replace("/track");
+    const timer = setTimeout(() => setLockedBanner(false), 15000);
+    return () => clearTimeout(timer);
+  }, [lockedSec, router]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,6 +52,24 @@ export default function TrackPage() {
   return (
     <div className="relative flex min-h-[70vh] flex-col gap-8 overflow-x-hidden py-6 sm:py-8">
       <FloatingShapes />
+
+      {lockedBanner && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative mx-auto flex w-full max-w-xl items-start gap-3 rounded-neo border border-base-line bg-accent-terraSoft p-4 shadow-neo-sm"
+        >
+          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" strokeWidth={2.5} />
+          <div>
+            <p className="text-sm font-extrabold">{t("Terlalu Banyak Percobaan")}</p>
+            <p className="text-xs font-semibold text-base-ink/70">
+              {t("Anda telah memasukkan invoice yang salah terlalu sering. Tunggu sekitar")}
+              {` ${lockedMin} `}
+              {t("menit sebelum mencoba lagi.")}
+            </p>
+          </div>
+        </motion.div>
+      )}
 
       <section className="relative flex flex-col items-center gap-3 pt-4 text-center sm:pt-8">
         <motion.span

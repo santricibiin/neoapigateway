@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { TrackClient } from "./track-client";
@@ -12,7 +12,10 @@ export default async function TrackPage({ params }: { params: { invoice: string 
 
   // Anti brute-force: IP terkunci setelah 3x invoice tidak ditemukan.
   const ip = clientIp(headers());
-  if (!checkIpAllowed(INVOICE_SCOPE, ip).ok) notFound();
+  const allowed = checkIpAllowed(INVOICE_SCOPE, ip);
+  if (!allowed.ok) {
+    redirect(`/track?locked=${allowed.retryAfterSec}`);
+  }
 
   const order = await prisma.paymentOrder.findUnique({
     where: { invoice },

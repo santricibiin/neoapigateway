@@ -109,6 +109,11 @@ export function PayClient({ order: initialOrder }: { order: PayOrder }) {
     const poll = async () => {
       try {
         const r = await fetch(`/api/payment/status/${invoice}`, { cache: "no-store" });
+        if (r.status === 429) {
+          // IP terkunci rate limit — hentikan polling biar tidak spam.
+          clearInterval(poller);
+          return;
+        }
         const data = await r.json();
         if (data.ok) {
           setOrder((prev) => {
