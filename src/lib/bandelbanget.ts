@@ -19,7 +19,7 @@ async function bandelFetch(url: string, init?: RequestInit): Promise<Record<stri
     const message =
       (typeof data.error === "string" && data.error) ||
       (typeof data.message === "string" && data.message) ||
-      `Bandel error (${res.status})`;
+      `Provider error (${res.status})`;
     throw Object.assign(new Error(message), { status: res.status });
   }
   return data;

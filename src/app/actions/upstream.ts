@@ -97,7 +97,7 @@ export async function loadUpstreamPage(): Promise<UpstreamPageData> {
 
   return {
     bandel,
-    bandelError: bandelResult.status === "rejected" ? "Gagal memuat model dari bandelbanget" : null,
+    bandelError: bandelResult.status === "rejected" ? "Gagal memuat model dari provider" : null,
     router,
     routerError: routerResult.status === "rejected" ? "9router tidak terjangkau di ROUTER_UPSTREAM" : null,
     routerEnabled: Boolean(config.routerEnabled),

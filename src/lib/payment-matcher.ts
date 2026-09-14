@@ -107,7 +107,7 @@ export async function fulfillOrder(orderId: string): Promise<ActionResult<{ deli
         throw new Error(`Kode produk ${code} tidak dikenal untuk kuota`);
       }
       if (!setting?.secretKey) {
-        throw new Error("Secret Key BandelBanget belum diatur");
+        throw new Error("Secret Key Provider belum diatur");
       }
 
       // Jika ada buyerQuotaToken, tambah kuota ke member yang sudah ada

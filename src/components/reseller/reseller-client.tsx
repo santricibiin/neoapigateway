@@ -88,7 +88,7 @@ export function ResellerClient({
       <div className="mx-auto max-w-3xl">
         <div className="mb-7">
           <h1 className="text-2xl font-extrabold">Reseller</h1>
-          <p className="text-sm text-base-ink/60">Saldo dan penggunaan API BandelBanget</p>
+          <p className="text-sm text-base-ink/60">Saldo dan penggunaan API Provider</p>
         </div>
         <Card className="bg-red-50">
           <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
@@ -118,7 +118,7 @@ export function ResellerClient({
     { name: "Terpakai", tokens: totalUsage },
     { name: "Sisa", tokens: balance },
   ];
-  const resellerName = data?.name || "Reseller BandelBanget";
+  const resellerName = data?.name || "Reseller Provider";
   const resellerId = data?.resellerId || data?.id || "-";
 
   return (

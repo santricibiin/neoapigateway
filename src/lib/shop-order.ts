@@ -82,7 +82,7 @@ export async function createShopOrder(opts: {
       return { ok: false, error: `Kode produk ${code} tidak mendukung pembelian otomatis.` };
     }
     if (!setting.secretKey) {
-      return { ok: false, error: "Secret Key BandelBanget belum diatur untuk produk external." };
+      return { ok: false, error: "Secret Key Provider belum diatur untuk produk external." };
     }
     // Cek kuota reseller upstream cukup sebelum membuat order, supaya pembeli
     // tidak membayar paket yang tidak bisa dipenuhi (fulfillment pasti gagal).
@@ -298,7 +298,7 @@ export async function createBotOrder(opts: {
       return { ok: false, error: `Kode produk ${code} tidak mendukung pembelian otomatis.` };
     }
     if (!setting.secretKey) {
-      return { ok: false, error: "Secret Key BandelBanget belum diatur untuk produk external." };
+      return { ok: false, error: "Secret Key Provider belum diatur untuk produk external." };
     }
     try {
       const keys = await fetchResellerKeys(setting.secretKey);

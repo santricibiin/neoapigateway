@@ -206,7 +206,7 @@ export function SettingsClient({
               <KeyRound className="h-5 w-5" strokeWidth={2.5} />
               <div>
                 <h2 className="font-extrabold">Koneksi Reseller</h2>
-                <p className="text-xs text-base-ink/65">Kredensial API BandelBanget</p>
+                <p className="text-xs text-base-ink/65">Kredensial API Provider</p>
               </div>
             </div>
             <div className="grid gap-4 p-4 sm:p-5 md:grid-cols-2">

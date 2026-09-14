@@ -359,7 +359,7 @@ export function ProductAdminClient({
                 className="mt-1.5 h-11 w-full rounded-neo border border-base-line bg-white px-3 shadow-neo-sm"
               >
                 <option value="counted">Stok dihitung</option>
-                <option value="external">External / Bandel API</option>
+                <option value="external">External / Provider API</option>
               </select>
             </label>
             <Input name="stock" label="Stok" type="number" min={0} step={1} defaultValue={editing?.stock || 0} disabled={stockMode === "external"} />

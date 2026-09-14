@@ -202,7 +202,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
       <div className="flex gap-2">
         {(
           [
-            { key: "bandel" as Tab, label: "bandelbanget", count: bandel.length },
+            { key: "bandel" as Tab, label: "Provider", count: bandel.length },
             { key: "router" as Tab, label: "9router", count: routerModelCount },
           ]
         ).map((item) => (

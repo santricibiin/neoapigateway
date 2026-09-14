@@ -394,7 +394,7 @@ function CreateKeyModal({
       ) : (
         <div className="space-y-4">
           <p className="rounded-neo border border-base-line bg-accent-sunSoft p-3 text-xs font-bold">
-            Key baru dibuat dari kuota reseller bandel. Pilih paket sesuai kebutuhan customer.
+            Key baru dibuat dari kuota reseller provider. Pilih paket sesuai kebutuhan customer.
           </p>
           <div>
             <label className="text-sm font-bold">Pilih paket token</label>
