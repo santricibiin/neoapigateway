@@ -1,10 +1,16 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { OrderClient } from "./order-client";
 
 export default async function OrderPage({ params }: { params: { id: string } }) {
   const id = Number(params.id);
   if (!Number.isInteger(id) || id < 1) notFound();
+
+  const setting = await prisma.setting.findUnique({
+    where: { id: 1 },
+    select: { maintenanceEnabled: true },
+  });
+  if (setting?.maintenanceEnabled) redirect("/products");
 
   const product = await prisma.token.findUnique({
     where: { id, active: true },

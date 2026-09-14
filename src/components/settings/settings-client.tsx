@@ -21,6 +21,7 @@ import {
   Upload,
   Send,
   Coins,
+  Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,7 @@ export function SettingsClient({
   initialBinance,
   initialGopay2,
   hasLogo,
+  initialMaintenance,
 }: {
   initialSecretKey: string;
   initialPin: string;
@@ -61,6 +63,7 @@ export function SettingsClient({
   initialBinance: { enabled: boolean; uid: string; addresses: Record<string, string>; rate: number };
   initialGopay2: { baseUrl: string; apiKey: string; qrisStatic: string };
   hasLogo: boolean;
+  initialMaintenance: { enabled: boolean; text: string };
 }) {
   const [showKey, setShowKey] = useState(false);
   const [showPin, setShowPin] = useState(false);
@@ -75,6 +78,7 @@ export function SettingsClient({
   const [error, setError] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoUrl, setLogoUrl] = useState(hasLogo ? "/api/brand/logo" : null);
+  const [maintenanceOn, setMaintenanceOn] = useState(initialMaintenance.enabled);
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(formData: FormData) {
@@ -196,6 +200,50 @@ export function SettingsClient({
                   </div>
                 </div>
                 <p className="mt-2 text-xs text-base-ink/50">PNG/JPG/GIF/WebP/SVG, maksimal 5MB. Disimpan di luar folder public.</p>
+              </div>
+            </div>
+          </section>
+
+          {/* Maintenance */}
+          <section className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
+            <div className="flex items-center gap-3 border-b border-base-line bg-accent-sunSoft px-4 py-3 sm:px-5">
+              <Wrench className="h-5 w-5" strokeWidth={2.5} />
+              <div>
+                <h2 className="font-extrabold">Mode Maintenance</h2>
+                <p className="text-xs text-base-ink/65">Tutup order sementara di halaman produk publik</p>
+              </div>
+            </div>
+            <div className="space-y-4 p-4 sm:p-5">
+              <div className={`flex items-center justify-between gap-4 rounded-neo border p-3 transition-colors ${maintenanceOn ? "border-accent-terra/40 bg-accent-terraSoft" : "border-base-line bg-base-bg"}`}>
+                <div>
+                  <p className="text-sm font-bold">{maintenanceOn ? "Maintenance AKTIF" : "Maintenance nonaktif"}</p>
+                  <p className="text-xs font-semibold text-base-ink/55">
+                    {maintenanceOn ? "Halaman produk menampilkan halaman maintenance & order ditolak." : "Produk dapat dibeli normal."}
+                  </p>
+                </div>
+                <label className="relative inline-flex shrink-0 cursor-pointer items-center">
+                  <input
+                    type="checkbox"
+                    name="maintenanceEnabled"
+                    checked={maintenanceOn}
+                    onChange={(e) => setMaintenanceOn(e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  <span className={`h-7 w-12 rounded-full border-2 border-base-line shadow-neo-sm transition-colors after:absolute after:left-0.5 after:top-1/2 after:h-5 after:w-5 after:-translate-y-1/2 after:rounded-full after:border-2 after:border-base-line after:bg-white after:transition-transform peer-checked:bg-accent-terra peer-checked:after:translate-x-5 ${maintenanceOn ? "bg-accent-terra" : "bg-base-surface"}`} />
+                </label>
+              </div>
+              <div>
+                <label htmlFor="maintenanceText" className="mb-1.5 block text-sm font-bold">Teks Informasi Maintenance</label>
+                <textarea
+                  id="maintenanceText"
+                  name="maintenanceText"
+                  defaultValue={initialMaintenance.text}
+                  rows={4}
+                  maxLength={1000}
+                  placeholder={"Contoh:\nKami sedang melakukan pemeliharaan sistem.\nOrder dibuka kembali pukul 20:00 WIB.\nTerima kasih atas pengertian Anda."}
+                  className="w-full resize-y rounded-neo border border-base-line bg-base-surface px-4 py-3 text-sm leading-relaxed shadow-neo-sm outline-none focus:shadow-neo"
+                />
+                <p className="mt-1.5 text-xs font-semibold text-base-ink/50">Kosong = teks default. Mendukung baris baru, maks 1000 karakter.</p>
               </div>
             </div>
           </section>

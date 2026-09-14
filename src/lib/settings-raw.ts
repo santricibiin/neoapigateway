@@ -28,5 +28,7 @@ export async function readSettingsRaw() {
     gopay2BaseUrl: setting?.gopay2BaseUrl ?? "",
     gopay2ApiKey: setting?.gopay2ApiKey ?? "",
     gopay2QrisStatic: setting?.gopay2QrisStatic ?? "",
+    maintenanceEnabled: setting?.maintenanceEnabled ?? false,
+    maintenanceText: setting?.maintenanceText ?? "",
   };
 }

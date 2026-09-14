@@ -1,7 +1,18 @@
 import { getPublicProducts } from "@/app/actions/products";
 import { ProductsClient } from "@/components/catalog/products-client";
+import { MaintenanceScreen } from "@/components/shared/maintenance-screen";
+import { prisma } from "@/lib/prisma";
+import { publicBrandNameAsync } from "@/lib/bandel-upstream";
 
 export default async function ProductsPage() {
+  const setting = await prisma.setting.findUnique({
+    where: { id: 1 },
+    select: { maintenanceEnabled: true, maintenanceText: true },
+  });
+  if (setting?.maintenanceEnabled) {
+    return <MaintenanceScreen brand={await publicBrandNameAsync()} text={setting.maintenanceText} />;
+  }
+
   const result = await getPublicProducts();
 
   if (!result.ok) {

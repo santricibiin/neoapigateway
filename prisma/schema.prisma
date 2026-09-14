@@ -47,6 +47,10 @@ model Setting {
   logoPath          String?  @db.VarChar(500)
   /// Bot Telegram katalog aktif
   botEnabled        Boolean  @default(false)
+  /// Mode maintenance: blokir order di halaman produk publik
+  maintenanceEnabled Boolean @default(false)
+  /// Teks informasi maintenance (null = default)
+  maintenanceText   String?  @db.Text
   /// Template pesan bot (null = default)
   welcomeText       String?  @db.Text
   categoryText      String?  @db.Text

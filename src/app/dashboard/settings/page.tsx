@@ -34,6 +34,7 @@ export default async function SettingsPage() {
         qrisStatic: settings.gopay2QrisStatic,
       }}
       hasLogo={Boolean(settings.logoPath)}
+      initialMaintenance={{ enabled: settings.maintenanceEnabled, text: settings.maintenanceText }}
     />
   );
 }

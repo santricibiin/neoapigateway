@@ -49,6 +49,15 @@ export async function saveSettings(
     ? formData.get("notifyChannelId")?.toString().trim() ?? ""
     : (existing?.notifyChannelId ?? "");
 
+  // ===== Maintenance (dikirim dari halaman Settings; preserve kalau tidak ada) =====
+  const hasMaintenanceFields = formData.has("maintenanceText");
+  const maintenanceEnabled = hasMaintenanceFields
+    ? formData.get("maintenanceEnabled") === "on"
+    : Boolean(existing?.maintenanceEnabled);
+  const maintenanceText = hasMaintenanceFields
+    ? formData.get("maintenanceText")?.toString().trim() ?? ""
+    : (existing?.maintenanceText ?? "");
+
   // ===== Binance Pay (dikirim dari halaman Settings; preserve kalau tidak ada) =====
   const hasBinanceFields = formData.has("binanceUsdtRate");
   const binanceEnabled = hasBinanceFields ? formData.get("binanceEnabled") === "on" : Boolean(existing?.binanceEnabled);
@@ -198,6 +207,8 @@ export async function saveSettings(
         gopay2BaseUrl: gopay2BaseUrlRaw || null,
         gopay2ApiKey: gopay2ApiKeyRaw || null,
         gopay2QrisStatic: gopay2QrisStaticRaw || null,
+        maintenanceEnabled,
+        maintenanceText: maintenanceText || null,
       },
       create: {
         id: 1,
@@ -226,6 +237,8 @@ export async function saveSettings(
         gopay2BaseUrl: gopay2BaseUrlRaw || null,
         gopay2ApiKey: gopay2ApiKeyRaw || null,
         gopay2QrisStatic: gopay2QrisStaticRaw || null,
+        maintenanceEnabled,
+        maintenanceText: maintenanceText || null,
       },
     });
     revalidatePath("/dashboard/settings");

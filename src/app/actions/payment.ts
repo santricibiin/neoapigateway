@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createShopOrder, getOrderByInvoice, cancelShopOrder } from "@/lib/shop-order";
 import { checkPendingByInvoices, MAX_PENDING_ORDERS } from "@/lib/order-limit";
+import { prisma } from "@/lib/prisma";
 import type { ActionResult } from "@/types";
 
 /**
@@ -48,6 +49,17 @@ function removeOwnedInvoice(invoice: string) {
 }
 
 export async function createOrder(formData: FormData) {
+  const setting = await prisma.setting.findUnique({
+    where: { id: 1 },
+    select: { maintenanceEnabled: true, maintenanceText: true },
+  });
+  if (setting?.maintenanceEnabled) {
+    return {
+      ok: false,
+      error: setting.maintenanceText?.split("\n")[0]?.trim() || "Sistem sedang maintenance. Order ditutup sementara.",
+    } as const;
+  }
+
   const tokenId = Number(formData.get("tokenId"));
   const phone = String(formData.get("phone") || "").trim() || undefined;
   const qty = Number(formData.get("qty") || "1");
