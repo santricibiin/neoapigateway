@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { readSettingsRaw } from "@/lib/settings-raw";
 import { verifyQrisCrc } from "@/lib/qris";
 import { GOPAY2_PROVIDER, gopay2PushQrisStatic, validateGopay2Fields } from "@/lib/gopay-merchant2";
+import { bandelClearAccessToken } from "@/lib/bandelbanget";
 import type { ActionResult } from "@/types";
 
 const VALID_PROVIDERS = ["none", "dana", "nobu", "gopay", GOPAY2_PROVIDER] as const;
@@ -22,6 +23,7 @@ export async function saveSettings(
   requireAdmin();
   const secretKey = formData.get("secretKey")?.toString().trim() ?? "";
   const pin = formData.get("pin")?.toString().trim() ?? "";
+  const bandelPasswordRaw = formData.get("bandelPassword")?.toString() ?? "";
   const qrisProvider = formData.get("qrisProvider")?.toString().trim() ?? "none";
   const qrisStatic = formData.get("qrisStatic")?.toString().trim() ?? "";
   const qrisTtlMinutes = Number(formData.get("qrisTtlMinutes") ?? "5");
@@ -76,6 +78,7 @@ export async function saveSettings(
 
   const finalSecretKey = secretKey || existing?.secretKey || "";
   const finalPin = pin || existing?.pin || "";
+  const finalBandelPassword = bandelPasswordRaw || existing?.bandelPassword || "";
   const finalForwarderSecret = forwarderSecret || existing?.forwarderSecret || "";
   const finalTelegramBotToken = telegramBotToken || existing?.telegramBotToken || "";
   const finalTelegramChatId = telegramChatId || existing?.telegramChatId || "";
@@ -90,6 +93,24 @@ export async function saveSettings(
 
   if (!finalSecretKey && !finalPin) {
     return { ok: false, error: "Secret Key dan PIN tidak boleh kosong" };
+  }
+
+  // Validasi password bandel — mirror aturan upstream (10-20 char ASCII,
+  // min 1 huruf besar + 1 kecil + 1 angka + 1 simbol) supaya tidak
+  // memicu lockout percobaan gagal di sisi bandel.
+  if (finalBandelPassword) {
+    const pw = finalBandelPassword;
+    const invalid =
+      pw.length < 10 ||
+      pw.length > 20 ||
+      /[^\x21-\x7e]/.test(pw) ||
+      !/[A-Z]/.test(pw) ||
+      !/[a-z]/.test(pw) ||
+      !/[0-9]/.test(pw) ||
+      !/[^A-Za-z0-9]/.test(pw);
+    if (invalid) {
+      return { ok: false, error: "Password Bandel tidak valid (10-20 karakter ASCII tanpa spasi; wajib huruf besar, huruf kecil, angka, dan simbol)" };
+    }
   }
 
   if (finalForwarderSecret && finalForwarderSecret.length < 24) {
@@ -172,6 +193,12 @@ export async function saveSettings(
     : (existing?.binanceUsdtAddresses ?? null);
 
   try {
+    // Password bandel berubah → flush accessToken cache supaya verify-pin
+    // berikutnya pakai password baru.
+    if (finalBandelPassword && finalBandelPassword !== existing?.bandelPassword && finalSecretKey) {
+      bandelClearAccessToken(finalSecretKey);
+    }
+
     // Push QRIS statis GoBiz ke gateway (aktif tanpa restart) — best effort.
     let gopay2PushInfo = "";
     if (qrisProvider === GOPAY2_PROVIDER && gopay2QrisStaticRaw) {
@@ -184,6 +211,7 @@ export async function saveSettings(
       update: {
         secretKey: finalSecretKey,
         pin: finalPin,
+        bandelPassword: finalBandelPassword || null,
         qrisProvider,
         qrisStatic,
         qrisTtlMinutes,
@@ -214,6 +242,7 @@ export async function saveSettings(
         id: 1,
         secretKey: finalSecretKey,
         pin: finalPin,
+        bandelPassword: finalBandelPassword || null,
         qrisProvider,
         qrisStatic,
         qrisTtlMinutes,

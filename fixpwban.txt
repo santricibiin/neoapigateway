@@ -1,0 +1,319 @@
+# Pembaruan Login Bandel: Password + PIN (fixpwban)
+
+Tanggal: 2026-09-15
+Project: neoapigateway
+Status: TERIMPLEMENTASI & TERUJI LIVE
+Revisi: v2 — member baru set password+PIN SENDIRI via dashboard (tanpa PIN otomatis dari gateway)
+
+Ringkasan v2:
+- Provision member = cukup create-key → buyer terima URL dashboard saja.
+- Buyer buka dashboard → form "Buat Password & PIN" → setup-credentials → masuk.
+- Login member = password + PIN (PIN-only sudah tidak ada).
+- Admin gateway login bandel = password (Setting.bandelPassword) + PIN.
+- Tambah kuota member aman — pakai token admin, kredensial member tidak disentuh.
+- Password member TIDAK diketahui gateway (derived HMAC sudah dihapus di v2).
+
+---
+
+## 1. LATAR BELAKANG
+
+Upstream bandelbanget.xyz mengubah mekanisme auth dashboard kuota.
+Sebelumnya cukup PIN, sekarang WAJIB **password + PIN**.
+
+- Endpoint lama `/api/public/quota/{token}/setup-pin` → DIGANTI `/setup-credentials`
+- Body lama `{ pin }` → DITOLAK upstream dengan error:
+  `{"error":"Password atau PIN salah","attemptsLeft":2,"lockedUntil":null}`
+- **PERHATIAN**: gagal 3x percobaan → akun/IP terkunci sementara (rate limit).
+  Jangan coba-coba login berkali-kali dengan kombinasi salah.
+
+## 2. ALUR AUTH BARU UPSTREAM (hasil reverse engineering)
+
+### 2.1 Cek meta (publik, tanpa auth)
+```
+GET https://bandelbanget.xyz/api/public/quota/{secretToken}
+```
+Response (penting untuk menentukan stage):
+```json
+{
+  "pinSet": true,
+  "passwordSet": true,
+  "credentialsSet": true,      // true = langsung verify; false = setup dulu
+  "requiresCurrentPin": false, // true = akun lama ber-PIN, butuh currentPin saat setup
+  "pinLockedUntil": null,      // ISO date kalau terkunci
+  "pinLockedByIp": null
+}
+```
+
+### 2.2 Login (verify)
+```
+POST https://bandelbanget.xyz/api/public/quota/{secretToken}/verify-pin
+Content-Type: application/json
+
+{
+  "password": "password_dashboard",
+  "pin": "6digit"
+}
+```
+Sukses:
+```json
+{ "accessToken": "eyJraWQi...", "expiresIn": 7200000 }
+```
+- `accessToken` berlaku **2 jam** (7200000 ms).
+- Gagal: `{"error":"Password atau PIN salah","attemptsLeft":N}`.
+- Error khusus akun lama tanpa password: `code: "password_setup_required"`.
+
+### 2.3 Setup kredensial (akun baru / akun lama yang belum ada password)
+```
+POST https://bandelbanget.xyz/api/public/quota/{secretToken}/setup-credentials
+Content-Type: application/json
+
+{
+  "currentPin": "pin_lama",        // wajib jika meta.requiresCurrentPin = true
+  "password": "pw_baru",
+  "confirmPassword": "pw_baru",
+  "pin": "pin_baru",
+  "confirmPin": "pin_baru"
+}
+```
+Response sukses sama seperti verify-pin: `{ accessToken, expiresIn, ... }.
+
+### 2.4 Semua endpoint data (butuh Bearer)
+```
+GET https://bandelbanget.xyz/api/public/quota/{secretToken}/data
+GET https://bandelbanget.xyz/api/public/reseller/keys?token={secretToken}&page=1
+POST https://bandelbanget.xyz/api/public/reseller/create-key
+POST https://bandelbanget.xyz/api/public/reseller/add-quota
+POST https://bandelbanget.xyz/api/public/reseller/topup
+...dst
+Authorization: Bearer {accessToken}
+```
+
+### 2.5 Endpoint lain ter-gate (butuh Bearer)
+- `POST /api/public/quota/{token}/change-pin` — body `{oldPin,newPin,confirmNewPin}`
+- `POST /api/public/quota/{token}/change-password` — body `{oldPassword,newPassword,confirmNewPassword}`
+- `POST /api/public/quota/{token}/regenerate-key` — cooldown 60 menit
+
+## 3. ATURAN PASSWORD UPSTREAM (validasi server-side)
+
+- 10–20 karakter
+- Hanya ASCII printable tanpa spasi (`\x21-\x7e`)
+- Minimal 1 huruf besar, 1 huruf kecil, 1 angka, 1 simbol
+
+Contoh regex valid (JS):
+```js
+function validPassword(pw) {
+  return pw.length >= 10 && pw.length <= 20
+    && /^[\x21-\x7e]+$/.test(pw)
+    && /[A-Z]/.test(pw) && /[a-z]/.test(pw)
+    && /[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw);
+}
+```
+
+PIN: tepat 6 digit angka (`/^\d{6}$/`).
+
+## 4. STRATEGI IMPLEMENTASI DI GATEWAY
+
+Dua konteks berbeda:
+
+### 4.1 ADMIN / RESELLER sendiri
+Password di simpan eksplisit:
+- Kolom DB `Setting.bandelPassword` (divalidasi dengan aturan no. 3 saat disimpan)
+- Fallback: env `BB_PASSWORD`
+- PIN tetap dari `Setting.pin` / env `BB_PIN`
+
+Urutan resolve: parameter eksplisit → env → DB.
+
+### 4.2 MEMBER (customer key buatan gateway)
+Member tidak boleh dipaksa tahu password → gateway pakai **password turunan
+deterministik** dari secretToken:
+
+```js
+import { createHmac } from "crypto";
+
+export function deriveBandelPassword(secretToken) {
+  const pepper = process.env.BANDEL_PASSWORD_PEPPER || "neoapigateway-bandel";
+  const hex = createHmac("sha256", pepper).update(secretToken).digest("hex").slice(0, 12);
+  return `Bb1.${hex}`; // 16 char: ada upper+lower+digit+symbol → lolos aturan
+}
+```
+
+- UX member tetap: cukup PIN 6 digit di dashboard gateway.
+- Gateway menyuntikkan password turunan saat verify-pin ke upstream.
+- Kalau member ternyata sudah set password sendiri di dashboard bandel asli,
+  turunan ini tidak berlaku → member harus pakai dashboard bandel langsung.
+  (Upgrade path kalau perlu: simpan kolom password di tabel member.)
+
+## 5. CACHING ACCESS TOKEN (PENTING — anti lockout)
+
+Jangan verify-pin tiap request (bakal kena rate limit/lockout):
+
+```
+verify-pin → accessToken → cache in-memory TTL 90 menit
+           (< 2 jam masa berlaku upstream, aman)
+```
+
+Flow lengkap:
+1. Cek cache → ada & belum 90 menit → pakai langsung.
+2. Cache kosong → verify-pin (password+pin) → simpan cache.
+3. Request pakai Bearer token.
+4. Kalau 401 / error auth di tengah jalan → hapus cache → verify-pin ulang
+   (force refresh) → retry request 1x.
+
+Catatan:
+- Cache per-proses server. Restart server = cache hilang = 1x login ulang
+  di request berikutnya (normal, aman).
+- Browser member menyimpan accessToken sendiri di `sessionStorage`
+  (key: `quota_at_{token}` / bandel asli: `bb_dash_access_{token}`), dipakai
+  sampai habis 2 jam.
+
+### Skeleton implementasi (portable ke script lain)
+
+```js
+// --- konfigurasi ---
+const BASE = "https://bandelbanget.xyz";
+const TOKEN_CACHE = new Map(); // secretToken -> {token, expiresAt}
+const TTL = 90 * 60 * 1000;
+
+async function api(path, init) {
+  const res = await fetch(`${BASE}${path}`, init);
+  let data = {};
+  try { data = await res.json(); } catch {}
+  if (!res.ok) {
+    throw Object.assign(new Error(data.error || `HTTP ${res.status}`), {
+      status: res.status,
+      code: data.code,
+    });
+  }
+  return data;
+}
+
+async function verifyPin(secretToken, pin, password) {
+  return api(`/api/public/quota/${secretToken}/verify-pin`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password, pin }),
+  });
+}
+
+async function accessToken(secretToken, pin, password, force = false) {
+  const c = TOKEN_CACHE.get(secretToken);
+  if (!force && c && c.expiresAt > Date.now()) return c.token;
+  const { accessToken, expiresIn } = await verifyPin(secretToken, pin, password);
+  const ttl = Math.max(60_000, Math.min(TTL, expiresIn ?? TTL));
+  TOKEN_CACHE.set(secretToken, { token: accessToken, expiresAt: Date.now() + ttl });
+  return accessToken;
+}
+
+async function withAuth(secretToken, pin, password, call) {
+  const token = await accessToken(secretToken, pin, password);
+  try {
+    return await call(token);
+  } catch (e) {
+    if (e.status === 401 || /pin_required|PIN verification/i.test(e.message)) {
+      TOKEN_CACHE.delete(secretToken);
+      const fresh = await accessToken(secretToken, pin, password, true);
+      return call(fresh);
+    }
+    throw e;
+  }
+}
+
+// Contoh pakai: ambil semua key reseller + kuota
+async function fetchResellerKeys(secretToken, pin, password) {
+  return withAuth(secretToken, pin, password, (token) =>
+    api(`/api/public/reseller/keys?token=${secretToken}&page=1`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  );
+}
+```
+
+### Flow setup member baru (provisioning) — UPDATE v2
+```
+1. POST /api/public/reseller/create-key (Bearer admin) → dapat secretToken member
+2. SELESAI. TANPA setup kredensial — key dibiarkan "fresh" (credentialsSet=false).
+3. Buyer hanya terima URL dashboard.
+4. Buyer buka dashboard → form "Buat Password & PIN" → kirim
+   POST /api/public/quota/{token}/setup-credentials (proxy gateway)
+   → dapat accessToken → langsung masuk dashboard → API Key terlihat di sana.
+```
+
+Catatan: response `create-key` upstream TIDAK menyertakan apiKey penuh
+(cuma keyMasked). API Key lengkap hanya bisa dilihat member setelah login
+di dashboard. Kalau skrip lain butuh apiKey otomatis tanpa interaksi member,
+tetap harus jalankan setup-credentials server-side lalu GET /data.
+
+### Flow login member (semua kasus)
+```
+1. GET /api/public/quota/{token} → cek credentialsSet
+   - false → tampilkan form setup (password 2x + pin 2x, + currentPin
+     kalau requiresCurrentPin=true untuk akun legacy ber-PIN)
+   - true  → tampilkan form login (password + pin)
+2. POST /verify-pin {password, pin} → {accessToken, expiresIn}
+```
+
+## 6. FILE YANG DIUBAH DI NEOAPIGATEWAY
+
+### Update v2 — member set kredensial sendiri (tanpa PIN otomatis)
+
+| File | Perubahan |
+|---|---|
+| `src/lib/bandelbanget.ts` | `provisionCustomerKey` TANPA setup kredensial (key fresh); hapus `deriveBandelPassword` & `generateMemberPin` dari jalur provision; `verifyPin` password wajib eksplisit; `setupCustomerPin` → `setupCustomerCredentials(token,{password,pin,currentPin?})` forward pilihan member; `QuotaMeta` + `credentialsSet`/`passwordSet`/`requiresCurrentPin`; `formatBandelDelivery` hanya Dashboard URL + instruksi |
+| `src/lib/quota-dashboard.ts` | meta expose `credentialsSet`; `verifyQuotaPin(token,pin,password)`; `setupQuotaCredentials()` |
+| `src/app/api/public/quota/[token]/setup-credentials/route.ts` | BARU — proxy setup kredensial pertama + validasi mirror upstream (anti rate-limit) |
+| `src/app/api/public/quota/[token]/verify-pin/route.ts` | terima `{password, pin}` |
+| `src/components/quota/quota-dashboard-client.tsx` | gate meta-driven: `credentialsSet=false` → form Buat Password & PIN (confirm, validasi live, currentPin utk legacy); `=true` → form Password+PIN |
+| `src/lib/payment-matcher.ts` | provision tanpa PIN otomatis |
+| `src/app/actions/admin-fulfill.ts` | provision tanpa PIN otomatis (dulunya pakai setting.pin) |
+| `src/app/dashboard/customer-keys/api/create-key/route.ts` | provision tanpa PIN; response tanpa `pin` |
+| `src/lib/resweb.ts` | `addMember` tanpa PIN; `AddMemberResult` tanpa field `pin` |
+| `src/components/resweb/resweb-dashboard-client.tsx` | modal hasil buat member: kotak "PIN Dashboard" → info "member set kredensial sendiri" |
+| `src/components/resweb/resweb-api-docs-client.tsx` | contoh response tanpa `"pin"` |
+
+### Update v1 — password gate (pertama kali)
+
+| File | Perubahan |
+|---|---|
+| `prisma/schema.prisma` | + kolom `Setting.bandelPassword` (VarChar 200) |
+| `src/lib/bandelbanget.ts` | `verifyPin(password,pin)`; `resolveResellerPassword()` (param→env BB_PASSWORD→DB); `bandelFetch` bawa `code` error; cache TTL 90 mnt |
+| `src/app/actions/settings.ts` | field `bandelPassword`, validasi aturan password, flush token cache saat password berubah |
+| `src/lib/settings-raw.ts` | expose `bandelPassword` |
+| `src/components/settings/settings-client.tsx` | input "Password Bandel" (toggle lihat, preserve kalau kosong) |
+| `src/app/dashboard/settings/page.tsx` | pass `initialBandelPassword` |
+| `scripts/test-bandel-password.ts` | self-check runnable (`BB_TOKEN`/`BB_PIN`/`BB_PASSWORD` env) |
+
+## 7. ENV BARU (opsional)
+
+```
+BB_PASSWORD=...            # fallback password admin jika kolom DB kosong
+```
+
+## 8. TAMBAH KUOTA MEMBER — AMAN, TIDAK TERPENGARUH
+
+Fitur tambah kuota (topup ke member lama) TIDAK menyentuh kredensial member:
+
+```
+addCustomerQuota() → POST /api/public/reseller/add-quota (upstream)
+                     Authorization: Bearer <accessToken ADMIN>
+```
+
+- Auth pakai token ADMIN (password+PIN dari Setting, cache 90 menit).
+- Token bandel member TIDAK dipakai → member tidak perlu login,
+  tidak kena rate limit 3x gagal.
+- Jalur: pembelian dengan buyerQuotaToken, resweb add-member-quota,
+  admin dashboard — semua lewat endpoint yang sama.
+
+SYARAT SATU-SATUNYA: `Setting.bandelPassword` (atau env BB_PASSWORD) sudah
+diisi. Kalau kosong → error "Password bandel belum diatur" dan SEMUA fitur
+admin ke bandel gagal (tambah kuota, create key, topup, cek stok).
+
+## 9. CHECKLIST MIGRASI KE SCRIPT LAIN
+
+1. Tambah kolom/settings untuk password bandel (aturan validasi no. 3).
+2. Ubah semua call `verify-pin` → body `{password, pin}` (bukan `{pin}`).
+3. Ubah `setup-pin` → `setup-credentials` dengan body lengkap (no. 2.3).
+4. Tambah cache accessToken TTL 90 menit + auto-retry 401 (no. 5).
+5. Untuk member baru: provisioning cukup `create-key` — biarkan member set
+   password+PIN sendiri via dashboard (credentialsSet=false → form setup).
+6. Validasi password SEBELUM kirim ke upstream (hindari lockout percobaan gagal).
+7. Uji dengan 1 akun: verify → data → keys. Jangan brute-force (max 3 gagal).

@@ -21,6 +21,8 @@ model Setting {
   id                Int      @id @default(1)
   secretKey         String?
   pin               String?
+  /// Password dashboard bandel (upstream kini wajib password+PIN)
+  bandelPassword    String?  @db.VarChar(200)
   /// none | dana | nobu | gopay
   qrisProvider      String   @default("none") @db.VarChar(20)
   /// Raw payload QRIS statis (EMVCo)

@@ -8,6 +8,7 @@ export default async function SettingsPage() {
     <SettingsClient
       initialSecretKey={settings.secretKey}
       initialPin={settings.pin}
+      initialBandelPassword={settings.bandelPassword}
       initialQrisProvider={settings.qrisProvider}
       initialQrisStatic={settings.qrisStatic}
       initialQrisTtlMinutes={settings.qrisTtlMinutes}

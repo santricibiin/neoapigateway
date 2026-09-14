@@ -76,8 +76,7 @@ const ENDPOINTS: Endpoint[] = [
     "apiKey": "sk-xxxxx",
     "name": "Member Name",
     "keyMasked": "sk-xxx•••xxx",
-    "dashboardUrl": "https://.../quota/member/a1b2c3d4",
-    "pin": "111111"
+    "dashboardUrl": "https://.../quota/member/a1b2c3d4"
   }
 }`,
   },

@@ -37,6 +37,7 @@ function generateSecret() {
 export function SettingsClient({
   initialSecretKey,
   initialPin,
+  initialBandelPassword,
   initialQrisProvider,
   initialQrisStatic,
   initialQrisTtlMinutes,
@@ -52,6 +53,7 @@ export function SettingsClient({
 }: {
   initialSecretKey: string;
   initialPin: string;
+  initialBandelPassword: string;
   initialQrisProvider: string;
   initialQrisStatic: string;
   initialQrisTtlMinutes: number;
@@ -67,6 +69,7 @@ export function SettingsClient({
 }) {
   const [showKey, setShowKey] = useState(false);
   const [showPin, setShowPin] = useState(false);
+  const [showBandelPw, setShowBandelPw] = useState(false);
   const [showForwarder, setShowForwarder] = useState(false);
   const [showGopay2Key, setShowGopay2Key] = useState(false);
   const [qrisProvider, setQrisProvider] = useState(initialQrisProvider);
@@ -275,6 +278,16 @@ export function SettingsClient({
                     {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+              </div>
+              <div className="md:col-span-2">
+                <label htmlFor="bandelPassword" className="mb-1.5 block text-sm font-bold">Password Bandel</label>
+                <div className="relative">
+                  <Input id="bandelPassword" name="bandelPassword" type={showBandelPw ? "text" : "password"} defaultValue={initialBandelPassword} placeholder="Password dashboard bandel (10-20 char: besar, kecil, angka, simbol)" autoComplete="off" className="pr-11 font-mono" />
+                  <button type="button" onClick={() => setShowBandelPw((v) => !v)} className="absolute right-1 top-1 flex h-9 w-9 items-center justify-center rounded-md text-base-ink/55 hover:bg-base-bg hover:text-base-ink" aria-label={showBandelPw ? "Sembunyikan" : "Tampilkan"}>
+                    {showBandelPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <p className="mt-1.5 text-xs font-semibold text-base-ink/50">Wajib sejak bandel memakai password + PIN. Kosong = pertahankan yang lama.</p>
               </div>
             </div>
           </section>

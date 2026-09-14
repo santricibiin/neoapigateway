@@ -6,6 +6,7 @@ export async function readSettingsRaw() {
   return {
     secretKey: setting?.secretKey ?? "",
     pin: setting?.pin ?? "",
+    bandelPassword: setting?.bandelPassword ?? "",
     qrisProvider: setting?.qrisProvider ?? "none",
     qrisStatic: setting?.qrisStatic ?? "",
     qrisTtlMinutes: setting?.qrisTtlMinutes ?? 5,

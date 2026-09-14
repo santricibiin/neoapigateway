@@ -18,6 +18,9 @@ type Meta = {
   name: string;
   status: string;
   pinSet: boolean;
+  passwordSet?: boolean;
+  credentialsSet?: boolean;
+  requiresCurrentPin?: boolean;
   pinLockedUntil: string | null;
 };
 
@@ -71,6 +74,10 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
   const [meta, setMeta] = useState<Meta | null>(null);
   const [data, setData] = useState<QuotaDashboardView | null>(null);
   const [pin, setPin] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [currentPin, setCurrentPin] = useState("");
   const [loading, setLoading] = useState(true);
   const [unlocking, setUnlocking] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -114,6 +121,34 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
     };
   }, [loadData, storageKey, token]);
 
+function formatWib(iso: string | null | undefined) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleString("id-ID", {
+    timeZone: "Asia/Jakarta",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }) + " WIB";
+}
+
+
+  function validPassword(v: string) {
+    return (
+      v.length >= 10 &&
+      v.length <= 20 &&
+      /^[\x21-\x7e]+$/.test(v) &&
+      /[A-Z]/.test(v) &&
+      /[a-z]/.test(v) &&
+      /[0-9]/.test(v) &&
+      /[^A-Za-z0-9]/.test(v)
+    );
+  }
+
   async function unlock(event: React.FormEvent) {
     event.preventDefault();
     setUnlocking(true);
@@ -122,15 +157,64 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
       const response = await fetch(`/api/public/quota/${encodeURIComponent(token)}/verify-pin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin }),
+        body: JSON.stringify({ password, pin }),
       });
       const body = await response.json();
-      if (!response.ok || !body.accessToken) throw new Error(body.error || "PIN ditolak");
+      if (!response.ok || !body.accessToken) throw new Error(body.error || "Password atau PIN salah");
       sessionStorage.setItem(storageKey, body.accessToken);
       await loadData(body.accessToken);
       setPin("");
+      setPassword("");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Gagal membuka dashboard");
+    } finally {
+      setUnlocking(false);
+    }
+  }
+
+  async function setupCredentials(event: React.FormEvent) {
+    event.preventDefault();
+    setError(null);
+    if (!validPassword(password)) {
+      setError(t("Password harus 10-20 karakter ASCII tanpa spasi; wajib huruf besar, huruf kecil, angka, dan simbol"));
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError(t("Password dan konfirmasi tidak cocok"));
+      return;
+    }
+    if (!/^\d{6}$/.test(pin)) {
+      setError(t("PIN harus 6 digit angka"));
+      return;
+    }
+    if (pin !== confirmPin) {
+      setError(t("PIN dan konfirmasi tidak cocok"));
+      return;
+    }
+    setUnlocking(true);
+    try {
+      const response = await fetch(`/api/public/quota/${encodeURIComponent(token)}/setup-credentials`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...(meta?.requiresCurrentPin && /^\d{6}$/.test(currentPin) ? { currentPin } : {}),
+          password,
+          confirmPassword,
+          pin,
+          confirmPin,
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok || !body.accessToken) throw new Error(body.error || "Gagal membuat password & PIN");
+      sessionStorage.setItem(storageKey, body.accessToken);
+      await loadData(body.accessToken);
+      setPin("");
+      setPassword("");
+      setConfirmPassword("");
+      setConfirmPin("");
+      setCurrentPin("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Gagal membuat password & PIN");
     } finally {
       setUnlocking(false);
     }
@@ -182,6 +266,8 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
     return data.models.map((model) => ({ id: model.id, total: 0, prompt: 0, completion: 0, requests: 0 }));
   }, [data]);
 
+  const needsSetup = meta ? (meta.credentialsSet ?? (meta.passwordSet !== false && meta.pinSet)) === false : false;
+
   if (loading) return <QuotaShell><p className="font-extrabold">{t("Memuat dashboard...")}</p></QuotaShell>;
 
   if (!meta || (!data && error && !meta)) {
@@ -194,27 +280,126 @@ export function QuotaDashboardClient({ token, brandName, hideBuy = false, resell
         <Header brandName={brandName} name={meta.name} status={meta.status} />
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><LockKeyhole className="h-5 w-5" /> {t("Masuk PIN")}</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <LockKeyhole className="h-5 w-5" /> {needsSetup ? t("Buat Password & PIN") : t("Masuk Dashboard")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-4 text-sm font-semibold text-base-ink/60">{t("Dashboard dilindungi PIN 6 digit.")}</p>
-            {meta.pinLockedUntil ? <Alert>PIN terkunci sampai {String(meta.pinLockedUntil)}</Alert> : null}
-            <form onSubmit={unlock} className="mt-4 space-y-3">
-              <Input
-                type="password"
-                inputMode="numeric"
-                pattern="\d{6}"
-                maxLength={6}
-                placeholder="••••••"
-                value={pin}
-                onChange={(event) => setPin(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                required
-              />
-              {error ? <Alert>{error}</Alert> : null}
-              <Button type="submit" className="w-full" disabled={unlocking || pin.length !== 6}>
-                {unlocking ? t("Membuka...") : t("Buka dashboard")}
-              </Button>
-            </form>
+            {needsSetup ? (
+              <>
+                <p className="mb-4 text-sm font-semibold text-base-ink/60">
+                  {t("Pertama kali di sini? Buat Password dan PIN 6 digit untuk mengamankan dashboard kamu.")}
+                </p>
+                {meta.requiresCurrentPin ? (
+                  <div className="mb-3">
+                    <label className="mb-1 block text-xs font-bold uppercase text-base-ink/50">{t("PIN lama")}</label>
+                    <Input
+                      type="password"
+                      inputMode="numeric"
+                      pattern="\d{6}"
+                      maxLength={6}
+                      placeholder="••••••"
+                      value={currentPin}
+                      onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    />
+                  </div>
+                ) : null}
+                <form onSubmit={setupCredentials} className="space-y-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase text-base-ink/50">{t("Password")}</label>
+                    <Input
+                      type="password"
+                      maxLength={20}
+                      autoComplete="new-password"
+                      placeholder={t("10-20 karakter: huruf besar, kecil, angka, simbol")}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase text-base-ink/50">{t("Konfirmasi Password")}</label>
+                    <Input
+                      type="password"
+                      maxLength={20}
+                      autoComplete="new-password"
+                      placeholder={t("Ulangi password")}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase text-base-ink/50">{t("PIN (6 digit)")}</label>
+                      <Input
+                        type="password"
+                        inputMode="numeric"
+                        pattern="\d{6}"
+                        maxLength={6}
+                        placeholder="••••••"
+                        value={pin}
+                        onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase text-base-ink/50">{t("Konfirmasi PIN")}</label>
+                      <Input
+                        type="password"
+                        inputMode="numeric"
+                        pattern="\d{6}"
+                        maxLength={6}
+                        placeholder="••••••"
+                        value={confirmPin}
+                        onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        required
+                      />
+                    </div>
+                  </div>
+                  {error ? <Alert>{error}</Alert> : null}
+                  <Button type="submit" className="w-full" disabled={unlocking}>
+                    {unlocking ? t("Menyimpan...") : t("Buat & Masuk")}
+                  </Button>
+                </form>
+              </>
+            ) : (
+              <>
+                <p className="mb-4 text-sm font-semibold text-base-ink/60">{t("Masukkan Password dan PIN 6 digit kamu.")}</p>
+                {meta.pinLockedUntil ? <Alert>{t("Login terkunci sampai")} {formatWib(meta.pinLockedUntil)}</Alert> : null}
+                <form onSubmit={unlock} className="mt-4 space-y-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase text-base-ink/50">{t("Password")}</label>
+                    <Input
+                      type="password"
+                      maxLength={20}
+                      autoComplete="current-password"
+                      placeholder={t("Password dashboard")}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase text-base-ink/50">{t("PIN (6 digit)")}</label>
+                    <Input
+                      type="password"
+                      inputMode="numeric"
+                      pattern="\d{6}"
+                      maxLength={6}
+                      placeholder="••••••"
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      required
+                    />
+                  </div>
+                  {error ? <Alert>{error}</Alert> : null}
+                  <Button type="submit" className="w-full" disabled={unlocking || pin.length !== 6 || !password}>
+                    {unlocking ? t("Membuka...") : t("Buka dashboard")}
+                  </Button>
+                </form>
+              </>
+            )}
           </CardContent>
         </Card>
       </QuotaShell>

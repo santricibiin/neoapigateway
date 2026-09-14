@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { qrisStaticToDynamic } from "@/lib/qris";
-import { addCustomerQuota, generateMemberPin, provisionCustomerKey } from "@/lib/bandelbanget";
-import { BANDEL_DEFAULT_MEMBER_PIN, fetchQuotaMeta, fetchResellerKeys, QUOTA_PACKAGES } from "@/lib/bandelbanget";
+import { addCustomerQuota, provisionCustomerKey } from "@/lib/bandelbanget";
+import { fetchQuotaMeta, fetchResellerKeys, QUOTA_PACKAGES } from "@/lib/bandelbanget";
 import { publicApiBase } from "@/lib/bandel-upstream";
 import { notifyTopupPaid } from "@/lib/telegram-notify";
 import { GOPAY2_PROVIDER, gopay2Configured, gopay2CreateQris } from "@/lib/gopay-merchant2";
@@ -201,7 +201,7 @@ function formatTokensShort(tokens: bigint): string {
 }
 
 export type AddMemberResult =
-  | { ok: true; member: { id: number; secretToken: string; apiKey: string | null; name: string | null; keyMasked: string | null; dashboardUrl: string; pin: string } }
+  | { ok: true; member: { id: number; secretToken: string; apiKey: string | null; name: string | null; keyMasked: string | null; dashboardUrl: string } }
   | { ok: false; error: string };
 
 export type AddMemberQuotaResult =
@@ -288,7 +288,7 @@ export async function addMember(resellerId: number, packageCode: string): Promis
 
   let created;
   try {
-    created = await provisionCustomerKey(setting.secretKey, tokens, validDays, generateMemberPin(), setting.pin || undefined);
+    created = await provisionCustomerKey(setting.secretKey, tokens, validDays, undefined, setting.pin || undefined);
   } catch (e) {
     await prisma.resellerWeb.update({ where: { id: resellerId }, data: { balance: { increment: BigInt(tokens) } } });
     return { ok: false, error: e instanceof Error ? e.message : "Gagal provision member" };
@@ -329,7 +329,6 @@ export async function addMember(resellerId: number, packageCode: string): Promis
       name: member.name,
       keyMasked: member.keyMasked,
       dashboardUrl,
-      pin: created.pin || BANDEL_DEFAULT_MEMBER_PIN,
     },
   };
 }

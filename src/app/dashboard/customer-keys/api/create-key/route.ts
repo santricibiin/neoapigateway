@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { fetchResellerKeys, formatBandelDelivery, generateMemberPin, provisionCustomerKey, QUOTA_PACKAGES } from "@/lib/bandelbanget";
+import { fetchResellerKeys, formatBandelDelivery, provisionCustomerKey, QUOTA_PACKAGES } from "@/lib/bandelbanget";
 import { publicApiBase, publicV1Base } from "@/lib/bandel-upstream";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const created = await provisionCustomerKey(setting.secretKey, pack.tokens, pack.validDays, generateMemberPin(), setting.pin || undefined);
+    const created = await provisionCustomerKey(setting.secretKey, pack.tokens, pack.validDays, undefined, setting.pin || undefined);
     const secret = created.secretToken || "";
     const dashboard = secret ? `${publicApiBase()}/quota/${secret}` : created.dashboardUrl || "";
 
@@ -55,7 +55,6 @@ export async function POST(req: Request) {
       tokens: pack.tokens,
       validDays: pack.validDays,
       name: created.name || null,
-      pin: created.pin || "111111",
       apiKey: created.apiKey || null,
       keyMasked: created.keyMasked || null,
       secretToken: secret || null,

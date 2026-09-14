@@ -99,7 +99,7 @@ export function ReswebDashboardClient({
   const [creating, setCreating] = useState(false);
   const [addingQuota, setAddingQuota] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ name: string | null; apiKey: string | null; keyMasked: string | null; dashboardUrl: string; pin: string } | null>(null);
+  const [result, setResult] = useState<{ name: string | null; apiKey: string | null; keyMasked: string | null; dashboardUrl: string } | null>(null);
   const [showKey, setShowKey] = useState<Record<number, boolean>>({});
   const [copied, setCopied] = useState<string | null>(null);
   const [search, setSearch] = useState(query);
@@ -620,13 +620,10 @@ export function ReswebDashboardClient({
               <p className="break-all font-mono text-xs font-bold">{result.dashboardUrl}</p>
             </div>
             <div className="rounded-neo border border-base-line bg-accent-sun p-3">
-              <p className="mb-1 flex items-center gap-1 text-[10px] font-black uppercase text-base-ink/55"><ShieldCheck className="h-3.5 w-3.5" /> {t("PIN Dashboard")}</p>
-              <div className="flex items-center justify-between gap-3">
-                <p className="font-mono text-2xl font-black tracking-[0.25em]">{result.pin}</p>
-                <Button type="button" size="sm" variant="outline" onClick={() => copy("pin", result.pin)}>
-                  {copied === "pin" ? <Check className="h-4 w-4 text-accent-sageDeep" /> : <Copy className="h-4 w-4" />} {copied === "pin" ? t("Tersalin") : t("Salin")}
-                </Button>
-              </div>
+              <p className="mb-1 flex items-center gap-1 text-[10px] font-black uppercase text-base-ink/55"><ShieldCheck className="h-3.5 w-3.5" /> {t("Kredensial")}</p>
+              <p className="text-xs font-bold leading-relaxed">
+                {t("Member membuat Password & PIN sendiri saat pertama kali membuka dashboard.")}
+              </p>
             </div>
             <a href={result.dashboardUrl} target="_blank" rel="noreferrer" className="block">
               <Button variant="primary" className="w-full">

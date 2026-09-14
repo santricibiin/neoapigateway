@@ -5,7 +5,8 @@ const BASE_URL = bandelUpstreamBase();
 
 /**
  * Fetch helper: parse JSON, lempar Error dengan property `status` (HTTP code)
- * supaya retry 401 di withBandelAuth bisa mendeteksi token expire.
+ * dan `code` (error code body upstream) supaya retry 401 di withBandelAuth
+ * bisa mendeteksi token expire / password_setup_required.
  */
 async function bandelFetch(url: string, init?: RequestInit): Promise<Record<string, unknown>> {
   const res = await fetch(url, { cache: "no-store", ...init });
@@ -20,7 +21,10 @@ async function bandelFetch(url: string, init?: RequestInit): Promise<Record<stri
       (typeof data.error === "string" && data.error) ||
       (typeof data.message === "string" && data.message) ||
       `Provider error (${res.status})`;
-    throw Object.assign(new Error(message), { status: res.status });
+    throw Object.assign(new Error(message), {
+      status: res.status,
+      code: typeof data.code === "string" ? data.code : undefined,
+    });
   }
   return data;
 }
@@ -181,6 +185,9 @@ export interface QuotaMeta {
   name?: string;
   status?: string;
   pinSet?: boolean;
+  passwordSet?: boolean;
+  credentialsSet?: boolean;
+  requiresCurrentPin?: boolean;
   pinLockedUntil?: string | null;
   resellerPhone?: string | null;
   createdAt?: string | null;
@@ -191,13 +198,15 @@ export interface PinVerification {
   expiresIn?: number;
 }
 
-export async function verifyPin(secretKey: string, pin: string): Promise<PinVerification> {
+export async function verifyPin(secretKey: string, pin: string, password?: string): Promise<PinVerification> {
   const data = await bandelFetch(
     `${BASE_URL}/api/public/quota/${encodeURIComponent(secretKey)}/verify-pin`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pin }),
+      // Upstream wajib password + PIN. Password wajib eksplisit (admin dari
+      // Setting.bandelPassword; member dari input dashboard gateway).
+      body: JSON.stringify({ password, pin }),
     }
   );
   if (typeof data.accessToken !== "string" || !data.accessToken) {
@@ -223,6 +232,15 @@ async function resolveResellerPin(pin?: string): Promise<string | undefined> {
   return setting?.pin || undefined;
 }
 
+/** Password reseller admin: param eksplisit → env BB_PASSWORD → Setting.bandelPassword di DB. */
+async function resolveResellerPassword(password?: string): Promise<string | undefined> {
+  if (password) return password;
+  const envPw = process.env.BB_PASSWORD?.trim();
+  if (envPw) return envPw;
+  const setting = await prisma.setting.findUnique({ where: { id: 1 }, select: { bandelPassword: true } });
+  return setting?.bandelPassword || undefined;
+}
+
 /** Ambil accessToken reseller (verify-pin + cache TTL 90 menit). */
 export async function bandelAccessToken(
   secretKey: string,
@@ -236,7 +254,12 @@ export async function bandelAccessToken(
     if (cached?.token) return cached.token;
     throw new Error("PIN reseller belum diatur (isi PIN di menu Pengaturan atau env BB_PIN)");
   }
-  const { accessToken, expiresIn } = await verifyPin(secretKey, resolvedPin);
+  const resolvedPassword = await resolveResellerPassword();
+  if (!resolvedPassword) {
+    if (cached?.token) return cached.token;
+    throw new Error("Password bandel belum diatur (isi Password di menu Pengaturan atau env BB_PASSWORD)");
+  }
+  const { accessToken, expiresIn } = await verifyPin(secretKey, resolvedPin, resolvedPassword);
   const ttl = Math.max(60_000, Math.min(BANDEL_TOKEN_TTL_MS, (expiresIn ?? BANDEL_TOKEN_TTL_MS)));
   bandelTokenCache.set(secretKey, { token: accessToken, expiresAt: Date.now() + ttl });
   return accessToken;
@@ -546,44 +569,44 @@ export async function createCustomerKey(
   });
 }
 
-export async function setupCustomerPin(
+/**
+ * Setup kredensial pertama kali untuk member: password + PIN pilihan member
+ * sendiri (diketik di dashboard gateway), diteruskan ke upstream.
+ * Body: { password, pin, currentPin? } — confirmPassword/confirmPin divalidasi
+ * di route gateway sebelum sampai sini.
+ */
+export async function setupCustomerCredentials(
   customerSecretToken: string,
-  pin: string = BANDEL_DEFAULT_MEMBER_PIN
-): Promise<{ accessToken: string; expiresIn?: number }> {
-  let data: Record<string, unknown>;
-  try {
-    data = await bandelFetch(
-      `${BASE_URL}/api/public/quota/${encodeURIComponent(customerSecretToken)}/setup-pin`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ pin, confirmPin: pin }),
-      }
-    );
-  } catch (e) {
-    const status = (e as { status?: number } | null)?.status;
-    if (status === 400 || status === 409 || status === 422) {
-      return verifyPin(customerSecretToken, pin);
+  creds: { password: string; pin: string; currentPin?: string }
+): Promise<{ accessToken: string; expiresIn?: number; pinChangedAt?: string; passwordChangedAt?: string }> {
+  const body: Record<string, unknown> = {
+    password: creds.password,
+    confirmPassword: creds.password,
+    pin: creds.pin,
+    confirmPin: creds.pin,
+  };
+  if (creds.currentPin) body.currentPin = creds.currentPin;
+  return bandelFetch(
+    `${BASE_URL}/api/public/quota/${encodeURIComponent(customerSecretToken)}/setup-credentials`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(body),
     }
-    throw e;
-  }
-  if (typeof data.accessToken !== "string" || !data.accessToken) {
-    return verifyPin(customerSecretToken, pin);
-  }
-  return { accessToken: data.accessToken, expiresIn: data.expiresIn as number | undefined };
+  ) as Promise<{ accessToken: string; expiresIn?: number; pinChangedAt?: string; passwordChangedAt?: string }>;
 }
 
 /**
- * Provision key member baru. Param `memberPin` = PIN key customer baru
- * (default BANDEL_DEFAULT_MEMBER_PIN), param `resellerPin` = PIN reseller
- * untuk Bearer di endpoint create-key — JANGAN tertukar.
- * resellerPin opsional; kalau kosong di-resolve otomatis dari Setting.pin / env BB_PIN.
+ * Provision key member baru TANPA kredensial: buyer hanya menerima URL
+ * dashboard, lalu set password+PIN sendiri saat pertama kali membuka
+ * dashboard (flow setup-credentials). Tanpa apiKey penuh — key lengkap
+ * bisa dilihat member di dashboard setelah login.
  */
 export async function provisionCustomerKey(
   resellerSecretKey: string,
   maxTokens: number,
   validDays: number,
-  memberPin: string = BANDEL_DEFAULT_MEMBER_PIN,
+  _memberPin?: string,
   resellerPin?: string
 ): Promise<BandelCreatedKey> {
   const created = await createCustomerKey(resellerSecretKey, maxTokens, validDays, resellerPin);
@@ -592,24 +615,7 @@ export async function provisionCustomerKey(
     throw new Error("create-key tanpa secretToken customer");
   }
 
-  let apiKey = created.apiKey;
-  try {
-    const { accessToken } = await setupCustomerPin(customerToken, memberPin);
-    const data = await fetchQuotaData(customerToken, accessToken);
-    if (typeof data.key === "string" && data.key.startsWith("sk-")) {
-      apiKey = data.key;
-    }
-    if (!created.name && typeof data.name === "string") {
-      created.name = data.name;
-    }
-    if (!created.keyMasked && typeof data.keyMasked === "string") {
-      created.keyMasked = data.keyMasked;
-    }
-  } catch (e) {
-    console.error("[bandel] setup-pin/data setelah create-key:", e instanceof Error ? e.message : e);
-  }
-
-  return { ...created, secretToken: customerToken, apiKey, pin: memberPin };
+  return { ...created, secretToken: customerToken, apiKey: created.apiKey ?? undefined };
 }
 
 export function formatBandelDelivery(result: BandelCreatedKey, code: string) {
@@ -618,16 +624,13 @@ export function formatBandelDelivery(result: BandelCreatedKey, code: string) {
   const url = secret ? `${pub}/quota/${secret}` : result.dashboardUrl || "";
   if (!url) throw new Error("dashboardUrl kosong");
   const pack = QUOTA_PACKAGES[code as keyof typeof QUOTA_PACKAGES];
-  const apiBase = `${pub}/v1`;
-  const pin = result.pin || BANDEL_DEFAULT_MEMBER_PIN;
   const lines = [
     `Paket: ${code}`,
     pack ? `Token: ${pack.tokens.toLocaleString("id-ID")} · ${pack.validDays} hari` : null,
     result.name ? `Nama: ${result.name}` : null,
     `Dashboard: ${url}`,
-    `PIN: ${pin}`,
-    result.apiKey ? `API Key: ${result.apiKey}` : result.keyMasked ? `API Key: ${result.keyMasked}` : null,
-    `API Base: ${apiBase}`,
+    `Buka dashboard untuk membuat Password & PIN dan melihat API Key kamu.`,
+    `API Base: ${pub}/v1`,
   ].filter(Boolean) as string[];
   return lines.join("\n");
 }

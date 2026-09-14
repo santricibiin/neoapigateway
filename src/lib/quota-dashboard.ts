@@ -1,4 +1,9 @@
-import { fetchQuotaData, fetchQuotaMeta, verifyPin } from "@/lib/bandelbanget";
+import {
+  fetchQuotaData,
+  fetchQuotaMeta,
+  setupCustomerCredentials,
+  verifyPin,
+} from "@/lib/bandelbanget";
 import { publicV1Base } from "@/lib/bandel-upstream";
 import { disabledModelIds } from "@/lib/model-gate";
 
@@ -42,14 +47,28 @@ export async function loadQuotaMeta(secretKey: string) {
     name: text(meta.name, "Member"),
     status: text(meta.status, "unknown"),
     pinSet: Boolean(meta.pinSet),
+    credentialsSet: meta.credentialsSet ?? Boolean(meta.pinSet && meta.passwordSet),
+    requiresCurrentPin: Boolean(meta.requiresCurrentPin),
+    passwordSet: Boolean(meta.passwordSet),
     pinLockedUntil: meta.pinLockedUntil ?? null,
     resellerPhone: meta.resellerPhone ?? null,
     createdAt: meta.createdAt ?? null,
   };
 }
 
-export async function verifyQuotaPin(secretKey: string, pin: string) {
-  return verifyPin(secretKey, pin);
+export async function verifyQuotaPin(secretKey: string, pin: string, password?: string) {
+  return verifyPin(secretKey, pin, password);
+}
+
+/**
+ * Setup kredensial pertama kali untuk member (password + PIN pilihan sendiri).
+ * Password sudah divalidasi di route sebelum diteruskan ke upstream.
+ */
+export async function setupQuotaCredentials(
+  secretKey: string,
+  creds: { password: string; pin: string; currentPin?: string }
+) {
+  return setupCustomerCredentials(secretKey, creds);
 }
 
 export async function loadQuotaDashboard(secretKey: string, accessToken: string): Promise<QuotaDashboardView> {

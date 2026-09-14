@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { QUOTA_PACKAGES, provisionCustomerKey, formatBandelDelivery, addCustomerQuota, fetchResellerKeys, generateMemberPin } from "@/lib/bandelbanget";
+import { QUOTA_PACKAGES, provisionCustomerKey, formatBandelDelivery, addCustomerQuota, fetchResellerKeys } from "@/lib/bandelbanget";
 import { notifyOrderPaid } from "@/lib/telegram-notify";
 import type { ActionResult } from "@/types";
 
@@ -129,12 +129,12 @@ export async function fulfillOrder(orderId: string): Promise<ActionResult<{ deli
           delivered += `\nSisa kuota: ${result.remainingQuota.toLocaleString("id-ID")}`;
         }
       } else {
-        // Default: provision key baru
+        // Default: provision key baru (tanpa kredensial — member set sendiri via dashboard)
         const created = await provisionCustomerKey(
           setting.secretKey,
           pack.tokens * order.qty,
           pack.validDays,
-          generateMemberPin(),
+          undefined,
           setting.pin || undefined
         );
         delivered = formatBandelDelivery(created, code);
