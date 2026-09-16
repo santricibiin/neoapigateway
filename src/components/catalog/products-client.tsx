@@ -15,6 +15,8 @@ interface Product {
   model: string;
   description: string | null;
   price: number;
+  strikePrice: number | null;
+  badge: string | null;
   sku: string | null;
   stockMode: string;
   stock: number;
@@ -242,7 +244,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
                       variants={cell}
                       whileHover={{ y: -3 }}
                       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                      className="flex flex-col rounded-neo border border-base-line bg-base-surface p-4 shadow-neo-sm transition-shadow hover:shadow-neo"
+                      className="group flex flex-col rounded-neo border border-base-line bg-base-surface p-4 shadow-neo-sm transition-shadow hover:shadow-neo"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
@@ -253,6 +255,12 @@ export function ProductsClient({ products }: { products: Product[] }) {
                             <Tag className="h-3 w-3" strokeWidth={2.5} />
                             {product.model}
                           </span>
+                          {product.badge && (
+                            <span className="mt-2 inline-flex -rotate-1 items-center gap-1.5 rounded-neo bg-gradient-to-r from-accent-terra to-accent-terraDeep px-3 py-1 text-xs font-black uppercase tracking-wider text-white shadow-neo transition-transform duration-150 group-hover:rotate-1 group-hover:scale-105">
+                              <Zap className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
+                              {product.badge}
+                            </span>
+                          )}
                         </div>
                         <span
                           className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase ${
@@ -277,6 +285,14 @@ export function ProductsClient({ products }: { products: Product[] }) {
 
                       <div className="mt-3 flex items-center justify-between gap-3">
                         <div>
+                          {product.strikePrice !== null && (
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="text-sm font-bold text-base-ink/40 line-through">{formatRupiah(product.strikePrice)}</span>
+                              <span className="rounded-full bg-accent-terraDeep px-2 py-0.5 text-[10px] font-black text-white">
+                                HEMAT {Math.round(((product.strikePrice - product.price) / product.strikePrice) * 100)}%
+                              </span>
+                            </div>
+                          )}
                           <div className="text-lg font-extrabold">{formatRupiah(product.price)}</div>
                           {usdtOf(product.price) && (
                             <div className="font-mono text-[10px] font-bold text-base-ink/45">≈ {usdtOf(product.price)} USDT</div>
@@ -314,9 +330,17 @@ export function ProductsClient({ products }: { products: Product[] }) {
                       >
                         {/* Kiri: produk + model */}
                         <div className="min-w-0 md:pr-4">
-                          <p className="truncate font-extrabold" title={product.name}>
-                            {product.name}
-                          </p>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <p className="truncate font-extrabold" title={product.name}>
+                              {product.name}
+                            </p>
+                            {product.badge && (
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-neo bg-gradient-to-r from-accent-terra to-accent-terraDeep px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider text-white shadow-neo-sm">
+                                <Zap className="h-3 w-3 fill-current" strokeWidth={0} />
+                                {product.badge}
+                              </span>
+                            )}
+                          </div>
                           <p className="truncate font-mono text-xs font-bold text-base-ink/50">{product.model}</p>
                         </div>
 
@@ -335,6 +359,14 @@ export function ProductsClient({ products }: { products: Product[] }) {
                         {/* Harga — HP: baris kedua; tablet/PC: kolom kanan */}
                         <div className="col-start-1 row-start-2 items-baseline gap-1.5 md:col-start-3 md:row-start-1 md:justify-self-end">
                           <span className="text-[10px] font-black uppercase text-base-ink/40 md:hidden">{t("Harga")}</span>
+                          {product.strikePrice !== null && (
+                            <p className="flex items-center gap-1.5">
+                              <span className="text-xs font-bold text-base-ink/40 line-through">{formatRupiah(product.strikePrice)}</span>
+                              <span className="rounded-full bg-accent-terraDeep px-1.5 py-0.5 text-[9px] font-black text-white">
+                                -{Math.round(((product.strikePrice - product.price) / product.strikePrice) * 100)}%
+                              </span>
+                            </p>
+                          )}
                           <p className="text-sm font-extrabold md:text-base">{formatRupiah(product.price)}</p>
                           {usdtOf(product.price) && (
                             <p className="font-mono text-[10px] font-bold text-base-ink/45">≈ {usdtOf(product.price)} USDT</p>

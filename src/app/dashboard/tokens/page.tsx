@@ -19,6 +19,8 @@ export default async function ProductsPage() {
         model: item.model,
         description: item.description || "",
         price: Number(item.price),
+        strikePrice: item.strikePrice === null ? null : Number(item.strikePrice),
+        badge: item.badge,
         costPrice: Number(item.costPrice),
         stockMode: item.stockMode,
         stock: item.stock,

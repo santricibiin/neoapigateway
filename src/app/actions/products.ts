@@ -25,6 +25,9 @@ function parseProduct(formData: FormData) {
   const description = String(formData.get("description") || "").trim();
   const price = Number(formData.get("price"));
   const costPrice = Number(formData.get("costPrice"));
+  const badge = String(formData.get("badge") || "").trim();
+  const strikeRaw = String(formData.get("strikePrice") || "").trim();
+  const strikePrice = strikeRaw === "" ? null : Number(strikeRaw);
   const stock = Number(formData.get("stock"));
   const stockMode = String(formData.get("stockMode") || "counted");
   const active = formData.get("active") === "on";
@@ -36,10 +39,13 @@ function parseProduct(formData: FormData) {
   if (description.length > 4000) return { error: "Deskripsi maksimal 4000 karakter" } as const;
   if (!Number.isFinite(price) || price < 0 || price > 2_000_000_000) return { error: "Harga tidak valid" } as const;
   if (!Number.isFinite(costPrice) || costPrice < 0 || costPrice > 2_000_000_000) return { error: "Harga modal tidak valid" } as const;
+  if (badge.length > 50) return { error: "Label promo maksimal 50 karakter" } as const;
+  if (strikePrice !== null && (!Number.isFinite(strikePrice) || strikePrice < 0 || strikePrice > 2_000_000_000)) return { error: "Harga coret tidak valid" } as const;
+  if (strikePrice !== null && strikePrice <= price) return { error: "Harga coret harus lebih besar dari harga jual" } as const;
   if (!Number.isInteger(stock) || stock < 0 || stock > 2_000_000_000) return { error: "Stok tidak valid" } as const;
   if (!Number.isFinite(sortOrder) || !Number.isInteger(sortOrder) || sortOrder < -2_000_000_000 || sortOrder > 2_000_000_000) return { error: "Urutan tidak valid" } as const;
   if (!(["counted", "external"] as string[]).includes(stockMode)) return { error: "Mode stok tidak valid" } as const;
-  return { categoryId, sku, name, model, description: description || null, price, costPrice, stock: stockMode === "external" ? 0 : stock, stockMode, active, sortOrder };
+  return { categoryId, sku, name, model, description: description || null, price, strikePrice, badge: badge || null, costPrice, stock: stockMode === "external" ? 0 : stock, stockMode, active, sortOrder };
 }
 
 /**

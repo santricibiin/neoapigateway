@@ -31,6 +31,8 @@ export default async function ProductsPage() {
     model: p.model,
     description: p.description,
     price: Number(p.price),
+    strikePrice: p.strikePrice === null ? null : Number(p.strikePrice),
+    badge: p.badge,
     sku: p.sku,
     stockMode: p.stockMode,
     stock: p.stock,

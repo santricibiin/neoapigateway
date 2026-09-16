@@ -37,6 +37,8 @@ type Product = {
   model: string;
   description: string;
   price: number;
+  strikePrice: number | null;
+  badge: string | null;
   costPrice: number;
   stockMode: string;
   stock: number;
@@ -216,6 +218,11 @@ export function ProductAdminClient({
                       Posisi #{item.sortOrder}
                     </span>
                   )}
+                  {item.badge && (
+                    <span className="ml-1 inline-flex rounded-full border border-base-line bg-accent-sun px-2 py-0.5 text-[10px] font-black">
+                      {item.badge}
+                    </span>
+                  )}
                   <p className="mt-2 font-mono text-[10px] font-bold text-base-ink/45">{item.sku}</p>
                   <h2 className="text-xl font-black">{item.name}</h2>
                   <p className="text-sm font-bold text-base-ink/50">{item.categoryName} · {item.model}</p>
@@ -226,7 +233,7 @@ export function ProductAdminClient({
                 {item.description || "Tanpa deskripsi"}
               </p>
               <div className="relative mt-4 grid grid-cols-3 gap-2">
-                <Metric label="Harga" value={`Rp ${item.price.toLocaleString("id-ID")}`} />
+                <Metric label="Harga" value={item.strikePrice ? `${item.strikePrice.toLocaleString("id-ID")} → Rp ${item.price.toLocaleString("id-ID")}` : `Rp ${item.price.toLocaleString("id-ID")}`} />
                 <Metric label="Stok" value={isExternal ? (available ? "Tersedia" : "Habis") : item.stock.toLocaleString("id-ID")} />
                 <Metric label="Terjual" value={item.sold.toLocaleString("id-ID")} />
               </div>
@@ -323,6 +330,8 @@ export function ProductAdminClient({
             <Input name="name" label="Nama produk" defaultValue={editing?.name || ""} maxLength={200} required />
             <Input name="model" label="Model" defaultValue={editing?.model || ""} maxLength={100} required />
             <Input name="price" label="Harga jual" type="number" min={0} step={1} defaultValue={editing?.price || 0} required />
+            <Input name="strikePrice" label="Harga coret (opsional)" type="number" min={0} step={1} defaultValue={editing?.strikePrice ?? ""} placeholder="kosongkan jika tidak ada promo" />
+            <Input name="badge" label="Label promo (opsional)" defaultValue={editing?.badge || ""} maxLength={50} placeholder="mis. Paket Hemat, Murah" />
             <Input name="costPrice" label="Harga modal (internal)" type="number" min={0} step={1} defaultValue={editing?.costPrice || 0} required />
             <Input
               name="sortOrder"

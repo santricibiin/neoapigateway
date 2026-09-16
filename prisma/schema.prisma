@@ -135,6 +135,10 @@ model Token {
   model        String
   description  String?        @db.Text
   price        Decimal
+  /// Harga coret (harga sebelum promo); tampil dicoret di katalog kalau > price
+  strikePrice  Decimal?       @db.Decimal(18, 2)
+  /// Label promo bebas, mis. "Paket Hemat", "Murah"
+  badge        String?        @db.VarChar(50)
   /// Harga modal internal, tidak ditampilkan ke pembeli
   costPrice    Decimal        @default(0) @db.Decimal(18, 2)
   stockMode    String         @default("counted") @db.VarChar(20)
