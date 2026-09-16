@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    // Halaman force-dynamic (track/pay) jangan disajikan dari client router
+    // cache 30 detik — supaya setiap submit lookup selalu kena server
+    // (rate limit miss selalu tercatat, lock selalu dienforce).
+    staleTimes: { dynamic: 0 },
+  },
   env: {
     NEXT_PUBLIC_PUBLIC_API_BASE: process.env.PUBLIC_API_BASE || "http://localhost:3000",
   },

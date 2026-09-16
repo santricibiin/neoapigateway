@@ -23,7 +23,9 @@ export default async function TrackPage({ params }: { params: { invoice: string 
   });
 
   if (!order) {
-    recordInvoiceMiss(INVOICE_SCOPE, ip);
+    // Miss ke-3 langsung kunci + redirect — jangan tunggu request berikutnya.
+    const { lockedForSec } = recordInvoiceMiss(INVOICE_SCOPE, ip);
+    if (lockedForSec) redirect(`/track?locked=${lockedForSec}`);
     notFound();
   }
   recordInvoiceHit(INVOICE_SCOPE, ip);

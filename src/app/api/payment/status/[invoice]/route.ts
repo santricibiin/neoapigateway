@@ -34,7 +34,13 @@ export async function GET(
   });
 
   if (!order) {
-    recordInvoiceMiss(INVOICE_SCOPE, ip);
+    const { lockedForSec } = recordInvoiceMiss(INVOICE_SCOPE, ip);
+    if (lockedForSec) {
+      return NextResponse.json(
+        { ok: false, error: "Terlalu banyak percobaan. Coba lagi nanti." },
+        { status: 429, headers: { "Retry-After": String(lockedForSec) } }
+      );
+    }
     return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
   }
   recordInvoiceHit(INVOICE_SCOPE, ip);

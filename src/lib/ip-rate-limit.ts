@@ -42,16 +42,20 @@ export function checkIpAllowed(
 }
 
 /** Catat invoice tidak ditemukan; kunci IP kalau lewat batas. */
-export function recordInvoiceMiss(scope: string, ip: string) {
+export function recordInvoiceMiss(scope: string, ip: string): { lockedForSec: number } {
   const now = Date.now();
   const key = `${scope}:${ip}`;
   const e = store.get(key);
   if (!e || now - e.firstMissAt > WINDOW_MS) {
     store.set(key, { misses: 1, firstMissAt: now, lockedUntil: 0 });
-    return;
+    return { lockedForSec: 0 };
   }
   e.misses += 1;
-  if (e.misses >= MAX_MISSES) e.lockedUntil = now + LOCKOUT_MS;
+  if (e.misses >= MAX_MISSES) {
+    e.lockedUntil = now + LOCKOUT_MS;
+    return { lockedForSec: Math.ceil(LOCKOUT_MS / 1000) };
+  }
+  return { lockedForSec: 0 };
 }
 
 /** Reset hitungan setelah invoice valid ditemukan. */

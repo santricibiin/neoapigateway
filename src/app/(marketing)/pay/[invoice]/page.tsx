@@ -23,7 +23,8 @@ export default async function PayPage({ params }: { params: { invoice: string } 
   });
 
   if (!order) {
-    recordInvoiceMiss(INVOICE_SCOPE, ip);
+    const { lockedForSec } = recordInvoiceMiss(INVOICE_SCOPE, ip);
+    if (lockedForSec) redirect(`/track?locked=${lockedForSec}`);
     notFound();
   }
   recordInvoiceHit(INVOICE_SCOPE, ip);
