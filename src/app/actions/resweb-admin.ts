@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { QUOTA_PACKAGES } from "@/lib/bandelbanget";
+import { API_KEY_PATTERN } from "@/lib/reseller-api-auth";
 import type { ActionResult } from "@/types";
 
 const VALID_CODES = Object.keys(QUOTA_PACKAGES);
@@ -115,8 +116,7 @@ export async function createResellerWeb(formData: FormData): Promise<ActionResul
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Email tidak valid" };
   if (name.length < 1 || name.length > 200) return { ok: false, error: "Nama harus 1-200 karakter" };
   if (password.length < 6) return { ok: false, error: "Password minimal 6 karakter" };
-  if (apiKey && apiKey.length < 8) return { ok: false, error: "API key minimal 8 karakter" };
-  if (apiKey && apiKey.length > 128) return { ok: false, error: "API key maksimal 128 karakter" };
+  if (apiKey && !API_KEY_PATTERN.test(apiKey)) return { ok: false, error: "API key harus format res_ + 64 karakter hex" };
   const parsedWa = parseWaNumber(wa);
   if (parsedWa.error) return { ok: false, error: parsedWa.error };
   const parsedTg = parseTelegram(tg);
@@ -145,8 +145,7 @@ export async function updateResellerWeb(id: number, formData: FormData): Promise
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Email tidak valid" };
   if (name.length < 1 || name.length > 200) return { ok: false, error: "Nama harus 1-200 karakter" };
   if (password && password.length < 6) return { ok: false, error: "Password minimal 6 karakter" };
-  if (apiKey && apiKey.length < 8) return { ok: false, error: "API key minimal 8 karakter" };
-  if (apiKey && apiKey.length > 128) return { ok: false, error: "API key maksimal 128 karakter" };
+  if (apiKey && !API_KEY_PATTERN.test(apiKey)) return { ok: false, error: "API key harus format res_ + 64 karakter hex" };
   const parsedWa = parseWaNumber(wa);
   if (parsedWa.error) return { ok: false, error: parsedWa.error };
   const parsedTg = parseTelegram(tg);

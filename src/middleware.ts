@@ -22,6 +22,14 @@ function toBase64Url(bytes: ArrayBuffer): string {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+/** Bandingkan signature constant-time (anti timing attack). */
+function timingSafeEqualStr(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 async function verifySignature(encoded: string, signature: string): Promise<boolean> {
   try {
     const key = await crypto.subtle.importKey(
@@ -32,7 +40,7 @@ async function verifySignature(encoded: string, signature: string): Promise<bool
       ["sign"]
     );
     const digest = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(encoded));
-    return toBase64Url(digest) === signature;
+    return timingSafeEqualStr(toBase64Url(digest), signature);
   } catch {
     return false;
   }

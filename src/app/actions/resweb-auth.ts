@@ -3,37 +3,10 @@
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { createResWebSession, destroyResWebSession, getResWebSession } from "@/lib/resweb-auth";
+import { destroyResWebSession, getResWebSession } from "@/lib/resweb-auth";
+import { API_KEY_PATTERN } from "@/lib/reseller-api-auth";
 import { redirect } from "next/navigation";
 import type { ActionResult } from "@/types";
-
-export async function loginResWeb(formData: FormData): Promise<ActionResult & { redirect?: string }> {
-  const email = formData.get("email")?.toString().trim().toLowerCase();
-  const password = formData.get("password")?.toString();
-
-  if (!email || !password) {
-    return { ok: false, error: "Email dan password wajib diisi" };
-  }
-
-  try {
-    const reseller = await prisma.resellerWeb.findUnique({ where: { email } });
-    if (!reseller || !reseller.active) {
-      return { ok: false, error: "Email atau password salah" };
-    }
-
-    const valid = await bcrypt.compare(password, reseller.password);
-    if (!valid) {
-      return { ok: false, error: "Email atau password salah" };
-    }
-
-    createResWebSession(reseller.id);
-    console.log("[resweb] session created for", reseller.email, "redirect to /res");
-    return { ok: true, redirect: "/res" };
-  } catch (err) {
-    console.error("[resweb] login error:", err);
-    return { ok: false, error: "Terjadi kesalahan, coba lagi" };
-  }
-}
 
 export async function logoutResWeb() {
   destroyResWebSession();
@@ -66,8 +39,7 @@ export async function updateResellerApiKey(formData: FormData): Promise<ActionRe
 
   const apiKey = String(formData.get("apiKey") || "").trim();
   if (!apiKey) return { ok: false, error: "API key wajib diisi" };
-  if (apiKey.length < 8) return { ok: false, error: "API key minimal 8 karakter" };
-  if (apiKey.length > 128) return { ok: false, error: "API key maksimal 128 karakter" };
+  if (!API_KEY_PATTERN.test(apiKey)) return { ok: false, error: "API key harus format res_ + 64 karakter hex (klik Generate)" };
 
   try {
     await prisma.resellerWeb.update({ where: { id: session.id }, data: { apiKey } });
