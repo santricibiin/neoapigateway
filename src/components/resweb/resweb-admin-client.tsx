@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
 import { QUOTA_PACKAGES } from "@/lib/quota-packages";
+import { formatTokens } from "@/lib/format-tokens";
 import {
   createResWebTier,
   updateResWebTier,
@@ -64,12 +65,7 @@ const QUOTA_OPTIONS = Object.entries(QUOTA_PACKAGES).map(([code, p]) => ({
   validDays: p.validDays,
 }));
 
-function formatTokens(value: number) {
-  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(0)}B`;
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(0)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
-  return value.toLocaleString("id-ID");
-}
+
 
 function formatRupiah(value: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
@@ -182,7 +178,7 @@ export function ReswebAdminClient({
       <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-neo border border-base-line bg-accent-lavender p-5 shadow-neo sm:p-7">
         <motion.svg animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 text-white/35"><path d="M50 5 61 38 95 39 68 58 77 91 50 72 23 91 32 58 5 39 39 38Z" fill="currentColor" /></motion.svg>
         <div className="relative flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-          <div><span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Sparkles className="h-3 w-3" /> ResWeb Control</span><h1 className="mt-3 text-3xl font-black sm:text-4xl">Kelola jaringan reseller.</h1><p className="mt-1 text-sm font-bold text-base-ink/60">Paket, saldo, reseller, dan member dalam satu panel.</p></div>
+          <div><span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-base-surface px-3 py-1 text-[10px] font-black uppercase tracking-widest"><Sparkles className="h-3 w-3" /> ResWeb Control</span><h1 className="mt-3 text-3xl font-black sm:text-4xl">Kelola jaringan reseller.</h1><p className="mt-1 text-sm font-bold text-base-ink/60">Paket, saldo, reseller, dan member dalam satu panel.</p></div>
           <div className="flex flex-wrap gap-2">
             <Button variant="sky" onClick={() => setTierModal({ open: true, editing: null })}><PackagePlus className="h-4 w-4" /> Paket</Button>
             <Button variant="primary" onClick={() => { setApiKeyInput(""); setApiKeyCopied(false); setResellerModal({ open: true, editing: null }); }}><Users className="h-4 w-4" /> Reseller</Button>
@@ -206,7 +202,7 @@ export function ReswebAdminClient({
             onClick={() => setTab(t)}
             className={cn(
               "rounded-neo border border-base-line px-4 py-2 text-sm font-extrabold capitalize transition-colors",
-              tab === t ? "bg-base-ink text-white" : "bg-base-surface hover:bg-accent-sky/30"
+              tab === t ? "bg-base-ink text-base-bg" : "bg-base-surface hover:bg-accent-sky/30"
             )}
           >
             {t === "tiers" ? `Paket (${initialTiers.length})` : t === "resellers" ? `Reseller (${initialResellers.length})` : `Member (${initialMembers.length})`}
@@ -222,7 +218,7 @@ export function ReswebAdminClient({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03 }}
-              className="relative overflow-hidden rounded-neo border border-base-line bg-white p-5 shadow-neo-sm"
+              className="relative overflow-hidden rounded-neo border border-base-line bg-base-surface p-5 shadow-neo-sm"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -256,7 +252,7 @@ export function ReswebAdminClient({
             </motion.article>
           ))}
           {!initialTiers.length && (
-            <div className="col-span-full rounded-neo border border-dashed border-base-line bg-white py-16 text-center">
+            <div className="col-span-full rounded-neo border border-dashed border-base-line bg-base-surface py-16 text-center">
               <Boxes className="mx-auto h-10 w-10 text-base-ink/20" />
               <p className="mt-3 font-black">Belum ada paket topup</p>
             </div>
@@ -265,10 +261,10 @@ export function ReswebAdminClient({
       )}
 
       {tab === "resellers" && (
-        <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm">
+        <div className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left">
-              <thead className="bg-base-ink text-xs uppercase tracking-wide text-white">
+              <thead className="bg-base-ink text-base-bg text-xs uppercase tracking-wide">
                 <tr>
                   <th className="px-4 py-3">Reseller</th>
                   <th className="px-4 py-3">Saldo</th>
@@ -326,11 +322,11 @@ export function ReswebAdminClient({
       )}
 
       {tab === "members" && (
-        <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm">
-          <div className="flex flex-col gap-2 border-b border-base-line bg-accent-sky/20 p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-black">Filter Member</p><p className="text-xs font-bold text-base-ink/45">{filteredMembers.length} member ditemukan</p></div><select value={memberReseller} onChange={(event) => { setMemberReseller(event.target.value); setMemberPage(1); }} className="h-10 rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm"><option value="all">Semua reseller</option>{initialResellers.map((reseller) => <option key={reseller.id} value={reseller.id}>{reseller.name} ({reseller.email})</option>)}</select></div>
+        <div className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
+          <div className="flex flex-col gap-2 border-b border-base-line bg-accent-sky/20 p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-black">Filter Member</p><p className="text-xs font-bold text-base-ink/45">{filteredMembers.length} member ditemukan</p></div><select value={memberReseller} onChange={(event) => { setMemberReseller(event.target.value); setMemberPage(1); }} className="h-10 rounded-neo border border-base-line bg-base-surface px-3 text-sm font-bold shadow-neo-sm"><option value="all">Semua reseller</option>{initialResellers.map((reseller) => <option key={reseller.id} value={reseller.id}>{reseller.name} ({reseller.email})</option>)}</select></div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-left">
-              <thead className="bg-base-ink text-xs uppercase tracking-wide text-white">
+              <thead className="bg-base-ink text-base-bg text-xs uppercase tracking-wide">
                 <tr>
                   <th className="px-4 py-3">Member</th>
                   <th className="px-4 py-3">Reseller</th>
@@ -360,7 +356,7 @@ export function ReswebAdminClient({
                         href={`/quota/member/${m.secretToken}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs font-bold text-accent-sky underline"
+                        className="text-xs font-bold text-accent-sageDeep underline"
                       >
                         Buka
                       </a>
@@ -390,7 +386,7 @@ export function ReswebAdminClient({
             <select
               name="code"
               defaultValue={tierModal.editing?.code || ""}
-              className="mt-1.5 h-11 w-full rounded-neo border border-base-line bg-white px-3 shadow-neo-sm"
+              className="mt-1.5 h-11 w-full rounded-neo border border-base-line bg-base-surface px-3 shadow-neo-sm"
               required
             >
               <option value="" disabled>Pilih paket...</option>
@@ -480,7 +476,7 @@ export function ReswebAdminClient({
 }
 
 function SummaryCard({ label, value, detail, icon, color }: { label: string; value: string; detail: string; icon: React.ReactNode; color: string }) {
-  return <motion.div whileHover={{ y: -4 }} className={cn("relative overflow-hidden rounded-neo border border-base-line p-5 shadow-neo-sm", color)}><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -bottom-10 -right-8 h-28 w-28 text-white/30"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg><div className="relative flex items-start justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-base-ink/50">{label}</p><p className="mt-1 text-3xl font-black">{value}</p><p className="mt-1 text-xs font-bold text-base-ink/50">{detail}</p></div><span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm">{icon}</span></div></motion.div>;
+  return <motion.div whileHover={{ y: -4 }} className={cn("relative overflow-hidden rounded-neo border border-base-line p-5 shadow-neo-sm", color)}><svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -bottom-10 -right-8 h-28 w-28 text-white/30"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg><div className="relative flex items-start justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-base-ink/50">{label}</p><p className="mt-1 text-3xl font-black">{value}</p><p className="mt-1 text-xs font-bold text-base-ink/50">{detail}</p></div><span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-base-surface shadow-neo-sm">{icon}</span></div></motion.div>;
 }
 
 function Pagination({ page, totalPages, total, onPage, label }: { page: number; totalPages: number; total: number; onPage: (page: number) => void; label: string }) {

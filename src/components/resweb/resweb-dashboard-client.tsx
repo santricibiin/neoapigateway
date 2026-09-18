@@ -26,12 +26,7 @@ type Member = {
 };
 const QUOTA_PRESETS = Object.entries(QUOTA_PACKAGES).map(([code, pack]) => ({ code, ...pack }));
 
-function formatTokens(v: number) {
-  if (v >= 1_000_000_000) return `${(v / 1_000_000_000).toFixed(0)}B`;
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(0)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(0)}K`;
-  return v.toLocaleString("id-ID");
-}
+import { formatTokens } from "@/lib/format-tokens";
 
 /** Animasi angka naik (count-up) untuk stat card. */
 function useCountUp(target: number, duration = 900) {
@@ -224,7 +219,7 @@ export function ReswebDashboardClient({
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 18 }}
-              className="inline-flex items-center gap-1.5 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest shadow-neo-sm"
+              className="inline-flex items-center gap-1.5 rounded-full border border-base-line bg-base-surface px-3 py-1 text-[10px] font-black uppercase tracking-widest shadow-neo-sm"
             >
               <Zap className="h-3 w-3 text-accent-terra" strokeWidth={2.5} /> Reseller Center
             </motion.span>
@@ -355,7 +350,7 @@ export function ReswebDashboardClient({
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="rounded-neo border border-dashed border-base-line bg-white py-16 text-center"
+            className="rounded-neo border border-dashed border-base-line bg-base-surface py-16 text-center"
           >
             <motion.svg
               animate={{ y: [0, -6, 0] }}
@@ -378,11 +373,11 @@ export function ReswebDashboardClient({
               variants={stagger}
               initial="hidden"
               animate="show"
-              className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm"
+              className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm"
             >
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[840px] text-left">
-                  <thead className="bg-base-ink text-xs uppercase tracking-wide text-white">
+                  <thead className="bg-base-ink text-base-bg text-xs uppercase tracking-wide">
                     <tr>
                       <th className="px-4 py-3">{t("Member")}</th>
                       <th className="px-4 py-3">{t("Token")}</th>
@@ -458,7 +453,7 @@ export function ReswebDashboardClient({
             </motion.div>
 
             {totalPages > 1 ? (
-              <div className="flex items-center justify-between gap-2 rounded-neo border border-base-line bg-white p-3 shadow-neo-sm">
+              <div className="flex items-center justify-between gap-2 rounded-neo border border-base-line bg-base-surface p-3 shadow-neo-sm">
                 <Button
                   type="button"
                   variant="outline"
@@ -481,7 +476,7 @@ export function ReswebDashboardClient({
                           onClick={() => (window.location.assign(pageUrl(p)))}
                           className={cn(
                             "h-8 w-8 rounded-neo border border-base-line text-xs font-black transition-colors",
-                            p === page ? "bg-base-ink text-white shadow-neo-sm" : "bg-white hover:bg-accent-sky/40"
+                            p === page ? "bg-base-ink text-base-bg shadow-neo-sm" : "bg-base-surface hover:bg-accent-sky/40"
                           )}
                         >
                           {p}
@@ -517,7 +512,7 @@ export function ReswebDashboardClient({
                   onClick={() => setPackageCode(p.code)}
                   className={cn(
                     "rounded-neo border border-base-line p-2 text-center text-xs font-black transition-all hover:-translate-y-0.5",
-                    packageCode === p.code ? "bg-accent-sageSoft shadow-neo-sm" : "bg-white hover:bg-accent-sky/20"
+                    packageCode === p.code ? "bg-accent-sageSoft shadow-neo-sm" : "bg-base-surface hover:bg-accent-sky/20"
                   )}
                 >
                   {p.code}
@@ -551,7 +546,7 @@ export function ReswebDashboardClient({
               <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" />
             </motion.svg>
             <div className="relative flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-neo border border-base-line bg-white text-base font-black">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-neo border border-base-line bg-base-surface text-base font-black">
                 {(quotaTarget.name || "M").charAt(0).toUpperCase()}
               </span>
               <div className="min-w-0">
@@ -570,7 +565,7 @@ export function ReswebDashboardClient({
                   onClick={() => setQuotaPackageCode(pack.code)}
                   className={cn(
                     "rounded-neo border border-base-line p-2 text-xs font-black transition-all hover:-translate-y-0.5",
-                    quotaPackageCode === pack.code ? "bg-accent-sageSoft shadow-neo-sm" : "bg-white"
+                    quotaPackageCode === pack.code ? "bg-accent-sageSoft shadow-neo-sm" : "bg-base-surface"
                   )}
                 >
                   {pack.code}
@@ -604,7 +599,7 @@ export function ReswebDashboardClient({
                 initial={{ rotate: -30, scale: 0 }}
                 animate={{ rotate: 0, scale: 1 }}
                 transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 14 }}
-                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-base-line bg-white"
+                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-base-line bg-base-surface"
               >
                 <KeyRound className="h-6 w-6 text-accent-sageDeep" />
               </motion.span>
@@ -663,7 +658,7 @@ function StatCard({
       </svg>
       <div className="relative flex items-center justify-between">
         <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">{label}</p>
-        <span className="flex h-8 w-8 items-center justify-center rounded-neo border border-base-line bg-white/70">{icon}</span>
+        <span className="flex h-8 w-8 items-center justify-center rounded-neo border border-base-line bg-base-surface/70">{icon}</span>
       </div>
       <p className="relative mt-1 text-2xl font-black tabular-nums">{format(animated)}</p>
       <div className="relative mt-2 h-1 overflow-hidden rounded-full bg-base-ink/10">

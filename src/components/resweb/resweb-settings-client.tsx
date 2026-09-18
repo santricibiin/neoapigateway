@@ -80,7 +80,7 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 18 }}
-            className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest shadow-neo-sm"
+            className="inline-flex items-center gap-2 rounded-full border border-base-line bg-base-surface px-3 py-1 text-[10px] font-black uppercase tracking-widest shadow-neo-sm"
           >
             <Sparkles className="h-3 w-3 text-accent-terra" /> Pengaturan
           </motion.span>
@@ -101,7 +101,7 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
       {pwOk && <p className="rounded-neo border border-base-line bg-accent-mint p-3 text-sm font-bold">{t("Password berhasil diubah.")}</p>}
       {keyOk && <p className="rounded-neo border border-base-line bg-accent-mint p-3 text-sm font-bold">{t("API key berhasil disimpan.")}</p>}
 
-      <section className="rounded-neo border border-base-line bg-white p-5 shadow-neo-sm sm:p-6">
+      <section className="rounded-neo border border-base-line bg-base-surface p-5 shadow-neo-sm sm:p-6">
         <div className="flex items-center gap-3 border-b border-base-line pb-4">
           <span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-accent-sky shadow-neo-sm"><ShieldCheck className="h-5 w-5" /></span>
           <div>
@@ -128,7 +128,7 @@ export function ReswebSettingsClient({ reseller }: { reseller: Reseller | null }
         )}
       </section>
 
-      <section className="rounded-neo border border-base-line bg-white p-5 shadow-neo-sm sm:p-6">
+      <section className="rounded-neo border border-base-line bg-base-surface p-5 shadow-neo-sm sm:p-6">
         <div className="flex items-center gap-3 border-b border-base-line pb-4">
           <span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-accent-sun shadow-neo-sm"><KeyRound className="h-5 w-5" /></span>
           <div>

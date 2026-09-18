@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
@@ -14,6 +14,7 @@ import { countPendingOrders, MAX_PENDING_ORDERS, readOrderHistory, removeOrderHi
 import {
   ArrowLeft,
   Loader2,
+  ShieldAlert,
 } from "lucide-react";
 
 // Custom SVG Icons
@@ -121,6 +122,7 @@ export function OrderClient({ product }: { product: Product }) {
   const [payMethods, setPayMethods] = useState<PayMethods | null>(null);
   const [method, setMethod] = useState<PayMethodChoice>({ kind: "qris" });
   const [usdtRate, setUsdtRate] = useState(0);
+  const [rateAlert, setRateAlert] = useState<string | null>(null);
 
   useEffect(() => {
     void fetch("/api/public/pay-methods", { cache: "no-store" })
@@ -163,7 +165,8 @@ export function OrderClient({ product }: { product: Product }) {
     setLoading(false);
 
     if (!res.ok || !res.data) {
-      setError(res.error ?? t("Gagal membuat order"));
+      setError(null);
+      setRateAlert(res.error ?? t("Gagal membuat order"));
       return;
     }
 
@@ -197,6 +200,7 @@ export function OrderClient({ product }: { product: Product }) {
       } else {
         // Sudah diproses/tidak ketemu di server — tetap bersihkan dari riwayat lokal.
         updateOrderHistory(invoice, "expired");
+        if (res.error) setRateAlert(res.error);
       }
       setHistory(readOrderHistory());
     } finally {
@@ -213,6 +217,25 @@ export function OrderClient({ product }: { product: Product }) {
           {t("Kembali ke Produk")}
         </Link>
       </div>
+
+      {/* Alert rate limit — gaya sama seperti page track */}
+      <AnimatePresence>
+        {rateAlert ? (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="relative mx-auto flex w-full max-w-2xl items-start gap-3 rounded-neo border border-base-line bg-accent-terraSoft p-4 shadow-neo-sm"
+            role="alert"
+          >
+            <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" strokeWidth={2.5} />
+            <div>
+              <p className="text-sm font-extrabold">{t("Terlalu Banyak Percobaan")}</p>
+              <p className="text-xs font-semibold text-base-ink/70">{rateAlert}</p>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       <div className="relative grid gap-6 lg:grid-cols-[1fr_380px] lg:gap-8">
         {/* Kolom kiri: produk + form */}

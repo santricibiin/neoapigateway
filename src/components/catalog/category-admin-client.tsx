@@ -76,7 +76,7 @@ export function CategoryAdminClient({ initialCategories }: { initialCategories: 
         </Button>
       </div>
 
-      <label className="flex h-11 max-w-xl items-center gap-2 rounded-neo border border-base-line bg-white px-3 shadow-neo-sm">
+      <label className="flex h-11 max-w-xl items-center gap-2 rounded-neo border border-base-line bg-base-surface px-3 shadow-neo-sm">
         <Search className="h-4 w-4 text-base-ink/45" />
         <input
           value={query}
@@ -91,7 +91,7 @@ export function CategoryAdminClient({ initialCategories }: { initialCategories: 
       ) : null}
 
       {filtered.length > 0 ? (
-        <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm">
+        <div className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
           <div className="divide-y divide-base-line">
             {filtered.map((item) => (
               <div
@@ -130,7 +130,7 @@ export function CategoryAdminClient({ initialCategories }: { initialCategories: 
           </div>
         </div>
       ) : (
-        <div className="rounded-neo border border-dashed border-base-line bg-white py-16 text-center">
+        <div className="rounded-neo border border-dashed border-base-line bg-base-surface py-16 text-center">
           <FolderOpen className="mx-auto h-10 w-10 text-base-ink/20" />
           <p className="mt-3 font-black">Kategori tidak ditemukan</p>
         </div>
@@ -159,19 +159,19 @@ export function CategoryAdminClient({ initialCategories }: { initialCategories: 
             <div className="rounded-neo border border-base-line bg-base-bg p-4">
               <div className="flex items-center justify-between gap-2">
                 <p className="truncate font-extrabold">{confirming.name}</p>
-                <span className="shrink-0 rounded-neo border border-base-line bg-white px-2 py-0.5 font-mono text-[10px] font-bold text-base-muted">
+                <span className="shrink-0 rounded-neo border border-base-line bg-base-surface px-2 py-0.5 font-mono text-[10px] font-bold text-base-muted">
                   #{confirming.id}
                 </span>
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 <span
                   className={`rounded-neo border border-base-line px-1.5 py-0.5 text-[10px] font-bold ${
-                    confirming.active ? "bg-accent-sageSoft text-accent-sageDeep" : "bg-white text-base-muted"
+                    confirming.active ? "bg-accent-sageSoft text-accent-sageDeep" : "bg-base-surface text-base-muted"
                   }`}
                 >
                   {confirming.active ? "Aktif" : "Nonaktif"}
                 </span>
-                <span className="rounded-neo border border-base-line bg-white px-1.5 py-0.5 text-[10px] font-bold text-base-ink/60">
+                <span className="rounded-neo border border-base-line bg-base-surface px-1.5 py-0.5 text-[10px] font-bold text-base-ink/60">
                   {confirming.productCount} produk
                 </span>
               </div>
@@ -179,7 +179,7 @@ export function CategoryAdminClient({ initialCategories }: { initialCategories: 
 
             {/* Peringatan sesuai isi kategori */}
             <div className="flex items-start gap-3 rounded-neo border border-base-line bg-accent-terraSoft p-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-base-surface">
                 <AlertTriangle className="h-5 w-5 text-accent-terraDeep" strokeWidth={2.5} />
               </span>
               <div className="min-w-0">
@@ -206,7 +206,7 @@ export function CategoryAdminClient({ initialCategories }: { initialCategories: 
                 whileTap={{ y: 0 }}
                 onClick={() => void remove()}
                 disabled={deleting}
-                className="inline-flex items-center justify-center gap-2 rounded-neo bg-accent-terraDeep px-4 py-2.5 text-sm font-extrabold text-white shadow-neo-sm transition-colors hover:bg-accent-terra disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 rounded-neo bg-[#A85A2E] px-4 py-2.5 text-sm font-extrabold text-white shadow-neo-sm transition-colors hover:bg-[#C2703D] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {deleting ? <LoaderIcon /> : <Trash2 className="h-4 w-4" strokeWidth={2.5} />}
                 {deleting ? "Memproses..." : "Hapus Kategori"}

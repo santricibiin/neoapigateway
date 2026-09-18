@@ -153,7 +153,7 @@ export function ProductAdminClient({
       {error ? <p className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</p> : null}
 
       <div className="grid gap-2 lg:grid-cols-[1fr_220px_180px]">
-        <label className="flex h-11 items-center gap-2 rounded-neo border border-base-line bg-white px-3 shadow-neo-sm">
+        <label className="flex h-11 items-center gap-2 rounded-neo border border-base-line bg-base-surface px-3 shadow-neo-sm">
           <Search className="h-4 w-4 text-base-ink/45" />
           <input
             value={query}
@@ -165,7 +165,7 @@ export function ProductAdminClient({
         <select
           value={category}
           onChange={(event) => setCategory(event.target.value)}
-          className="rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm"
+          className="rounded-neo border border-base-line bg-base-surface px-3 text-sm font-bold shadow-neo-sm"
         >
           <option value="all">Semua kategori</option>
           {categories.map((item) => (
@@ -177,7 +177,7 @@ export function ProductAdminClient({
         <select
           value={status}
           onChange={(event) => setStatus(event.target.value)}
-          className="rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm"
+          className="rounded-neo border border-base-line bg-base-surface px-3 text-sm font-bold shadow-neo-sm"
         >
           <option value="all">Semua status</option>
           <option value="active">Aktif</option>
@@ -203,7 +203,7 @@ export function ProductAdminClient({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.035 }}
               whileHover={{ y: -3 }}
-              className="relative overflow-hidden rounded-neo border border-base-line bg-white p-5 shadow-neo-sm"
+              className="relative overflow-hidden rounded-neo border border-base-line bg-base-surface p-5 shadow-neo-sm"
             >
               <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 text-accent-lavender/25">
                 <path d="M50 5 95 90H5Z" fill="currentColor" />
@@ -251,7 +251,7 @@ export function ProductAdminClient({
                     whileHover={{ y: -2 }}
                     whileTap={{ y: 1 }}
                     onClick={() => show(item)}
-                    className="inline-flex items-center gap-1.5 rounded-neo border border-base-line bg-white px-3 py-1.5 text-xs font-extrabold shadow-neo-sm transition-colors hover:bg-accent-sky"
+                    className="inline-flex items-center gap-1.5 rounded-neo border border-base-line bg-base-surface px-3 py-1.5 text-xs font-extrabold shadow-neo-sm transition-colors hover:bg-accent-sky/25"
                   >
                     <Pencil className="h-3.5 w-3.5" strokeWidth={2.5} />
                     Edit
@@ -261,7 +261,7 @@ export function ProductAdminClient({
                     whileHover={{ y: -2 }}
                     whileTap={{ y: 1 }}
                     onClick={() => { setError(null); setConfirming(item); }}
-                    className="inline-flex items-center gap-1.5 rounded-neo border border-base-line bg-white px-3 py-1.5 text-xs font-extrabold shadow-neo-sm transition-colors hover:bg-accent-terraSoft hover:text-accent-terraDeep"
+                    className="inline-flex items-center gap-1.5 rounded-neo border border-base-line bg-base-surface px-3 py-1.5 text-xs font-extrabold shadow-neo-sm transition-colors hover:bg-accent-terraSoft hover:text-accent-terraDeep"
                   >
                     <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />
                     Hapus
@@ -274,7 +274,7 @@ export function ProductAdminClient({
       </div>
 
       {!filtered.length ? (
-        <div className="rounded-neo border border-dashed border-base-line bg-white py-16 text-center">
+        <div className="rounded-neo border border-dashed border-base-line bg-base-surface py-16 text-center">
           <Boxes className="mx-auto h-10 w-10 text-base-ink/20" />
           <p className="mt-3 font-black">Produk tidak ditemukan</p>
         </div>
@@ -286,7 +286,7 @@ export function ProductAdminClient({
             <select
               name="categoryId"
               defaultValue={editing?.categoryId || categories[0]?.id}
-              className="mt-1.5 h-11 w-full rounded-neo border border-base-line bg-white px-3 shadow-neo-sm"
+              className="mt-1.5 h-11 w-full rounded-neo border border-base-line bg-base-surface px-3 shadow-neo-sm"
               required
             >
               {categories.map((item) => (
@@ -305,7 +305,7 @@ export function ProductAdminClient({
                   name="sku"
                   value={selectedPackage}
                   onChange={(e) => setSelectedPackage(e.target.value)}
-                  className="mt-0 h-11 w-full rounded-neo border border-base-line bg-white px-3 shadow-neo-sm"
+                  className="mt-0 h-11 w-full rounded-neo border border-base-line bg-base-surface px-3 shadow-neo-sm"
                   required
                 >
                   <option value="" disabled>
@@ -323,7 +323,7 @@ export function ProductAdminClient({
                   defaultValue={editing?.sku || ""}
                   maxLength={50}
                   required
-                  className="h-11 w-full rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm outline-none"
+                  className="h-11 w-full rounded-neo border border-base-line bg-base-surface px-3 text-sm font-bold shadow-neo-sm outline-none"
                 />
               )}
             </div>
@@ -354,7 +354,7 @@ export function ProductAdminClient({
               defaultValue={editing?.description || ""}
               maxLength={4000}
               rows={5}
-              className="mt-1.5 w-full resize-y rounded-neo border border-base-line bg-white px-4 py-3 text-sm font-semibold shadow-neo-sm outline-none"
+              className="mt-1.5 w-full resize-y rounded-neo border border-base-line bg-base-surface px-4 py-3 text-sm font-semibold shadow-neo-sm outline-none"
             />
           </label>
 
@@ -365,7 +365,7 @@ export function ProductAdminClient({
                 name="stockMode"
                 value={stockMode}
                 onChange={(event) => setStockMode(event.target.value)}
-                className="mt-1.5 h-11 w-full rounded-neo border border-base-line bg-white px-3 shadow-neo-sm"
+                className="mt-1.5 h-11 w-full rounded-neo border border-base-line bg-base-surface px-3 shadow-neo-sm"
               >
                 <option value="counted">Stok dihitung</option>
                 <option value="external">External / Provider API</option>
@@ -399,15 +399,15 @@ export function ProductAdminClient({
             <div className="rounded-neo border border-base-line bg-base-bg p-4">
               <div className="flex items-center justify-between gap-2">
                 <p className="truncate font-extrabold">{confirming.name}</p>
-                <span className="shrink-0 rounded-neo border border-base-line bg-white px-2 py-0.5 font-mono text-[10px] font-bold text-base-muted">
+                <span className="shrink-0 rounded-neo border border-base-line bg-base-surface px-2 py-0.5 font-mono text-[10px] font-bold text-base-muted">
                   {confirming.sku}
                 </span>
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                <span className="rounded-neo border border-base-line bg-white px-1.5 py-0.5 text-[10px] font-bold text-base-ink/60">
+                <span className="rounded-neo border border-base-line bg-base-surface px-1.5 py-0.5 text-[10px] font-bold text-base-ink/60">
                   {confirming.categoryName} · {confirming.model}
                 </span>
-                <span className="rounded-neo border border-base-line bg-white px-1.5 py-0.5 text-[10px] font-bold text-base-ink/60">
+                <span className="rounded-neo border border-base-line bg-base-surface px-1.5 py-0.5 text-[10px] font-bold text-base-ink/60">
                   Rp {confirming.price.toLocaleString("id-ID")}
                 </span>
                 <span
@@ -422,7 +422,7 @@ export function ProductAdminClient({
 
             {/* Peringatan sesuai jenis aksi */}
             <div className="flex items-start gap-3 rounded-neo border border-base-line bg-accent-terraSoft p-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-base-surface">
                 <AlertTriangle className="h-5 w-5 text-accent-terraDeep" strokeWidth={2.5} />
               </span>
               <div className="min-w-0">
@@ -449,7 +449,7 @@ export function ProductAdminClient({
                 whileTap={{ y: 0 }}
                 onClick={() => void remove()}
                 disabled={deleting}
-                className="inline-flex items-center justify-center gap-2 rounded-neo bg-accent-terraDeep px-4 py-2.5 text-sm font-extrabold text-white shadow-neo-sm transition-colors hover:bg-accent-terra disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 rounded-neo bg-[#A85A2E] px-4 py-2.5 text-sm font-extrabold text-white shadow-neo-sm transition-colors hover:bg-[#C2703D] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {deleting ? (
                   <LoaderIcon />

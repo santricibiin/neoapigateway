@@ -3,8 +3,63 @@
 @tailwind utilities;
 
 :root {
-  --bg: #f8f9fa;
-  --ink: #0f172a;
+  color-scheme: light;
+  /* Base — warm light (stone/cream) */
+  --c-base-bg: 250 250 248;
+  --c-base-surface: 255 255 255;
+  --c-base-ink: 28 25 23;
+  --c-base-muted: 120 113 108;
+  --c-base-line: 231 229 228;
+  --c-base-line-soft: 240 239 237;
+  /* Accent — terracotta / sage / sand */
+  --c-terra: 194 112 61;
+  --c-terra-soft: 245 231 220;
+  --c-terra-deep: 168 90 46;
+  --c-sage: 124 144 112;
+  --c-sage-soft: 233 239 228;
+  --c-sage-deep: 95 115 84;
+  --c-sand: 217 199 167;
+  --c-sand-soft: 243 235 221;
+  /* Chart tooltip */
+  --tooltip-bg: #ffffff;
+  --tooltip-ink: #1c1917;
+  --tooltip-border: #0f172a;
+  --tooltip-shadow: 4px 4px 0 0 #0f172a;
+  /* Shadows */
+  --shadow-neo: 0 1px 2px rgba(28, 25, 23, 0.05), 0 4px 12px rgba(28, 25, 23, 0.07);
+  --shadow-neo-sm: 0 1px 2px rgba(28, 25, 23, 0.06);
+  --shadow-neo-lg: 0 2px 4px rgba(28, 25, 23, 0.06), 0 8px 24px rgba(28, 25, 23, 0.1);
+  --shadow-neo-xl: 0 4px 8px rgba(28, 25, 23, 0.07), 0 16px 40px rgba(28, 25, 23, 0.12);
+}
+
+.dark {
+  color-scheme: dark;
+  /* Base — warm dark (stone) */
+  --c-base-bg: 25 22 19;
+  --c-base-surface: 36 32 29;
+  --c-base-ink: 234 230 225;
+  --c-base-muted: 163 157 151;
+  --c-base-line: 61 56 51;
+  --c-base-line-soft: 46 41 38;
+  /* Accent — tint gelap utk bg banner, warna terang utk teks di soft */
+  --c-terra: 160 82 45;
+  --c-terra-soft: 59 42 30;
+  --c-terra-deep: 232 167 120;
+  --c-sage: 51 64 44;
+  --c-sage-soft: 35 43 33;
+  --c-sage-deep: 183 203 169;
+  --c-sand: 74 65 50;
+  --c-sand-soft: 55 48 38;
+  /* Chart tooltip */
+  --tooltip-bg: #24201d;
+  --tooltip-ink: #eae6e1;
+  --tooltip-border: #3d3833;
+  --tooltip-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.5);
+  /* Shadows */
+  --shadow-neo: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-neo-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-neo-lg: 0 2px 4px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-neo-xl: 0 4px 8px rgba(0, 0, 0, 0.45), 0 16px 40px rgba(0, 0, 0, 0.55);
 }
 
 * {
@@ -15,8 +70,8 @@ html,
 body {
   padding: 0;
   margin: 0;
-  background-color: var(--bg);
-  color: var(--ink);
+  background-color: rgb(var(--c-base-bg));
+  color: rgb(var(--c-base-ink));
   font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -ms-overflow-style: none;

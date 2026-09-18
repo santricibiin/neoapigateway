@@ -7,7 +7,7 @@
  */
 import { prisma } from "@/lib/prisma";
 
-export const MAX_PENDING_ORDERS = 3;
+export const MAX_PENDING_ORDERS = 2;
 
 async function countPending(extra: {
   invoice?: { in: string[] };

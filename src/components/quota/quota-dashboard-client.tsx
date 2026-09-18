@@ -423,7 +423,7 @@ function formatWib(iso: string | null | undefined) {
           <Button type="button" variant="outline" size="sm" className="px-2.5 py-1.5 text-xs" onClick={logout}><LogOut className="h-3.5 w-3.5" /> {t("Kunci lagi")}</Button>
         </div>
       </div>
-      <div className="mb-6 grid grid-cols-2 gap-2 rounded-neo border border-base-line bg-white p-2 shadow-neo sm:grid-cols-4 md:grid-cols-7">
+      <div className="mb-6 grid grid-cols-2 gap-2 rounded-neo border border-base-line bg-base-surface p-2 shadow-neo sm:grid-cols-4 md:grid-cols-7">
         {tabs.map(([id, label]) => {
           const Icon = tabIcons[id];
           return (
@@ -441,7 +441,7 @@ function formatWib(iso: string | null | undefined) {
           <div className="grid gap-3 sm:grid-cols-3">
             <Stat label={t("Sisa")} value={formatTokens(data.remainingTokens)} color="bg-accent-sky" />
             <Stat label={t("Terpakai")} value={formatTokens(data.usage.total_tokens)} color="bg-accent-sun" />
-            <Stat label={t("Maksimal")} value={formatTokens(data.maxTokens)} color="bg-white" />
+            <Stat label={t("Maksimal")} value={formatTokens(data.maxTokens)} color="bg-base-surface" />
           </div>
           <div className="grid gap-4 xl:grid-cols-3">
             <Card className="xl:col-span-2">
@@ -449,7 +449,7 @@ function formatWib(iso: string | null | undefined) {
               <CardContent>
                 <div className="relative h-5 overflow-hidden rounded-full border border-base-line bg-base-bg">
                   <motion.div initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ duration: 0.9, ease: "easeOut" }} className="relative h-full bg-accent-lavender">
-                    <motion.span animate={{ x: ["-100%", "300%"] }} transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }} className="absolute inset-y-0 w-1/3 skew-x-[-25deg] bg-white/35" />
+                    <motion.span animate={{ x: ["-100%", "300%"] }} transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }} className="absolute inset-y-0 w-1/3 skew-x-[-25deg] bg-base-surface/35" />
                   </motion.div>
                 </div>
                 <p className="mt-2 text-sm font-bold">{percentage}% terpakai · {data.usage.requests.toLocaleString("id-ID")} request</p>
@@ -638,11 +638,11 @@ function ModelsTable({
             onClick={() => setFilter(value)}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-neo border border-base-line px-3 py-1.5 text-[11px] font-black uppercase transition-colors",
-              filter === value ? "bg-base-ink text-white shadow-neo-sm" : "bg-white hover:bg-accent-sky/25"
+              filter === value ? "bg-base-ink text-base-bg shadow-neo-sm" : "bg-base-surface hover:bg-accent-sky/25"
             )}
           >
             {label}
-            <span className={cn("rounded-full px-1.5 py-0.5 text-[9px]", filter === value ? "bg-white/25" : "bg-base-bg")}>{count}</span>
+            <span className={cn("rounded-full px-1.5 py-0.5 text-[9px]", filter === value ? "bg-base-surface/25" : "bg-base-bg")}>{count}</span>
           </button>
         ))}
       </div>
@@ -669,7 +669,7 @@ function ModelsTable({
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.02 }}
-                    className={cn("border-b border-base-ink/15 last:border-b-0", index % 2 ? "bg-base-bg/50" : "bg-white", !model.enabled && "opacity-70")}
+                    className={cn("border-b border-base-ink/15 last:border-b-0", index % 2 ? "bg-base-bg/50" : "bg-base-surface", !model.enabled && "opacity-70")}
                   >
                     <td className="px-3 py-2.5">
                       <span className="break-all font-mono text-[13px] font-extrabold">{model.id}</span>
@@ -686,7 +686,7 @@ function ModelsTable({
                       )}
                     </td>
                     <td className="px-3 py-2.5 text-center">
-                      <span className={cn("inline-block rounded-neo border border-base-line px-2 py-0.5 font-mono text-xs font-black", multiplier > 1 ? "bg-accent-sun" : "bg-white")}>{multiplier}x</span>
+                      <span className={cn("inline-block rounded-neo border border-base-line px-2 py-0.5 font-mono text-xs font-black", multiplier > 1 ? "bg-accent-sun" : "bg-base-surface")}>{multiplier}x</span>
                     </td>
                     <td className="px-3 py-2.5 text-center">
                       <span className={cn("inline-flex h-7 w-7 items-center justify-center rounded-neo border border-base-line text-xs font-black", gradeStyle(model.grade))}>{model.grade || "-"}</span>
@@ -706,7 +706,7 @@ function ModelsTable({
                       <button
                         type="button"
                         onClick={() => void copy(`model:${model.id}`, model.id)}
-                        className="inline-flex items-center gap-1 rounded-neo border border-base-line bg-white px-2 py-1 text-[10px] font-black uppercase shadow-neo-sm transition-colors hover:bg-accent-sky/40"
+                        className="inline-flex items-center gap-1 rounded-neo border border-base-line bg-base-surface px-2 py-1 text-[10px] font-black uppercase shadow-neo-sm transition-colors hover:bg-accent-sky/40"
                       >
                         {copied === `model:${model.id}` ? <Check className="h-3 w-3" strokeWidth={3} /> : <Copy className="h-3 w-3" />}
                         {copied === `model:${model.id}` ? "Ok" : "Copy"}
@@ -735,7 +735,7 @@ function ModelsTable({
               type="button"
               disabled={safePage <= 1}
               onClick={() => setPage(safePage - 1)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-neo border border-base-line bg-white font-black shadow-neo-sm disabled:opacity-35"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-neo border border-base-line bg-base-surface font-black shadow-neo-sm disabled:opacity-35"
             >
               <ChevronLeft className="h-4 w-4" strokeWidth={3} />
             </button>
@@ -749,7 +749,7 @@ function ModelsTable({
                   onClick={() => setPage(item as number)}
                   className={cn(
                     "inline-flex h-8 min-w-8 items-center justify-center rounded-neo border border-base-line px-2 text-xs font-black shadow-neo-sm",
-                    item === safePage ? "bg-accent-sky" : "bg-white hover:bg-accent-sky/30"
+                    item === safePage ? "bg-accent-sky" : "bg-base-surface hover:bg-accent-sky/30"
                   )}
                 >
                   {item}
@@ -760,7 +760,7 @@ function ModelsTable({
               type="button"
               disabled={safePage >= totalPages}
               onClick={() => setPage(safePage + 1)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-neo border border-base-line bg-white font-black shadow-neo-sm disabled:opacity-35"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-neo border border-base-line bg-base-surface font-black shadow-neo-sm disabled:opacity-35"
             >
               <ChevronRight className="h-4 w-4" strokeWidth={3} />
             </button>
@@ -966,7 +966,7 @@ function Playground({
           <path d="M50 5 61 38 95 39 68 58 77 91 50 72 23 91 32 58 5 39 39 38Z" fill="currentColor" />
         </motion.svg>
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+          <span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-base-surface px-3 py-1 text-[10px] font-black uppercase tracking-widest">
             <Terminal className="h-3 w-3" /> API Playground
           </span>
           <h1 className="mt-3 text-2xl font-black sm:text-3xl">Test API langsung.</h1>
@@ -986,7 +986,7 @@ function Playground({
                 <Copy className="h-3.5 w-3.5" />{copied === "playground-curl" ? "Tersalin" : "Copy"}
               </Button>
             </div>
-            <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-neo border border-base-line bg-base-ink p-3 text-xs font-mono font-bold text-emerald-300">{playgroundCurl}</pre>
+            <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-neo border border-base-line bg-[#1C1917] p-3 text-xs font-mono font-bold text-emerald-300">{playgroundCurl}</pre>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -998,7 +998,7 @@ function Playground({
                     value={selectedModel}
                     disabled={loadingModels || !models.length}
                     onChange={(event) => selectModel(event.target.value)}
-                    className="w-full rounded-neo border border-base-line bg-white px-3 py-2 text-sm font-bold focus:outline-none disabled:opacity-50"
+                    className="w-full rounded-neo border border-base-line bg-base-surface px-3 py-2 text-sm font-bold focus:outline-none disabled:opacity-50"
                   >
                     {!models.length ? <option value="">{loadingModels ? "Memuat model..." : "Model tidak tersedia"}</option> : null}
                     {models.map((id) => (
@@ -1033,7 +1033,7 @@ function Playground({
             </div>
 
             <div className="min-w-0 space-y-3 md:sticky md:top-4 md:self-start">
-              <div className="rounded-neo border border-base-line bg-base-ink p-3">
+              <div className="rounded-neo border border-base-line bg-[#1C1917] p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400"><ArrowUpCircle className="h-3.5 w-3.5" /> Request Sent</span>
                   {meta.lastRequest ? <span className="font-mono text-[10px] text-slate-500">{meta.statusCode} · {meta.duration}ms</span> : null}
@@ -1044,7 +1044,7 @@ function Playground({
                   <p className="py-3 text-center text-xs text-slate-500">Belum ada request terkirim.</p>
                 )}
               </div>
-              <div className="rounded-neo border border-base-line bg-base-ink p-3">
+              <div className="rounded-neo border border-base-line bg-[#1C1917] p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
                     <ArrowDownCircle className="h-3.5 w-3.5" /> Response
@@ -1096,14 +1096,14 @@ function Playground({
                     <Copy className="h-3.5 w-3.5" />{copied === "quota-curl" ? "Tersalin" : "Copy"}
                   </Button>
                 </div>
-                <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-neo border border-base-line bg-base-ink p-3 text-xs font-mono font-bold text-emerald-300">{quotaCurl}</pre>
+                <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-neo border border-base-line bg-[#1C1917] p-3 text-xs font-mono font-bold text-emerald-300">{quotaCurl}</pre>
               </div>
               <Button type="button" variant="sun" className="w-full" disabled={quotaLoading} onClick={() => void testQuotaCheck()}>
                 {quotaLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                 {quotaLoading ? "Mengecek..." : "Test Check Quota"}
               </Button>
             </div>
-            <div className="min-w-0 rounded-neo border border-base-line bg-base-ink p-3 md:sticky md:top-4 md:self-start">
+            <div className="min-w-0 rounded-neo border border-base-line bg-[#1C1917] p-3 md:sticky md:top-4 md:self-start">
               <div className="mb-2 flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
                   <ArrowDownCircle className="h-3.5 w-3.5" /> Response
@@ -1153,7 +1153,7 @@ function FaqSection() {
           <circle cx="50" cy="50" r="36" fill="none" stroke="currentColor" strokeWidth="12" />
         </motion.svg>
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+          <span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-base-surface px-3 py-1 text-[10px] font-black uppercase tracking-widest">
             <HelpCircle className="h-3 w-3" /> Bantuan
           </span>
           <h1 className="mt-3 text-2xl font-black sm:text-3xl">Frequently Asked Questions</h1>
@@ -1187,7 +1187,7 @@ function FaqSection() {
           </p>
           <div className="grid gap-2">
             {GRADE_INFO.map((item) => (
-              <div key={item.grade} className="flex gap-3 rounded-neo border border-base-line bg-white p-3">
+              <div key={item.grade} className="flex gap-3 rounded-neo border border-base-line bg-base-surface p-3">
                 <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line text-base font-black", gradeStyle(item.grade))}>
                   {item.grade}
                 </span>
@@ -1243,7 +1243,7 @@ function FaqSection() {
             <span className="font-black text-base-ink"> 800 prompt token</span> dan model menjawab <span className="font-black text-base-ink">1.200 completion token</span>.
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
-            <div className="rounded-neo border border-base-line bg-white p-3">
+            <div className="rounded-neo border border-base-line bg-base-surface p-3">
               <p className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">Model 1x</p>
               <p className="mt-1 font-mono text-xs font-bold text-base-ink">(800 + 1.200) × 1 = 2.000 token</p>
               <p className="mt-1 text-xs font-bold text-base-ink/60">Sisa quota: 1.000.000 − 2.000 = <span className="font-black text-base-ink">998.000</span></p>
@@ -1507,7 +1507,7 @@ function HermesSetup({ copy, copied, data }: { copy: (label: string, value: stri
             whileTap={{ y: 1 }}
             className={cn(
               "rounded-neo border border-base-line px-2 py-2 text-[11px] font-extrabold uppercase",
-              os === id ? "bg-accent-sky" : "bg-white"
+              os === id ? "bg-accent-sky" : "bg-base-surface"
             )}
           >
             {label}
@@ -1523,7 +1523,7 @@ function HermesSetup({ copy, copied, data }: { copy: (label: string, value: stri
       </div>
 
       {shownBlocks.map((block, index) => (
-        <div key={block.id} className="rounded-neo border border-base-line bg-white p-3">
+        <div key={block.id} className="rounded-neo border border-base-line bg-base-surface p-3">
           <p className="text-[10px] font-extrabold uppercase tracking-widest text-base-ink/50">{block.label}</p>
           <code className="mt-2 block whitespace-pre-wrap break-all rounded-neo border border-base-line bg-base-bg p-3 font-mono text-xs font-bold">
             {block.command}
@@ -1649,7 +1649,7 @@ function QuotaShell({ children, wide = false }: { children: React.ReactNode; wid
 }
 
 function Header({ brandName, name, status }: { brandName: string; name: string; status: string }) {
-  return <header className="relative mb-5 overflow-hidden rounded-neo border border-base-line bg-accent-lavender p-5 shadow-neo sm:p-6"><svg viewBox="0 0 200 100" aria-hidden className="pointer-events-none absolute inset-y-0 right-0 h-full w-1/2 text-white/25"><path d="M35 5 75 95 115 5 155 95 195 5" fill="none" stroke="currentColor" strokeWidth="12" strokeLinejoin="round" /></svg><div className="relative"><p className="text-xs font-extrabold uppercase tracking-[0.22em]">{brandName} · Dashboard</p><h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">{name}</h1><span className="mt-3 inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-xs font-extrabold capitalize"><motion.span animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 2, repeat: Infinity }} className={cn("h-2 w-2 rounded-full", status === "active" ? "bg-accent-sage" : "bg-[#C96A4A]")} />{status}</span></div></header>;
+  return <header className="relative mb-5 overflow-hidden rounded-neo border border-base-line bg-accent-lavender p-5 shadow-neo sm:p-6"><svg viewBox="0 0 200 100" aria-hidden className="pointer-events-none absolute inset-y-0 right-0 h-full w-1/2 text-white/25"><path d="M35 5 75 95 115 5 155 95 195 5" fill="none" stroke="currentColor" strokeWidth="12" strokeLinejoin="round" /></svg><div className="relative"><p className="text-xs font-extrabold uppercase tracking-[0.22em]">{brandName} · Dashboard</p><h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">{name}</h1><span className="mt-3 inline-flex items-center gap-2 rounded-full border border-base-line bg-base-surface px-3 py-1 text-xs font-extrabold capitalize"><motion.span animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 2, repeat: Infinity }} className={cn("h-2 w-2 rounded-full", status === "active" ? "bg-accent-sage" : "bg-[#C96A4A]")} />{status}</span></div></header>;
 }
 
 function Stat({ label, value, color }: { label: string; value: string; color: string }) {
@@ -1665,7 +1665,7 @@ function Alert({ children }: { children: React.ReactNode }) {
 }
 
 function Step({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
-  return <div className="flex gap-3 rounded-neo border border-base-line bg-white p-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sky font-extrabold">{number}</span><div className="min-w-0"><p className="font-extrabold">{title}</p><div className="mt-1 text-sm font-semibold text-base-ink/60">{children}</div></div></div>;
+  return <div className="flex gap-3 rounded-neo border border-base-line bg-base-surface p-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-accent-sky font-extrabold">{number}</span><div className="min-w-0"><p className="font-extrabold">{title}</p><div className="mt-1 text-sm font-semibold text-base-ink/60">{children}</div></div></div>;
 }
 
 type PayMethods = { qris: boolean; binancepay: boolean; usdtNetworks: string[] };
@@ -1834,7 +1834,7 @@ function BuyQuotaPopup({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-base-ink/50" />
+      <div className="absolute inset-0 bg-black/50" />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1848,7 +1848,7 @@ function BuyQuotaPopup({
             <path d="M50 20 L60 45 L85 45 L65 60 L72 85 L50 70 L28 85 L35 60 L15 45 L40 45 Z" fill="currentColor" />
           </svg>
           <div className="relative flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm">
+            <span className="flex h-10 w-10 items-center justify-center rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
               <PlusCircle className="h-5 w-5" strokeWidth={2.5} />
             </span>
             <div>
@@ -1860,7 +1860,7 @@ function BuyQuotaPopup({
               </p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="relative flex h-9 w-9 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm">
+          <button type="button" onClick={onClose} className="relative flex h-9 w-9 items-center justify-center rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
             <X className="h-4 w-4" strokeWidth={2.5} />
           </button>
         </div>
@@ -1894,7 +1894,7 @@ function BuyQuotaPopup({
                             ? "cursor-not-allowed border-base-ink/20 bg-base-bg opacity-50"
                             : isSelected
                               ? "border-base-ink bg-accent-sky shadow-neo-sm"
-                              : "border-base-ink bg-white hover:bg-accent-sky/30"
+                              : "border-base-ink bg-base-surface hover:bg-accent-sky/30"
                         )}
                       >
                         <svg viewBox="0 0 100 100" aria-hidden className={cn("pointer-events-none absolute -right-3 -top-3 h-16 w-16", i % 3 === 0 ? "text-accent-sun/20" : i % 3 === 1 ? "text-accent-lavender/20" : "text-accent-sky/20")}>
@@ -1937,17 +1937,17 @@ function BuyQuotaPopup({
                   <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-base-ink/50">{t("Metode Pembayaran")}</p>
                   <div className="flex flex-wrap gap-2">
                     {payMethods.qris && (
-                      <button type="button" onClick={() => setMethod({ kind: "qris" })} className={cn("rounded-neo border-2 px-3 py-1.5 text-xs font-black", method.kind === "qris" ? "border-base-ink bg-accent-sky" : "border-base-line bg-white")}>
+                      <button type="button" onClick={() => setMethod({ kind: "qris" })} className={cn("rounded-neo border-2 px-3 py-1.5 text-xs font-black", method.kind === "qris" ? "border-base-ink bg-accent-sky" : "border-base-line bg-base-surface")}>
                         QRIS
                       </button>
                     )}
                     {payMethods.binancepay && (
-                      <button type="button" onClick={() => setMethod({ kind: "binancepay" })} className={cn("rounded-neo border-2 px-3 py-1.5 text-xs font-black", method.kind === "binancepay" ? "border-base-ink bg-accent-sun" : "border-base-line bg-white")}>
+                      <button type="button" onClick={() => setMethod({ kind: "binancepay" })} className={cn("rounded-neo border-2 px-3 py-1.5 text-xs font-black", method.kind === "binancepay" ? "border-base-ink bg-accent-sun" : "border-base-line bg-base-surface")}>
                         Binance Pay
                       </button>
                     )}
                     {payMethods.usdtNetworks.map((net) => (
-                      <button key={net} type="button" onClick={() => setMethod({ kind: "usdt", network: net })} className={cn("rounded-neo border-2 px-3 py-1.5 text-xs font-black", method.kind === "usdt" && method.network === net ? "border-base-ink bg-accent-mint" : "border-base-line bg-white")}>
+                      <button key={net} type="button" onClick={() => setMethod({ kind: "usdt", network: net })} className={cn("rounded-neo border-2 px-3 py-1.5 text-xs font-black", method.kind === "usdt" && method.network === net ? "border-base-ink bg-accent-mint" : "border-base-line bg-base-surface")}>
                         USDT {net}
                       </button>
                     ))}
@@ -1965,7 +1965,7 @@ function BuyQuotaPopup({
                 <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/60">No. Invoice</div>
                 <div className="mt-0.5 break-all font-mono text-sm font-extrabold">{invoice}</div>
               </div>
-              <div className="rounded-neo border border-base-line bg-white p-3 shadow-neo-sm">
+              <div className="rounded-neo border border-base-line bg-base-surface p-3 shadow-neo-sm">
                 {qrUrl ? (
                   <img src={qrUrl} alt={currency === "usdt" ? "Address" : "QRIS"} className="h-48 w-48" />
                 ) : qrFailed ? (
@@ -1984,7 +1984,7 @@ function BuyQuotaPopup({
                   <div className="text-[10px] font-black uppercase tracking-wider text-base-ink/50">
                     {payInfo.method === "binancepay" ? "UID Binance Pay (Transfer USDT ke UID)" : `Alamat USDT ${payInfo.method?.toUpperCase?.() ?? ""}`}
                   </div>
-                  <button type="button" onClick={() => void navigator.clipboard.writeText(payInfo.content).catch(() => {})} className="mt-1 w-full break-all rounded-neo border border-base-line bg-white p-2 font-mono text-xs font-extrabold">
+                  <button type="button" onClick={() => void navigator.clipboard.writeText(payInfo.content).catch(() => {})} className="mt-1 w-full break-all rounded-neo border border-base-line bg-base-surface p-2 font-mono text-xs font-extrabold">
                     {payInfo.content}
                   </button>
                   <p className="mt-1 text-[10px] font-bold text-base-ink/45">{t("Klik untuk copy")} · {t("Kirim tepat sesuai nominal di bawah")}</p>

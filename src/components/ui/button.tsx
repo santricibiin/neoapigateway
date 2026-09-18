@@ -11,12 +11,12 @@ interface ButtonProps extends HTMLMotionProps<"button"> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-base-ink text-white hover:bg-stone-700",
-  sky: "bg-accent-sage text-white hover:bg-accent-sageDeep",
+  primary: "bg-base-ink text-base-bg hover:opacity-90",
+  sky: "bg-accent-sage text-white hover:opacity-90",
   sun: "bg-accent-sandSoft text-base-ink hover:bg-accent-sand",
   mint: "bg-accent-sageSoft text-accent-sageDeep hover:bg-accent-sage/30",
   lavender: "bg-accent-terraSoft text-accent-terraDeep hover:bg-accent-terra/25",
-  outline: "bg-base-surface text-base-ink border-stone-300 hover:border-stone-400",
+  outline: "bg-base-surface text-base-ink border-base-line hover:border-base-muted",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

@@ -190,32 +190,32 @@ export function ResellerClient({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-52 w-full sm:h-60">
+            <div className="h-52 w-full text-base-ink sm:h-60">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 12, right: 16, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke="#0F172A" strokeDasharray="5 5" opacity={0.15} />
-                  <XAxis dataKey="name" tick={{ fill: "#0F172A", fontSize: 12, fontWeight: 700 }} />
+                  <CartesianGrid stroke="currentColor" strokeDasharray="5 5" opacity={0.15} />
+                  <XAxis dataKey="name" tick={{ fill: "currentColor", fontSize: 12, fontWeight: 700 }} />
                   <YAxis
                     width={52}
-                    tick={{ fill: "#0F172A", fontSize: 11 }}
+                    tick={{ fill: "currentColor", fontSize: 11 }}
                     tickFormatter={formatCompact}
                   />
                   <Tooltip
                     formatter={(value) => [formatNumber(Number(value)), "Token"]}
                     contentStyle={{
-                      border: "2px solid #0F172A",
+                      border: "2px solid var(--tooltip-border)", background: "var(--tooltip-bg)", color: "var(--tooltip-ink)",
                       borderRadius: "8px",
-                      boxShadow: "4px 4px 0 #0F172A",
+                      boxShadow: "var(--tooltip-shadow)",
                       fontWeight: 700,
                     }}
                   />
                   <Line
                     type="monotone"
                     dataKey="tokens"
-                    stroke="#0F172A"
+                    stroke="currentColor"
                     strokeWidth={3}
-                    dot={{ r: 5, fill: "#7DD3FC", stroke: "#0F172A", strokeWidth: 2 }}
-                    activeDot={{ r: 7, fill: "#FDE047", stroke: "#0F172A", strokeWidth: 2 }}
+                    dot={{ r: 5, fill: "#7DD3FC", stroke: "currentColor", strokeWidth: 2 }}
+                    activeDot={{ r: 7, fill: "#FDE047", stroke: "currentColor", strokeWidth: 2 }}
                     animationBegin={200}
                     animationDuration={1300}
                     animationEasing="ease-out"

@@ -73,7 +73,7 @@ export function MemberNewsPopup({ token }: { token?: string }) {
         >
           <Megaphone className="h-4 w-4 sm:h-5 sm:w-5" />
           <span className="hidden sm:inline">Berita</span>
-          <span className="flex h-5 min-w-5 items-center justify-center rounded-full border border-base-ink bg-white px-1 text-[10px]">{data.total}</span>
+          <span className="flex h-5 min-w-5 items-center justify-center rounded-full border border-base-ink bg-base-surface px-1 text-[10px]">{data.total}</span>
         </motion.button>
       ) : null}
 
@@ -86,7 +86,7 @@ export function MemberNewsPopup({ token }: { token?: string }) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="member-news-title"
-            className="fixed inset-0 z-[70] flex items-end justify-center bg-base-ink/60 p-0 backdrop-blur-sm sm:items-center sm:p-4 lg:p-6"
+            className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4 lg:p-6"
           >
             <button type="button" aria-label="Tutup berita" onClick={() => setOpen(false)} className="absolute inset-0 cursor-default" />
 
@@ -112,7 +112,7 @@ export function MemberNewsPopup({ token }: { token?: string }) {
                       <h2 id="member-news-title" className="text-xl font-black tracking-tight sm:text-2xl">Berita Member</h2>
                     </div>
                   </div>
-                  <button type="button" onClick={() => setOpen(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm transition-transform active:translate-y-0.5 sm:h-10 sm:w-10" aria-label="Tutup">
+                  <button type="button" onClick={() => setOpen(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-neo border border-base-line bg-base-surface shadow-neo-sm transition-transform active:translate-y-0.5 sm:h-10 sm:w-10" aria-label="Tutup">
                     <X className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
                 </div>
@@ -137,7 +137,7 @@ export function MemberNewsPopup({ token }: { token?: string }) {
                         initial={{ opacity: 0, x: -14 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.055 }}
-                        className="relative overflow-hidden rounded-neo border border-base-line bg-white p-3.5 shadow-neo-sm sm:p-5"
+                        className="relative overflow-hidden rounded-neo border border-base-line bg-base-surface p-3.5 shadow-neo-sm sm:p-5"
                       >
                         <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -bottom-10 -right-8 h-24 w-24 text-accent-sky/15 sm:h-28 sm:w-28">
                           <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="13" />
@@ -160,7 +160,7 @@ export function MemberNewsPopup({ token }: { token?: string }) {
 
               {/* Footer pagination */}
               {data && data.totalPages > 1 ? (
-                <footer className="grid shrink-0 grid-cols-[auto_1fr_auto] items-center gap-2 border-t border-base-line bg-white p-2.5 sm:grid-cols-[1fr_auto_1fr] sm:gap-3 sm:p-4">
+                <footer className="grid shrink-0 grid-cols-[auto_1fr_auto] items-center gap-2 border-t border-base-line bg-base-surface p-2.5 sm:grid-cols-[1fr_auto_1fr] sm:gap-3 sm:p-4">
                   <Button type="button" variant="outline" size="sm" disabled={loading || page <= 1} onClick={() => void move(page - 1)} className="justify-self-start px-2.5 sm:px-4">
                     <ChevronLeft className="h-4 w-4" />
                     <span className="hidden sm:inline">Sebelum</span>
@@ -187,7 +187,7 @@ export function MemberNewsPopup({ token }: { token?: string }) {
               ) : null}
 
               {data && data.totalPages <= 1 ? (
-                <footer className="flex shrink-0 items-center justify-center gap-2 border-t border-base-line bg-white p-2.5 text-xs font-bold text-base-ink/50 sm:p-3">
+                <footer className="flex shrink-0 items-center justify-center gap-2 border-t border-base-line bg-base-surface p-2.5 text-xs font-bold text-base-ink/50 sm:p-3">
                   <Newspaper className="h-4 w-4" /> Semua berita sudah ditampilkan
                 </footer>
               ) : null}

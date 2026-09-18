@@ -143,7 +143,7 @@ export function CustomerKeysClient({
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-            <label className="flex h-11 items-center gap-2 rounded-neo border border-base-line bg-base-surface px-3 shadow-neo-sm focus-within:bg-white">
+            <label className="flex h-11 items-center gap-2 rounded-neo border border-base-line bg-base-surface px-3 shadow-neo-sm focus-within:bg-base-surface">
               <Search className="h-4 w-4 shrink-0 text-base-ink/50" strokeWidth={2.5} />
               <input
                 value={query}
@@ -174,7 +174,7 @@ export function CustomerKeysClient({
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[850px] text-left">
-                  <thead className="border-b border-base-line bg-base-ink text-xs uppercase tracking-wide text-white">
+                  <thead className="border-b border-base-line bg-base-ink text-base-bg text-xs uppercase tracking-wide">
                     <tr>
                       <th className="px-4 py-3">Customer</th>
                       <th className="px-4 py-3">Status</th>
@@ -373,7 +373,7 @@ function CreateKeyModal({
             <p className="mb-1 text-[10px] font-black uppercase text-base-ink/45">Dashboard Member</p>
             <p className="break-all font-mono text-xs font-bold">{result.dashboardUrl}</p>
           </div>
-          <div className="rounded-neo border border-base-line bg-base-ink p-3">
+          <div className="rounded-neo border border-base-line bg-[#1C1917] p-3">
             <div className="mb-2 flex items-center justify-between">
               <p className="text-[10px] font-black uppercase text-white/45">Detail Lengkap (siap kirim)</p>
               <Button type="button" size="sm" variant="sun" onClick={() => void copy("delivery", result.deliveryText)}>
@@ -381,7 +381,7 @@ function CreateKeyModal({
                 {copied === "delivery" ? "Tersalin" : "Salin"}
               </Button>
             </div>
-            <pre className="whitespace-pre-wrap break-all font-mono text-xs leading-relaxed text-accent-mint">{result.deliveryText}</pre>
+            <pre className="whitespace-pre-wrap break-all font-mono text-xs leading-relaxed text-[#A8C69A]">{result.deliveryText}</pre>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <a href={result.dashboardUrl} target="_blank" rel="noreferrer" className="flex-1">
@@ -488,12 +488,12 @@ function AddQuotaModal({ target, onClose, onSuccess, refreshing }: { target: Res
         <div className="space-y-4">
           <div className="relative overflow-hidden rounded-neo border border-base-line bg-accent-sky p-4 shadow-neo-sm">
             <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 text-white/35"><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" /></svg>
-            <div className="relative flex items-center gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border border-base-line bg-white"><UserRound className="h-5 w-5" /></span><div className="min-w-0"><p className="truncate text-lg font-black">{target.name || "Tanpa nama"}</p><p className="font-mono text-xs font-bold">Customer ID #{target.id}</p></div></div>
+            <div className="relative flex items-center gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-neo border border-base-line bg-base-surface"><UserRound className="h-5 w-5" /></span><div className="min-w-0"><p className="truncate text-lg font-black">{target.name || "Tanpa nama"}</p><p className="font-mono text-xs font-bold">Customer ID #{target.id}</p></div></div>
           </div>
           <p className="rounded-neo border border-base-line bg-accent-sunSoft p-3 text-xs font-bold">Kuota yang ditambahkan akan memotong saldo quota reseller. Pastikan ID dan nama customer benar.</p>
           <div className="grid grid-cols-2 gap-2">
-            <button type="button" onClick={() => setMode("package")} className={cn("rounded-neo border border-base-line px-3 py-2 text-sm font-extrabold", mode === "package" ? "bg-accent-lavender shadow-neo-sm" : "bg-white")}>Paket</button>
-            <button type="button" onClick={() => setMode("custom")} className={cn("rounded-neo border border-base-line px-3 py-2 text-sm font-extrabold", mode === "custom" ? "bg-accent-lavender shadow-neo-sm" : "bg-white")}>Custom</button>
+            <button type="button" onClick={() => setMode("package")} className={cn("rounded-neo border border-base-line px-3 py-2 text-sm font-extrabold", mode === "package" ? "bg-accent-lavender shadow-neo-sm" : "bg-base-surface")}>Paket</button>
+            <button type="button" onClick={() => setMode("custom")} className={cn("rounded-neo border border-base-line px-3 py-2 text-sm font-extrabold", mode === "custom" ? "bg-accent-lavender shadow-neo-sm" : "bg-base-surface")}>Custom</button>
           </div>
           {mode === "package" ? (
             <div className="grid grid-cols-3 gap-2">

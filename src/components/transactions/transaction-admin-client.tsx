@@ -190,7 +190,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
       </div>
 
       <div className="grid gap-2 lg:grid-cols-[1fr_220px_200px]">
-        <label className="flex h-11 items-center gap-2 rounded-neo border border-base-line bg-white px-3 shadow-neo-sm">
+        <label className="flex h-11 items-center gap-2 rounded-neo border border-base-line bg-base-surface px-3 shadow-neo-sm">
           <Search className="h-4 w-4 text-base-ink/45" />
           <input
             value={query}
@@ -205,7 +205,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
         <select
           value={status}
           onChange={(event) => filter(event.target.value)}
-          className="rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm"
+          className="rounded-neo border border-base-line bg-base-surface px-3 text-sm font-bold shadow-neo-sm"
         >
           {statuses.map((item) => (
             <option key={item} value={item}>
@@ -216,7 +216,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
         <select
           value={range}
           onChange={(event) => filterRange(event.target.value)}
-          className="rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm"
+          className="rounded-neo border border-base-line bg-base-surface px-3 text-sm font-bold shadow-neo-sm"
         >
           <option value="all">Semua tanggal</option>
           <option value="today">Hari ini</option>
@@ -239,7 +239,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
                 setFromDate(event.target.value);
                 setPage(1);
               }}
-              className="h-10 rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm outline-none"
+              className="h-10 rounded-neo border border-base-line bg-base-surface px-3 text-sm font-bold shadow-neo-sm outline-none"
             />
           </label>
           <span className="pb-3 text-sm font-bold text-base-ink/40">—</span>
@@ -253,7 +253,7 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
                 setToDate(event.target.value);
                 setPage(1);
               }}
-              className="h-10 rounded-neo border border-base-line bg-white px-3 text-sm font-bold shadow-neo-sm outline-none"
+              className="h-10 rounded-neo border border-base-line bg-base-surface px-3 text-sm font-bold shadow-neo-sm outline-none"
             />
           </label>
           {(fromDate || toDate) ? (
@@ -274,10 +274,10 @@ export function TransactionAdminClient({ initialTransactions }: { initialTransac
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo">
+      <div className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left">
-            <thead className="bg-base-ink text-xs uppercase tracking-wide text-white">
+            <thead className="bg-base-ink text-base-bg text-xs uppercase tracking-wide">
               <tr>
                 <th className="px-4 py-3">Invoice</th>
                 <th className="px-4 py-3">Pembeli</th>

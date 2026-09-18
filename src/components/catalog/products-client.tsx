@@ -201,7 +201,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
                   onClick={() => setMode(tab.id)}
                   aria-pressed={mode === tab.id}
                   className={`flex items-center gap-1.5 rounded-[0.35rem] px-3 py-1.5 text-xs font-black uppercase transition-colors ${
-                    mode === tab.id ? "bg-base-ink text-white" : "text-base-ink/60 hover:text-base-ink"
+                    mode === tab.id ? "bg-base-ink text-base-bg" : "text-base-ink/60 hover:text-base-ink"
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -256,7 +256,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
                             {product.model}
                           </span>
                           {product.badge && (
-                            <span className="mt-2 inline-flex -rotate-1 items-center gap-1.5 rounded-neo bg-gradient-to-r from-accent-terra to-accent-terraDeep px-3 py-1 text-xs font-black uppercase tracking-wider text-white shadow-neo transition-transform duration-150 group-hover:rotate-1 group-hover:scale-105">
+                            <span className="mt-2 inline-flex -rotate-1 items-center gap-1.5 rounded-neo bg-gradient-to-r from-[#C2703D] to-[#A85A2E] px-3 py-1 text-xs font-black uppercase tracking-wider text-white shadow-neo transition-transform duration-150 group-hover:rotate-1 group-hover:scale-105">
                               <Zap className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
                               {product.badge}
                             </span>
@@ -288,7 +288,7 @@ export function ProductsClient({ products }: { products: Product[] }) {
                           {product.strikePrice !== null && (
                             <div className="flex flex-wrap items-center gap-1.5">
                               <span className="text-sm font-bold text-base-ink/40 line-through">{formatRupiah(product.strikePrice)}</span>
-                              <span className="rounded-full bg-accent-terraDeep px-2 py-0.5 text-[10px] font-black text-white">
+                              <span className="rounded-full bg-[#A85A2E] px-2 py-0.5 text-[10px] font-black text-white">
                                 HEMAT {Math.round(((product.strikePrice - product.price) / product.strikePrice) * 100)}%
                               </span>
                             </div>
@@ -318,80 +318,91 @@ export function ProductsClient({ products }: { products: Product[] }) {
             ) : (
               <div
                 key={`table-${category}`}
-                className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm"
+                className="overflow-x-auto rounded-neo border border-base-line bg-base-surface shadow-neo-sm"
               >
-                <div className="divide-y divide-base-line">
-                  {grouped[category].map((product) => {
-                    const { available, labelId, count } = getAvailability(product, resellerQuota);
-                    return (
-                      <div
-                        key={product.id}
-                        className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 px-4 py-3.5 transition-colors hover:bg-base-bg/60 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-center md:gap-4"
-                      >
-                        {/* Kiri: produk + model */}
-                        <div className="min-w-0 md:pr-4">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <p className="truncate font-extrabold" title={product.name}>
+                <table className="w-full min-w-[760px] border-collapse text-left">
+                  <thead>
+                    <tr className="border-b-2 border-base-line bg-base-lineSoft text-[10px] font-black uppercase tracking-[0.15em] text-base-ink/55">
+                      <th className="w-[32%] px-4 py-3">{t("Produk")}</th>
+                      <th className="w-[18%] px-4 py-3">{t("Label")}</th>
+                      <th className="w-[14%] px-4 py-3">{t("Stok")}</th>
+                      <th className="w-[22%] px-4 py-3 text-right">{t("Harga")}</th>
+                      <th className="w-[14%] px-4 py-3 text-right">{t("Aksi")}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-base-line">
+                    {grouped[category].map((product) => {
+                      const { available, labelId, count } = getAvailability(product, resellerQuota);
+                      return (
+                        <tr key={product.id} className="group transition-colors hover:bg-base-bg/60">
+                          {/* Produk + model */}
+                          <td className="px-4 py-3.5 align-middle">
+                            <p className="truncate text-sm font-extrabold md:text-base" title={product.name}>
                               {product.name}
                             </p>
-                            {product.badge && (
-                              <span className="inline-flex shrink-0 items-center gap-1 rounded-neo bg-gradient-to-r from-accent-terra to-accent-terraDeep px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider text-white shadow-neo-sm">
-                                <Zap className="h-3 w-3 fill-current" strokeWidth={0} />
-                                {product.badge}
+                            <p className="mt-0.5 truncate font-mono text-xs font-bold text-base-ink/50">{product.model}</p>
+                          </td>
+
+                          {/* Label — sejajar satu baris */}
+                          <td className="px-4 py-3.5 align-middle">
+                            {product.badge ? (
+                              <span className="inline-flex max-w-full items-center gap-1 whitespace-nowrap rounded-neo bg-gradient-to-r from-[#C2703D] to-[#A85A2E] px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-white shadow-neo-sm">
+                                <Zap className="h-3 w-3 shrink-0 fill-current" strokeWidth={0} />
+                                <span className="truncate">{product.badge}</span>
                               </span>
+                            ) : (
+                              <span className="text-xs font-bold text-base-ink/30">—</span>
                             )}
-                          </div>
-                          <p className="truncate font-mono text-xs font-bold text-base-ink/50">{product.model}</p>
-                        </div>
+                          </td>
 
-                        {/* Stok — HP: kanan atas; tablet/PC: kolom sendiri */}
-                        <div className="col-start-2 row-start-1 justify-self-end md:col-start-2 md:row-start-1">
-                          <span
-                            className={`inline-flex items-center gap-1.5 rounded-full border border-base-line px-2 py-0.5 text-[10px] font-black uppercase ${
-                              available ? "bg-accent-mint" : "bg-accent-terraSoft"
-                            }`}
-                          >
-                            <span className={`h-1.5 w-1.5 rounded-full ${available ? "bg-accent-sageDeep" : "bg-[#B4522E]"}`} />
-                            {count !== undefined ? `${count} ${t(labelId)}` : t(labelId)}
-                          </span>
-                        </div>
+                          {/* Stok */}
+                          <td className="px-4 py-3.5 align-middle">
+                            <span
+                              className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-base-line px-2.5 py-1 text-[10px] font-black uppercase ${
+                                available ? "bg-accent-mint" : "bg-accent-terraSoft"
+                              }`}
+                            >
+                              <span className={`h-1.5 w-1.5 rounded-full ${available ? "bg-accent-sageDeep" : "bg-[#B4522E]"}`} />
+                              {count !== undefined ? `${count} ${t(labelId)}` : t(labelId)}
+                            </span>
+                          </td>
 
-                        {/* Harga — HP: baris kedua; tablet/PC: kolom kanan */}
-                        <div className="col-start-1 row-start-2 items-baseline gap-1.5 md:col-start-3 md:row-start-1 md:justify-self-end">
-                          <span className="text-[10px] font-black uppercase text-base-ink/40 md:hidden">{t("Harga")}</span>
-                          {product.strikePrice !== null && (
-                            <p className="flex items-center gap-1.5">
-                              <span className="text-xs font-bold text-base-ink/40 line-through">{formatRupiah(product.strikePrice)}</span>
-                              <span className="rounded-full bg-accent-terraDeep px-1.5 py-0.5 text-[9px] font-black text-white">
-                                -{Math.round(((product.strikePrice - product.price) / product.strikePrice) * 100)}%
-                              </span>
-                            </p>
-                          )}
-                          <p className="text-sm font-extrabold md:text-base">{formatRupiah(product.price)}</p>
-                          {usdtOf(product.price) && (
-                            <p className="font-mono text-[10px] font-bold text-base-ink/45">≈ {usdtOf(product.price)} USDT</p>
-                          )}
-                        </div>
+                          {/* Harga */}
+                          <td className="whitespace-nowrap px-4 py-3.5 text-right align-middle">
+                            {product.strikePrice !== null && (
+                              <p className="mb-0.5 flex items-center justify-end gap-1.5">
+                                <span className="text-xs font-bold text-base-ink/40 line-through">{formatRupiah(product.strikePrice)}</span>
+                                <span className="rounded-full bg-[#A85A2E] px-1.5 py-0.5 text-[9px] font-black text-white">
+                                  -{Math.round(((product.strikePrice - product.price) / product.strikePrice) * 100)}%
+                                </span>
+                              </p>
+                            )}
+                            <p className="text-base font-black leading-tight md:text-lg">{formatRupiah(product.price)}</p>
+                            {usdtOf(product.price) && (
+                              <p className="mt-0.5 font-mono text-xs font-extrabold text-base-ink/55">≈ {usdtOf(product.price)} USDT</p>
+                            )}
+                          </td>
 
-                        {/* Aksi — HP: baris kedua kanan; tablet/PC: kolom terakhir */}
-                        <div className="col-start-2 row-start-2 justify-self-end md:col-start-4 md:row-start-1">
-                          {available ? (
-                            <Link href={`/order/${product.id}`}>
-                              <Button variant="primary" size="sm">
-                                <ShoppingCart className="h-3.5 w-3.5" />
-                                {t("Pesan")}
+                          {/* Aksi */}
+                          <td className="px-4 py-3.5 text-right align-middle">
+                            {available ? (
+                              <Link href={`/order/${product.id}`}>
+                                <Button variant="primary" size="sm" className="active:translate-y-0">
+                                  <ShoppingCart className="h-3.5 w-3.5" />
+                                  {t("Pesan")}
+                                </Button>
+                              </Link>
+                            ) : (
+                              <Button variant="outline" size="sm" disabled className="cursor-not-allowed opacity-50">
+                                {t("Habis")}
                               </Button>
-                            </Link>
-                          ) : (
-                            <Button variant="outline" size="sm" disabled className="cursor-not-allowed opacity-50">
-                              {t("Habis")}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

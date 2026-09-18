@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Home, Package, Globe, Menu, X, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { useBrand } from "@/lib/use-brand";
 import { useLang, useT, type Lang } from "@/lib/lang";
 
@@ -28,7 +29,7 @@ function LangToggle() {
           type="button"
           onClick={() => setLang(opt.value)}
           className={`flex items-center gap-1 rounded-[0.35rem] px-2 py-1 text-[11px] font-black uppercase transition-colors ${
-            lang === opt.value ? "bg-base-ink text-white" : "text-base-ink/60 hover:text-base-ink"
+            lang === opt.value ? "bg-base-ink text-base-bg" : "text-base-ink/60 hover:text-base-ink"
           }`}
           aria-pressed={lang === opt.value}
         >
@@ -56,7 +57,7 @@ export function Navbar() {
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="sticky top-0 z-40 border-b border-base-line bg-base-bg/90 backdrop-blur"
     >
-      <nav className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+      <nav className="relative mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="flex items-center gap-2.5">
           {logoUrl ? (
             <img src={logoUrl} alt={siteName} className="h-8 max-w-[140px] object-contain" />
@@ -68,14 +69,14 @@ export function Navbar() {
           {!logoUrl ? <span className="hidden text-sm font-extrabold tracking-tight sm:block">{siteName}</span> : null}
         </Link>
 
-        <ul className="hidden items-center gap-1 sm:flex">
+        <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 sm:flex">
           {navLinks.map((link) => {
             const Icon = link.icon;
             return (
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="flex items-center gap-1.5 rounded-neo px-3 py-1.5 text-sm font-bold text-base-ink/80 transition-all hover:bg-white hover:text-base-ink hover:shadow-neo-sm"
+                  className="flex items-center gap-1.5 rounded-neo px-3 py-1.5 text-sm font-bold text-base-ink/80 transition-all hover:bg-base-surface hover:text-base-ink hover:shadow-neo-sm"
                 >
                   <Icon className="h-4 w-4" strokeWidth={2.5} />
                   {t(link.labelId)}
@@ -87,6 +88,7 @@ export function Navbar() {
 
         <div className="flex items-center gap-2">
           <LangToggle />
+          <ThemeToggle />
           <Link href="/products" className="hidden sm:block">
             <Button variant="sky" size="sm">{t("Order Token")}</Button>
           </Link>
@@ -117,7 +119,7 @@ export function Navbar() {
                     <Link
                       href={link.href}
                       onClick={() => setOpen(false)}
-                      className="flex items-center gap-2 rounded-neo px-3 py-2 text-sm font-bold text-base-ink/80 hover:bg-white"
+                      className="flex items-center gap-2 rounded-neo px-3 py-2 text-sm font-bold text-base-ink/80 hover:bg-base-surface"
                     >
                       <Icon className="h-4 w-4" strokeWidth={2.5} />
                       {t(link.labelId)}

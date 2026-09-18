@@ -43,11 +43,16 @@ export default async function RootLayout({
 }) {
   const { siteName, logoUrl } = await getBranding();
   return (
-    <html lang="id" className={`${jakarta.variable} ${jetbrains.variable}`}>
+    <html lang="id" className={`${jakarta.variable} ${jetbrains.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-base-bg text-base-ink antialiased font-sans">
         <script
           dangerouslySetInnerHTML={{
             __html: `window.__BRAND__=${JSON.stringify({ siteName, logoUrl })};`,
+          }}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;var c=document.documentElement.classList;d?c.add("dark"):c.remove("dark")}catch(e){}`,
           }}
         />
         {children}

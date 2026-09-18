@@ -72,7 +72,7 @@ export function DashboardSidebar({ collapsed }: { collapsed: boolean }) {
     >
       {/* Brand mini di atas sidebar */}
       <div className={cn("flex items-center border-b border-base-line px-4 pb-3 pt-4", collapsed ? "justify-center" : "gap-2.5")}>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-neo bg-gradient-to-br from-accent-terra to-accent-terraDeep shadow-neo-sm">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-neo bg-gradient-to-br from-[#C2703D] to-[#A85A2E] shadow-neo-sm">
           <Zap className="h-4 w-4 text-white" strokeWidth={2.5} />
         </span>
         <AnimatePresence>

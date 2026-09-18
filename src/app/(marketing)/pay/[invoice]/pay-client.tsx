@@ -192,7 +192,7 @@ export function PayClient({ order: initialOrder }: { order: PayOrder }) {
                     </div>
                     <button
                       onClick={() => copyValue("addr", order.qrisPayload)}
-                      className="mt-1 w-full break-all rounded-neo border border-base-line bg-white p-2.5 text-left font-mono text-xs font-extrabold shadow-neo-sm"
+                      className="mt-1 w-full break-all rounded-neo border border-base-line bg-base-surface p-2.5 text-left font-mono text-xs font-extrabold shadow-neo-sm"
                     >
                       {order.qrisPayload}
                     </button>
@@ -249,7 +249,7 @@ export function PayClient({ order: initialOrder }: { order: PayOrder }) {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.15 }}
-                    className="relative mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full border border-base-line bg-white shadow-neo-sm"
+                    className="relative mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full border border-base-line bg-base-surface shadow-neo-sm"
                   >
                     <CheckCircle2 className="h-10 w-10 text-accent-sageDeep" strokeWidth={2.5} />
                   </motion.div>
@@ -257,7 +257,7 @@ export function PayClient({ order: initialOrder }: { order: PayOrder }) {
                   <p className="relative mt-1 text-sm font-bold text-base-ink/60">
                     {t("Pembayaran terdeteksi otomatis — detail produk langsung tampil di halaman ini.")}
                   </p>
-                  <div className="relative mt-4 inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-4 py-1.5 text-xs font-black uppercase tracking-wider">
+                  <div className="relative mt-4 inline-flex items-center gap-2 rounded-full border border-base-line bg-base-surface px-4 py-1.5 text-xs font-black uppercase tracking-wider">
                     <CheckCircle2 className="h-3.5 w-3.5 text-accent-sageDeep" strokeWidth={2.5} />
                     {t("Lunas")} · {order.paidAt ? new Date(order.paidAt).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }) : ""}
                   </div>
@@ -273,13 +273,13 @@ export function PayClient({ order: initialOrder }: { order: PayOrder }) {
                       </span>
                       <button
                         onClick={() => copyValue("delivered", order.delivered || "")}
-                        className="inline-flex items-center gap-1.5 rounded-neo border border-base-line bg-base-surface px-2.5 py-1 text-xs font-bold shadow-neo-sm transition-colors hover:bg-accent-sky"
+                        className="inline-flex items-center gap-1.5 rounded-neo border border-base-line bg-base-surface px-2.5 py-1 text-xs font-bold shadow-neo-sm transition-colors hover:bg-accent-sky/25"
                       >
                         <Copy className="h-3 w-3" />
                         {copied === "delivered" ? t("Tersalin") : t("Salin")}
                       </button>
                     </div>
-                    <pre className="whitespace-pre-wrap break-all rounded-neo border border-base-line bg-base-ink p-4 font-mono text-xs leading-relaxed text-accent-mint shadow-neo-sm">{order.delivered}</pre>
+                    <pre className="whitespace-pre-wrap break-all rounded-neo border border-base-line bg-[#1C1917] p-4 font-mono text-xs leading-relaxed text-[#A8C69A] shadow-neo-sm">{order.delivered}</pre>
                     <div className="mt-3 rounded-neo border border-base-line/10 bg-base-bg p-3">
                       <p className="text-xs font-bold text-base-ink/60">
                         {t("Simpan data di atas — ini kunci akses produk Anda.")}

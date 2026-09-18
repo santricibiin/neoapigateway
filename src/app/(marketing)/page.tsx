@@ -201,7 +201,7 @@ export default function HomePage() {
           <motion.div
             animate={{ y: [0, -6, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="overflow-hidden rounded-neo border border-base-line bg-base-ink shadow-neo"
+            className="overflow-hidden rounded-neo border border-base-line bg-[#1C1917] shadow-neo"
           >
             <div className="flex items-center gap-1.5 border-b border-white/10 px-4 py-2.5">
               <span className="h-2.5 w-2.5 rounded-full bg-[#C96A4A]" />
@@ -211,12 +211,12 @@ export default function HomePage() {
             </div>
             <div className="space-y-1.5 p-4 font-mono text-[11px] leading-relaxed sm:text-xs">
               <p className="text-white/40">$ curl -X POST \</p>
-              <p className="break-all text-accent-sky">{API_BASE}/v1/chat/completions \</p>
+              <p className="break-all text-[#9DB894]">{API_BASE}/v1/chat/completions \</p>
               <p className="break-all text-white/60">-H &quot;Authorization: Bearer sk-•••&quot; \</p>
               <p className="break-all text-white/60">-d &quot;{'{'}&quot;model&quot;: &quot;claude-opus-5&quot;{'}'}&quot;</p>
-              <p className="text-accent-mint">200 OK · 1.2s</p>
+              <p className="text-emerald-400">200 OK · 1.2s</p>
               <p className="flex items-center gap-1.5 text-white/40">
-                $ <span className="inline-block h-3.5 w-2 animate-pulse bg-accent-mint/70" />
+                $ <span className="inline-block h-3.5 w-2 animate-pulse bg-emerald-400/70" />
               </p>
             </div>
           </motion.div>
@@ -275,7 +275,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-neo border border-base-line bg-base-ink shadow-neo">
+        <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-neo border border-base-line bg-[#1C1917] shadow-neo">
           {/* Tabs */}
           <div className="flex items-stretch overflow-x-auto border-b border-base-line/30">
             <div className="flex shrink-0">
@@ -285,7 +285,7 @@ export default function HomePage() {
                   onClick={() => setActiveTab(i)}
                   className={`whitespace-nowrap px-3 py-2.5 text-xs font-bold transition-colors sm:px-4 sm:text-sm ${
                     activeTab === i
-                      ? "bg-base-surface text-base-ink"
+                      ? "bg-white/10 text-white"
                       : "text-white/60 hover:text-white"
                   }`}
                 >
@@ -303,7 +303,7 @@ export default function HomePage() {
           </div>
           {/* Code */}
           <pre className="overflow-x-auto p-3 text-[11px] leading-relaxed sm:p-4 sm:text-sm">
-            <code className="font-mono text-accent-mint">{codeExamples[activeTab].code}</code>
+            <code className="font-mono text-[#A8C69A]">{codeExamples[activeTab].code}</code>
           </pre>
         </div>
       </motion.section>

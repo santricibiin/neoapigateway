@@ -8,16 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/lang";
+import { formatTokens } from "@/lib/format-tokens";
 
 type Tier = { id: number; code: string; label: string; tokens: number; validDays: number; price: number; sortOrder: number };
 type Order = { id: string; invoice: string; amount: number; tokens: number; status: string; tierLabel: string; expiresAt: string; createdAt: string };
-
-function formatTokens(v: number) {
-  if (v >= 1_000_000_000) return `${(v / 1_000_000_000).toFixed(0)}B`;
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(0)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(0)}K`;
-  return v.toLocaleString("id-ID");
-}
 
 function money(v: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(v);
@@ -161,7 +155,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.15, type: "spring", stiffness: 280, damping: 16 }}
-            className="flex h-14 w-14 items-center justify-center rounded-neo border border-base-line bg-white shadow-neo-sm"
+            className="flex h-14 w-14 items-center justify-center rounded-neo border border-base-line bg-base-surface shadow-neo-sm"
           >
             <ScanLine className="h-7 w-7 text-accent-terra" strokeWidth={2.5} />
           </motion.span>
@@ -181,7 +175,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 }}
-              className="ml-auto hidden items-center gap-1.5 rounded-full border border-base-line bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-wider shadow-neo-sm sm:inline-flex"
+              className="ml-auto hidden items-center gap-1.5 rounded-full border border-base-line bg-base-surface px-3 py-1.5 text-[10px] font-black uppercase tracking-wider shadow-neo-sm sm:inline-flex"
             >
               <CheckCircle2 className="h-3.5 w-3.5 text-accent-sageDeep" /> {paidCount} topup lunas
             </motion.span>
@@ -203,7 +197,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
             variants={riseIn}
             whileHover={{ y: -5 }}
             transition={{ type: "spring", stiffness: 350, damping: 22 }}
-            className="group relative overflow-hidden rounded-neo border border-base-line bg-white p-5 shadow-neo-sm transition-shadow hover:shadow-neo"
+            className="group relative overflow-hidden rounded-neo border border-base-line bg-base-surface p-5 shadow-neo-sm transition-shadow hover:shadow-neo"
           >
             <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -bottom-12 -right-10 h-32 w-32 text-accent-sage/20">
               <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="12" />
@@ -234,7 +228,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
           </motion.div>
         ))}
         {!tiers.length && (
-          <div className="col-span-full rounded-neo border border-dashed border-base-line bg-white py-16 text-center">
+          <div className="col-span-full rounded-neo border border-dashed border-base-line bg-base-surface py-16 text-center">
             <Wallet className="mx-auto h-10 w-10 text-base-ink/20" />
             <p className="mt-3 font-black">{t("Belum ada paket topup aktif")}</p>
           </div>
@@ -251,7 +245,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
                   <div className="text-[10px] font-black uppercase text-base-ink/55">{t("No. Invoice")}</div>
                   <div className="mt-0.5 break-all font-mono text-sm font-extrabold">{payment.invoice}</div>
                 </div>
-                <div className="rounded-neo border border-base-line bg-white p-4 shadow-neo-sm">
+                <div className="rounded-neo border border-base-line bg-base-surface p-4 shadow-neo-sm">
                   {qrUrl ? (
                     <motion.img
                       initial={{ opacity: 0, scale: 0.95 }}
@@ -292,7 +286,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
                   initial={{ scale: 0, rotate: -30 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 14 }}
-                  className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-base-line bg-white"
+                  className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-base-line bg-base-surface"
                 >
                   <CheckCircle2 className="h-8 w-8 text-accent-sageDeep" />
                 </motion.span>
@@ -314,7 +308,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
       </Modal>
 
       {/* Riwayat */}
-      <div className="overflow-hidden rounded-neo border border-base-line bg-white shadow-neo-sm">
+      <div className="overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-sm">
         <div className="flex items-center justify-between gap-2 border-b border-base-line bg-base-bg p-4">
           <div className="flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-neo border border-base-line bg-accent-skySoft">
@@ -349,7 +343,7 @@ export function ReswebTopupClient({ tiers, orders: initialOrders }: { tiers: Tie
         </div>
         <div className="hidden overflow-x-auto sm:block">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="bg-base-ink text-xs uppercase tracking-wide text-white">
+            <thead className="bg-base-ink text-base-bg text-xs uppercase tracking-wide">
               <tr>
                 <th className="px-4 py-3">{t("Invoice")}</th>
                 <th className="px-4 py-3">{t("Paket")}</th>

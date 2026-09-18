@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { PanelLeftClose, PanelLeftOpen, Zap, ShieldCheck } from "lucide-react";
 import { DashboardProfileMenu } from "@/components/shared/dashboard-profile-menu";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { useBrand } from "@/lib/use-brand";
 
 export function DashboardHeader({
@@ -57,7 +58,10 @@ export function DashboardHeader({
           </div>
         </div>
 
-        <DashboardProfileMenu adminId={adminId} />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <DashboardProfileMenu adminId={adminId} />
+        </div>
       </div>
     </header>
   );

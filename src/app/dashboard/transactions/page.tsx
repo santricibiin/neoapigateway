@@ -10,12 +10,10 @@ export default async function TransactionsPage() {
     prisma.paymentOrder.findMany({
       orderBy: { createdAt: "desc" },
       include: { token: { include: { category: true } } },
-      take: 200,
     }),
     prisma.resellerWebOrder.findMany({
       orderBy: { createdAt: "desc" },
       include: { reseller: { select: { name: true, email: true } }, tier: { select: { code: true, label: true } } },
-      take: 200,
     }),
   ]);
 
@@ -56,7 +54,7 @@ export default async function TransactionsPage() {
       paidAt: o.paidAt?.toISOString() || null,
       source: "ResWeb" as const,
     })),
-  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 200);
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return (
     <TransactionAdminClient

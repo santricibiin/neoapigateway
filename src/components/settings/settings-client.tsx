@@ -150,7 +150,7 @@ export function SettingsClient({
           <path d="M50 6 61 38 95 39 68 58 77 91 50 72 23 91 32 58 5 39 39 38Z" fill="currentColor" />
         </svg>
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+          <span className="inline-flex items-center gap-2 rounded-full border border-base-line bg-base-surface px-3 py-1 text-[10px] font-black uppercase tracking-widest">
             <ShieldCheck className="h-3 w-3" /> Konfigurasi Sistem
           </span>
           <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Pengaturan.</h1>
@@ -232,7 +232,7 @@ export function SettingsClient({
                     onChange={(e) => setMaintenanceOn(e.target.checked)}
                     className="peer sr-only"
                   />
-                  <span className={`h-7 w-12 rounded-full border-2 border-base-line shadow-neo-sm transition-colors after:absolute after:left-0.5 after:top-1/2 after:h-5 after:w-5 after:-translate-y-1/2 after:rounded-full after:border-2 after:border-base-line after:bg-white after:transition-transform peer-checked:bg-accent-terra peer-checked:after:translate-x-5 ${maintenanceOn ? "bg-accent-terra" : "bg-base-surface"}`} />
+                  <span className={`h-7 w-12 rounded-full border-2 border-base-line shadow-neo-sm transition-colors after:absolute after:left-0.5 after:top-1/2 after:h-5 after:w-5 after:-translate-y-1/2 after:rounded-full after:border-2 after:border-base-line after:bg-base-surface after:transition-transform peer-checked:bg-accent-terra peer-checked:after:translate-x-5 ${maintenanceOn ? "bg-accent-terra" : "bg-base-surface"}`} />
                 </label>
               </div>
               <div>

@@ -213,7 +213,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
               setTab(item.key);
               setQuery("");
             }}
-            className={`rounded-neo border border-base-line px-4 py-2 text-sm font-black shadow-neo-sm transition-colors ${tab === item.key ? "bg-base-ink text-white" : "bg-white"}`}
+            className={`rounded-neo border border-base-line px-4 py-2 text-sm font-black shadow-neo-sm transition-colors ${tab === item.key ? "bg-base-ink text-base-bg" : "bg-base-surface"}`}
           >
             {item.label} <span className="opacity-60">({item.count})</span>
           </button>
@@ -228,7 +228,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
           <div className="grid gap-3 sm:grid-cols-3">
             <Stat label="Aktif" value={bandelAllowed} bg="bg-accent-mint" />
             <Stat label="Dimatikan" value={bandel.length - bandelAllowed} bg="bg-accent-sun" />
-            <Stat label="Total" value={bandel.length} bg="bg-white" />
+            <Stat label="Total" value={bandel.length} bg="bg-base-surface" />
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -250,7 +250,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
             {filteredBandel.map((model) => (
               <div
                 key={model.id}
-                className={`flex items-center justify-between gap-3 rounded-neo border border-base-line p-4 shadow-neo-sm ${model.allowed ? "bg-white" : "bg-base-bg"}`}
+                className={`flex items-center justify-between gap-3 rounded-neo border border-base-line p-4 shadow-neo-sm ${model.allowed ? "bg-base-surface" : "bg-base-bg"}`}
               >
                 <div className="min-w-0">
                   <p className={`truncate font-mono text-sm font-bold ${model.allowed ? "" : "line-through opacity-55"}`}>{model.id}</p>
@@ -278,7 +278,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
           </div>
 
           {!filteredBandel.length ? (
-            <div className="rounded-neo border border-dashed border-base-line bg-white py-16 text-center">
+            <div className="rounded-neo border border-dashed border-base-line bg-base-surface py-16 text-center">
               <Server className="mx-auto h-10 w-10 text-base-ink/25" />
               <p className="mt-3 font-black">{bandel.length ? "Tidak ada model cocok" : "Model tidak termuat"}</p>
             </div>
@@ -320,9 +320,9 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
 
           <div className="grid gap-3 sm:grid-cols-4">
             <Stat label="Provider aktif" value={providers.filter((p) => p.enabled).length} bg="bg-accent-mint" />
-            <Stat label="Total provider" value={providers.length} bg="bg-white" />
+            <Stat label="Total provider" value={providers.length} bg="bg-base-surface" />
             <Stat label="Model tersaji" value={routerOn ? routerActiveModels : 0} bg="bg-accent-sky" />
-            <Stat label="Total model" value={routerModelCount} bg="bg-white" />
+            <Stat label="Total model" value={routerModelCount} bg="bg-base-surface" />
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -347,7 +347,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(index * 0.02, 0.25) }}
-                className={`rounded-neo border border-base-line p-4 shadow-neo-sm ${row.enabled ? "bg-white" : "bg-base-bg"}`}
+                className={`rounded-neo border border-base-line p-4 shadow-neo-sm ${row.enabled ? "bg-base-surface" : "bg-base-bg"}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
@@ -379,7 +379,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
           </div>
 
           {!filteredProviders.length ? (
-            <div className="rounded-neo border border-dashed border-base-line bg-white py-16 text-center">
+            <div className="rounded-neo border border-dashed border-base-line bg-base-surface py-16 text-center">
               <Network className="mx-auto h-10 w-10 text-base-ink/25" />
               <p className="mt-3 font-black">{providers.length ? "Tidak ada provider cocok" : "Provider tidak termuat"}</p>
               <p className="text-sm font-semibold text-base-ink/45">
@@ -415,7 +415,7 @@ export function UpstreamAdminClient({ data }: { data: UpstreamPageData }) {
               {detail.models.map((model) => (
                 <li
                   key={model.id}
-                  className={`flex items-center justify-between gap-3 rounded-neo border border-base-line p-3 ${model.allowed ? "bg-white" : "bg-base-bg"}`}
+                  className={`flex items-center justify-between gap-3 rounded-neo border border-base-line p-3 ${model.allowed ? "bg-base-surface" : "bg-base-bg"}`}
                 >
                   <div className="min-w-0">
                     <p className={`truncate font-mono text-xs font-bold ${model.allowed ? "" : "line-through opacity-55"}`}>

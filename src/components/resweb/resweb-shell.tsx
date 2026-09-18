@@ -4,14 +4,15 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, Wallet, LayoutDashboard, Newspaper, Sparkles, Boxes, Settings, Code, PanelLeftClose, PanelLeftOpen, TrendingUp } from "lucide-react";
+import { LogOut, WalletCards, LayoutDashboard, Newspaper, Sparkles, Boxes, Settings, Code2, PanelLeftClose, PanelLeftOpen, TrendingUp } from "lucide-react";
 import { logoutResWeb } from "@/app/actions/resweb-auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { LangSwitch } from "@/components/resweb/res-lang";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { useT } from "@/lib/lang";
 
-type NavItem = { href: string; label: string; icon: typeof Wallet };
+type NavItem = { href: string; label: string; icon: typeof WalletCards };
 
 const navSections: Array<{ title?: string; items: NavItem[] }> = [
   {
@@ -20,7 +21,7 @@ const navSections: Array<{ title?: string; items: NavItem[] }> = [
   {
     title: "Operasional",
     items: [
-      { href: "/res/topup", label: "Topup", icon: Wallet },
+      { href: "/res/topup", label: "Topup", icon: WalletCards },
       { href: "/res/models", label: "Model", icon: Boxes },
     ],
   },
@@ -28,7 +29,7 @@ const navSections: Array<{ title?: string; items: NavItem[] }> = [
     title: "Lainnya",
     items: [
       { href: "/res/news", label: "Berita", icon: Newspaper },
-      { href: "/res/api-docs", label: "API Docs", icon: Code },
+      { href: "/res/api-docs", label: "API Docs", icon: Code2 },
       { href: "/res/settings", label: "Setting", icon: Settings },
     ],
   },
@@ -85,7 +86,7 @@ export function ReswebShell({
             </motion.button>
             {/* Brand dalam kotak menyatu */}
             <div className="flex min-w-0 items-center gap-2.5 rounded-neo border border-base-line bg-base-bg px-3 py-1.5 shadow-neo-sm">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo bg-gradient-to-br from-accent-terra to-accent-terraDeep shadow-neo-sm">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-neo bg-gradient-to-br from-[#C2703D] to-[#A85A2E] shadow-neo-sm">
                 <Sparkles className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
               </span>
               <div className="min-w-0">
@@ -99,6 +100,7 @@ export function ReswebShell({
           </div>
           <div className="flex items-center gap-3">
             <LangSwitch />
+            <ThemeToggle />
             <div className="hidden items-center gap-2.5 rounded-neo border border-base-line bg-base-bg px-3 py-1.5 shadow-neo-sm sm:flex">
               <span className="flex h-7 w-7 items-center justify-center rounded-neo bg-accent-sageSoft">
                 <TrendingUp className="h-4 w-4 text-accent-sageDeep" strokeWidth={2.5} />
@@ -109,9 +111,8 @@ export function ReswebShell({
               </div>
             </div>
             <div className="flex items-center gap-2 rounded-neo border border-base-line bg-base-bg px-2.5 py-1.5 shadow-neo-sm sm:hidden">
-              <Wallet className="h-4 w-4 text-accent-sageDeep" strokeWidth={2.5} />
-              <p className="font-mono text-sm font-black tabular-nums">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</p>
-            </div>
+              <WalletCards className="h-4 w-4 text-accent-sageDeep" strokeWidth={2.5} />
+              <p className="font-mono text-sm font-black tabular-nums">{(reseller?.balance ?? 0).toLocaleString("id-ID")}</p></div>
             <form action={() => logoutResWeb()}>
               <Button type="submit" size="sm" variant="outline">
                 <LogOut className="h-4 w-4" />
@@ -129,8 +130,8 @@ export function ReswebShell({
         className="fixed bottom-3 left-3 top-20 z-40 hidden flex-col overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-lg lg:flex"
       >
         <div className={cn("flex items-center border-b border-base-line px-4 pb-3 pt-4", collapsed ? "justify-center" : "gap-2.5")}>
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-neo bg-gradient-to-br from-accent-terra to-accent-terraDeep shadow-neo-sm">
-            <Wallet className="h-4 w-4 text-white" strokeWidth={2.5} />
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-neo bg-gradient-to-br from-[#C2703D] to-[#A85A2E] shadow-neo-sm">
+            <WalletCards className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
           </span>
           <AnimatePresence>
             {!collapsed ? (
@@ -188,10 +189,10 @@ export function ReswebShell({
                         ) : null}
                         <Icon
                           className={cn(
-                            "h-4 w-4 shrink-0 transition-colors",
+                            "h-4.5 w-4.5 shrink-0 transition-colors",
                             active ? "text-accent-terra" : "text-base-ink/40 group-hover:text-base-ink/70"
                           )}
-                          strokeWidth={2.5}
+                          strokeWidth={3}
                         />
                         {!collapsed && <span className="truncate">{t(item.label)}</span>}
                       </Link>
@@ -213,7 +214,7 @@ export function ReswebShell({
               )}
               title={collapsed ? t("Keluar") : undefined}
             >
-              <LogOut className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+              <LogOut className="h-4.5 w-4.5 shrink-0" strokeWidth={2.75} />
               {!collapsed && <span className="truncate">{t("Keluar")}</span>}
             </button>
           </form>
@@ -235,7 +236,7 @@ export function ReswebShell({
           return (
             <Link key={item.href} href={item.href} className={cn("flex flex-col items-center gap-0.5 rounded-neo py-1 text-[10px] font-bold", active ? "text-base-ink" : "text-base-ink/45")}>
               <motion.span whileTap={{ scale: 0.9 }} className={cn("flex h-8 w-8 items-center justify-center rounded-neo border border-base-ink", active ? "bg-accent-terra text-white shadow-neo-sm" : "bg-transparent")}>
-                <item.icon className="h-4 w-4" strokeWidth={2.5} />
+                <item.icon className="h-4.5 w-4.5" strokeWidth={3} />
               </motion.span>
               {t(item.label)}
             </Link>

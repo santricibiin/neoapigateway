@@ -20,7 +20,7 @@ export default async function ProductsPage() {
       <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 px-4 py-20 text-center">
         <h1 className="text-2xl font-extrabold">Gagal memuat produk</h1>
         <p className="text-base-ink/70">Silakan refresh halaman atau coba lagi nanti.</p>
-        <a href="/" className="text-sm font-bold text-accent-sky hover:underline">Kembali ke Beranda</a>
+        <a href="/" className="text-sm font-bold text-accent-sageDeep hover:underline">Kembali ke Beranda</a>
       </div>
     );
   }

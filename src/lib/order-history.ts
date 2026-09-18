@@ -52,7 +52,7 @@ export function updateOrderHistory(invoice: string, status: string, delivered?: 
 }
 
 /** Batas pesanan pending per device (rate limiting sederhana). */
-export const MAX_PENDING_ORDERS = 3;
+export const MAX_PENDING_ORDERS = 2;
 
 export function countPendingOrders(): number {
   return readOrderHistory().filter((i) => i.status === "pending").length;

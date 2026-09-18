@@ -28,7 +28,7 @@ export function DashboardProfileMenu({ adminId }: { adminId: number }) {
         className="flex items-center gap-2.5 rounded-neo border border-base-line bg-base-surface py-1.5 pl-1.5 pr-2.5 shadow-neo-sm transition-colors hover:border-stone-400"
         aria-expanded={open}
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-neo bg-gradient-to-br from-accent-terra to-accent-terraDeep text-sm font-black text-white shadow-neo-sm">
+        <span className="flex h-8 w-8 items-center justify-center rounded-neo bg-gradient-to-br from-[#C2703D] to-[#A85A2E] text-sm font-black text-white shadow-neo-sm">
           A
         </span>
         <span className="hidden text-sm font-bold sm:inline">Admin</span>
@@ -47,12 +47,12 @@ export function DashboardProfileMenu({ adminId }: { adminId: number }) {
             className="absolute right-0 top-full mt-2 w-60 overflow-hidden rounded-neo border border-base-line bg-base-surface shadow-neo-lg"
           >
             {/* Kartu identitas */}
-            <div className="relative overflow-hidden bg-base-ink p-4">
+            <div className="relative overflow-hidden bg-[#1C1917] p-4">
               <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 text-white/10">
                 <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="10" />
               </svg>
               <div className="relative flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-neo bg-gradient-to-br from-accent-terra to-accent-terraDeep text-base font-black text-white">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-neo bg-gradient-to-br from-[#C2703D] to-[#A85A2E] text-base font-black text-white">
                   A
                 </span>
                 <div className="min-w-0">

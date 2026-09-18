@@ -172,7 +172,7 @@ export function TrackClient({ order: initialOrder }: { order: TrackOrder }) {
                   <div className="flex flex-col items-center gap-1">
                     <span
                       className={`flex h-8 w-8 items-center justify-center rounded-full border border-base-line ${
-                        step.done ? "bg-base-ink text-white" : "bg-white text-base-ink/30"
+                        step.done ? "bg-base-ink text-base-bg" : "bg-base-surface text-base-ink/30"
                       }`}
                     >
                       {step.done ? <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} /> : <Clock className="h-4 w-4" strokeWidth={2.5} />}

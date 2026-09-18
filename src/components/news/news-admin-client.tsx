@@ -62,7 +62,7 @@ export function NewsAdminClient({ initialNews }: { initialNews: NewsItem[] }) {
       {error ? <p className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</p> : null}
       <div className="grid gap-4 lg:grid-cols-2">
         {initialNews.map((item, index) => (
-          <motion.article key={item.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }} className="relative overflow-hidden rounded-neo border border-base-line bg-white p-5 shadow-neo-sm">
+          <motion.article key={item.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }} className="relative overflow-hidden rounded-neo border border-base-line bg-base-surface p-5 shadow-neo-sm">
             <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 text-accent-sky/20"><circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="12" /></svg>
             <div className="relative flex items-start justify-between gap-3"><div><span className={`inline-flex rounded-full border border-base-line px-2.5 py-1 text-[10px] font-extrabold uppercase ${item.active ? "bg-accent-mint" : "bg-base-bg"}`}>{item.active ? "Aktif" : "Nonaktif"}</span><h2 className="mt-3 text-lg font-black">{item.title}</h2></div><span className="font-mono text-[10px] font-bold text-base-ink/40">#{item.id}</span></div>
             <p className="relative mt-2 line-clamp-4 whitespace-pre-wrap text-sm font-semibold leading-relaxed text-base-ink/65">{item.content}</p>
@@ -75,11 +75,11 @@ export function NewsAdminClient({ initialNews }: { initialNews: NewsItem[] }) {
           </motion.article>
         ))}
       </div>
-      {!initialNews.length ? <div className="rounded-neo border border-dashed border-base-line bg-white py-16 text-center"><Megaphone className="mx-auto h-10 w-10 text-base-ink/25" /><p className="mt-3 font-black">Belum ada berita</p><p className="text-sm font-semibold text-base-ink/45">Buat berita pertama untuk member.</p></div> : null}
+      {!initialNews.length ? <div className="rounded-neo border border-dashed border-base-line bg-base-surface py-16 text-center"><Megaphone className="mx-auto h-10 w-10 text-base-ink/25" /><p className="mt-3 font-black">Belum ada berita</p><p className="text-sm font-semibold text-base-ink/45">Buat berita pertama untuk member.</p></div> : null}
       <Modal open={formOpen} onClose={() => setFormOpen(false)} title={editing ? "Edit Berita" : "Tambah Berita"} className="max-h-[90vh] overflow-y-auto">
         <form action={save} className="space-y-4">
           <Input name="title" label="Judul" defaultValue={editing?.title || ""} minLength={3} maxLength={120} placeholder="Judul berita" required />
-          <label className="block text-sm font-bold">Isi berita<textarea name="content" defaultValue={editing?.content || ""} minLength={3} maxLength={5000} rows={8} placeholder="Tulis pesan untuk member..." className="mt-1.5 w-full resize-y rounded-neo border border-base-line bg-white px-4 py-3 text-sm font-semibold leading-relaxed shadow-neo-sm outline-none focus:shadow-neo" required /></label>
+          <label className="block text-sm font-bold">Isi berita<textarea name="content" defaultValue={editing?.content || ""} minLength={3} maxLength={5000} rows={8} placeholder="Tulis pesan untuk member..." className="mt-1.5 w-full resize-y rounded-neo border border-base-line bg-base-surface px-4 py-3 text-sm font-semibold leading-relaxed shadow-neo-sm outline-none focus:shadow-neo" required /></label>
           <label className="flex items-center gap-3 rounded-neo border border-base-line bg-base-bg p-3 text-sm font-bold"><input type="checkbox" name="active" defaultChecked={editing?.active ?? true} className="h-5 w-5 accent-black" /> Tampilkan ke member</label>
           {error ? <p className="rounded-neo border border-base-line bg-accent-terraSoft p-3 text-sm font-bold">{error}</p> : null}
           <Button type="submit" className="w-full" disabled={saving}>{saving ? "Menyimpan..." : "Simpan Berita"}</Button>
