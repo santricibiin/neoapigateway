@@ -961,7 +961,7 @@ function Playground({
 
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-neo border border-base-line bg-accent-lavender p-5 shadow-neo">
+      <div className="relative overflow-hidden rounded-neo border border-base-line bg-accent-lavender p-4 shadow-neo sm:p-6">
         <motion.svg animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 text-white/35">
           <path d="M50 5 61 38 95 39 68 58 77 91 50 72 23 91 32 58 5 39 39 38Z" fill="currentColor" />
         </motion.svg>
@@ -974,7 +974,7 @@ function Playground({
         </div>
       </div>
 
-      <Card>
+      <Card className="p-4 sm:p-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Send className="h-5 w-5" /> POST /chat/completions</CardTitle>
         </CardHeader>
@@ -986,14 +986,14 @@ function Playground({
                 <Copy className="h-3.5 w-3.5" />{copied === "playground-curl" ? "Tersalin" : "Copy"}
               </Button>
             </div>
-            <pre className="overflow-x-auto rounded-neo border border-base-line bg-base-ink p-3 text-xs font-mono font-bold text-emerald-300">{playgroundCurl}</pre>
+            <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-neo border border-base-line bg-base-ink p-3 text-xs font-mono font-bold text-emerald-300">{playgroundCurl}</pre>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="min-w-0 space-y-3">
               <div>
                 <label className="mb-1 block text-[10px] font-black uppercase tracking-widest text-base-ink/50">Model</label>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <select
                     value={selectedModel}
                     disabled={loadingModels || !models.length}
@@ -1021,8 +1021,8 @@ function Playground({
                   value={bodyText}
                   onChange={(event) => setBodyText(event.target.value)}
                   spellCheck={false}
-                  rows={12}
-                  className="w-full resize-y rounded-neo border border-base-line bg-base-bg p-3 font-mono text-xs font-bold focus:outline-none"
+                  rows={6}
+                  className="min-h-56 w-full resize-y rounded-neo border border-base-line bg-base-bg p-3 font-mono text-xs font-bold focus:outline-none md:min-h-80"
                 />
                 {bodyError ? <p className="mt-1 rounded-neo border border-base-line bg-accent-terraSoft p-2 text-xs font-bold">{bodyError}</p> : null}
               </div>
@@ -1032,7 +1032,7 @@ function Playground({
               </Button>
             </div>
 
-            <div className="space-y-3">
+            <div className="min-w-0 space-y-3 md:sticky md:top-4 md:self-start">
               <div className="rounded-neo border border-base-line bg-base-ink p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400"><ArrowUpCircle className="h-3.5 w-3.5" /> Request Sent</span>
@@ -1065,7 +1065,7 @@ function Playground({
                   <>
                     <div className="rounded border border-slate-700 bg-slate-900 p-2">
                       <p className="mb-1 text-[10px] font-bold uppercase text-slate-500">Assistant Response</p>
-                      <div className="max-h-44 overflow-y-auto whitespace-pre-wrap break-words text-xs text-slate-200">{response.content}</div>
+                      <div className="max-h-44 overflow-y-auto whitespace-pre-wrap break-words text-xs text-slate-200 sm:max-h-72">{response.content}</div>
                     </div>
                     <details open className="mt-2">
                       <summary className="cursor-pointer text-xs font-bold text-slate-500">Raw JSON Response</summary>
@@ -1079,7 +1079,7 @@ function Playground({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="p-4 sm:p-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Gauge className="h-5 w-5" /> GET /quota</CardTitle>
         </CardHeader>
@@ -1087,8 +1087,8 @@ function Playground({
           <p className="text-sm font-semibold text-base-ink/60">
             Cek status quota API key Anda secara programatik. Kirim API key di header <code className="rounded border border-base-line bg-base-bg px-1.5 py-0.5 font-mono text-xs font-bold">Authorization: Bearer &lt;API_KEY&gt;</code>. Cocok untuk monitoring pemakaian token dari script atau aplikasi.
           </p>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="min-w-0 space-y-3">
               <div>
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-base-ink/50">cURL Example</label>
@@ -1096,14 +1096,14 @@ function Playground({
                     <Copy className="h-3.5 w-3.5" />{copied === "quota-curl" ? "Tersalin" : "Copy"}
                   </Button>
                 </div>
-                <pre className="overflow-x-auto rounded-neo border border-base-line bg-base-ink p-3 text-xs font-mono font-bold text-emerald-300">{quotaCurl}</pre>
+                <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-neo border border-base-line bg-base-ink p-3 text-xs font-mono font-bold text-emerald-300">{quotaCurl}</pre>
               </div>
               <Button type="button" variant="sun" className="w-full" disabled={quotaLoading} onClick={() => void testQuotaCheck()}>
                 {quotaLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                 {quotaLoading ? "Mengecek..." : "Test Check Quota"}
               </Button>
             </div>
-            <div className="rounded-neo border border-base-line bg-base-ink p-3">
+            <div className="min-w-0 rounded-neo border border-base-line bg-base-ink p-3 md:sticky md:top-4 md:self-start">
               <div className="mb-2 flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
                   <ArrowDownCircle className="h-3.5 w-3.5" /> Response
@@ -1119,7 +1119,7 @@ function Playground({
               ) : !quotaResult ? (
                 <>
                   <p className="mb-1 text-xs text-slate-500">Contoh response:</p>
-                  <pre className="font-mono text-[10px] leading-relaxed text-slate-500">{JSON.stringify(QUOTA_SAMPLE_RESPONSE, null, 2)}</pre>
+                  <pre className="overflow-x-auto font-mono text-[10px] leading-relaxed text-slate-500">{JSON.stringify(QUOTA_SAMPLE_RESPONSE, null, 2)}</pre>
                 </>
               ) : "error" in quotaResult ? (
                 <p className="rounded border-2 border-red-500 bg-red-950 p-2 text-xs font-bold text-red-300">{String(quotaResult.error)}</p>
