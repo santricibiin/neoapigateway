@@ -5,7 +5,7 @@
 #   BASE_URL="https://domainmu/v1" API_KEY="sk-xxxx" bash <(curl -fsSL https://domainmu/docs/linux.sh)
 #
 # Env var:
-#   BASE_URL  (wajib)  — base URL endpoint, contoh https://bandelbanget.xyz/v1
+#   BASE_URL  (wajib)  — base URL endpoint, contoh https://domainmu/v1
 #   API_KEY   (wajib)  — API key member (sk-xxxx)
 #   MODEL     (opsional) — model default, default: glm-5.3
 #   PROVIDER_NAME (opsional) — nama provider di config, default: buatprem

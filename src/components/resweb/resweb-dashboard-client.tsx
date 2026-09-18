@@ -8,7 +8,7 @@ import { Wallet, Users, ShoppingBag, PlusCircle, Copy, Check, Loader2, Eye, EyeO
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
-import { QUOTA_PACKAGES } from "@/lib/bandelbanget";
+import { QUOTA_PACKAGES } from "@/lib/quota-packages";
 import { useT } from "@/lib/lang";
 
 type Reseller = { id: number; name: string; email: string; balance: number; active: boolean; createdAt: string };

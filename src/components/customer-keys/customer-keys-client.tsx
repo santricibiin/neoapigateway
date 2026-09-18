@@ -6,7 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
-import { QUOTA_PACKAGES, type ResellerKey } from "@/lib/bandelbanget";
+import { QUOTA_PACKAGES } from "@/lib/quota-packages";
+import type { ResellerKey } from "@/lib/bandelbanget";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 10;

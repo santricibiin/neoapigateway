@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { FloatingShapes } from "@/components/shared/floating-shapes";
 import { BadgeCheck, Package, ShoppingCart, Search, LayoutGrid, List, Coins, Boxes, Tag, Zap } from "lucide-react";
-import { QUOTA_PACKAGES } from "@/lib/bandelbanget";
+import { QUOTA_PACKAGES } from "@/lib/quota-packages";
 import { useT } from "@/lib/lang";
 
 interface Product {

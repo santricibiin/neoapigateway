@@ -1,4 +1,4 @@
-import { upstreamBaseFor } from "@/lib/bandel-upstream";
+import { upstreamBaseFor, publicBrandName } from "@/lib/bandel-upstream";
 import {
   filterModelListPayload,
   modelFromRequestBody,
@@ -8,6 +8,7 @@ import {
   type ModelGateConfig,
 } from "@/lib/model-gate";
 import { fetchRouterModels, routerBase, routerKey } from "@/lib/router-upstream";
+import { checkUpstreamKey } from "@/lib/v1-key-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +82,16 @@ async function modelList(upstream: Response, config: ModelGateConfig) {
       console.error("[v1/models] router tidak terjangkau:", error instanceof Error ? error.message : error);
     }
   }
+
+  // Timpa owned_by upstream (mis. "bandelbanget-proxy") dengan nama brand sendiri
+  // supaya identitas provider di belakang proxy tidak bocor ke client.
+  if (merged && Array.isArray(merged.data)) {
+    const brand = publicBrandName();
+    for (const model of merged.data) {
+      const row = model as { owned_by?: unknown } | null;
+      if (row && typeof row.owned_by === "string") row.owned_by = brand;
+    }
+  }
   return Response.json(merged, { status: upstream.status, headers });
 }
 
@@ -111,6 +122,23 @@ async function proxy(request: Request, path: string[]) {
   const source = new URL(request.url);
   const suffix = `${path.map(encodeURIComponent).join("/")}${source.search}`;
   const target = toRouter ? `${routerBase()}/v1/${suffix}` : `${upstreamBaseFor(request)}/v1/${suffix}`;
+
+  // F-01: gerbang key member. Lewati untuk request router 9router (auth-nya
+  // diganti key milik kita sendiri). Jalur bandel & VIP divalidasi karena semua
+  // key member diterbitkan dari akun reseller yang sama. Gate fail-open saat
+  // daftar key tidak tersedia — lihat src/lib/v1-key-auth.ts.
+  if (!toRouter && !(await checkUpstreamKey(request))) {
+    return Response.json(
+      {
+        error: {
+          message: "Invalid API key provided.",
+          type: "invalid_request_error",
+          code: "invalid_api_key",
+        },
+      },
+      { status: 401, headers: corsHeaders() }
+    );
+  }
 
   const headers = new Headers();
   request.headers.forEach((value, key) => {

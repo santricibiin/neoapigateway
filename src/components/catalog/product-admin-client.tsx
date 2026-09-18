@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { createProduct, deleteProduct, updateProduct } from "@/app/actions/products";
 import { cn } from "@/lib/utils";
-import { QUOTA_PACKAGES } from "@/lib/bandelbanget";
+import { QUOTA_PACKAGES } from "@/lib/quota-packages";
 
 const QUOTA_PACKAGE_OPTIONS = [
   { code: "1M", label: "1.000.000", days: 7 },

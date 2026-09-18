@@ -1,5 +1,10 @@
 import { bandelUpstreamBase, publicApiBase } from "@/lib/bandel-upstream";
 import { prisma } from "@/lib/prisma";
+import { QUOTA_PACKAGES } from "@/lib/quota-packages";
+
+// Re-export supaya import server-side lama tetap jalan; komponen client HARUS
+// import langsung dari @/lib/quota-packages (file ini menyeret URL upstream).
+export { QUOTA_PACKAGES };
 
 const BASE_URL = bandelUpstreamBase();
 
@@ -145,23 +150,6 @@ export interface CreatedTopup {
   redirectUrl?: string;
   expiryAt?: number;
 }
-
-export const QUOTA_PACKAGES = {
-  "1M": { tokens: 1_000_000, validDays: 7 },
-  "5M": { tokens: 5_000_000, validDays: 7 },
-  "10M": { tokens: 10_000_000, validDays: 7 },
-  "20M": { tokens: 20_000_000, validDays: 7 },
-  "50M": { tokens: 50_000_000, validDays: 14 },
-  "100M": { tokens: 100_000_000, validDays: 14 },
-  "200M": { tokens: 200_000_000, validDays: 21 },
-  "500M": { tokens: 500_000_000, validDays: 28 },
-  "1B": { tokens: 1_000_000_000, validDays: 28 },
-  "2B": { tokens: 2_000_000_000, validDays: 28 },
-  "3B": { tokens: 3_000_000_000, validDays: 28 },
-  "4B": { tokens: 4_000_000_000, validDays: 28 },
-  "5B": { tokens: 5_000_000_000, validDays: 28 },
-  "10B": { tokens: 10_000_000_000, validDays: 28 },
-} as const;
 
 export async function addCustomerQuota(
   secretKey: string,
